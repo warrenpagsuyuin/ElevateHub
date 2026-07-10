@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\OtpMail;
 use App\Models\User;
+use Database\Seeders\AdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -31,6 +32,17 @@ class LoginFlowTest extends TestCase
             ->assertSessionHasErrors([
                 'email' => 'We could not find an account with that email.',
             ]);
+    }
+
+    public function test_admin_seeder_creates_the_default_admin_login(): void
+    {
+        $this->seed(AdminSeeder::class);
+
+        $admin = User::where('email', 'admin@elevate.local')->firstOrFail();
+
+        $this->assertSame('Elevate Admin', $admin->name);
+        $this->assertSame('admin', $admin->role);
+        $this->assertTrue(Hash::check('password', $admin->password));
     }
 
     public function test_admin_uses_password_and_redirects_to_admin_dashboard(): void

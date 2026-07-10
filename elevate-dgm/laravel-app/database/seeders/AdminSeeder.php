@@ -10,12 +10,16 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        $email = (string) env('DEFAULT_ADMIN_EMAIL', 'admin@elevate.local');
+        $name = (string) env('DEFAULT_ADMIN_NAME', 'Elevate Admin');
+        $password = (string) env('DEFAULT_ADMIN_PASSWORD', 'password');
+
         User::updateOrCreate(
-            ['email' => 'admin@elevate.local'],
+            ['email' => $email],
             [
-                'name' => 'Elevate Admin',
+                'name' => $name,
                 'role' => 'admin',
-                'password' => Hash::make(env('DEFAULT_ADMIN_PASSWORD', 'password')),
+                'password' => Hash::make($password),
             ]
         );
     }
