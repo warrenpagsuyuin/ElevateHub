@@ -1,0 +1,227 @@
+[2026-07-10 03:02:22] local.DEBUG: From: Laravel <hello@example.com>
+To: admin@elevate.local
+Subject: Your OTP Code
+MIME-Version: 1.0
+Date: Fri, 10 Jul 2026 03:02:22 +0000
+Message-ID: <23ff9c3e2a2b4884df6e5f1645d52992@example.com>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<p>Your CCF Elevate one-time password is:</p>
+<p><strong style="font-size: 24px;">468666</strong></p>
+<p>This code expires in 5 minutes.</p>
+  
+[2026-07-10 03:04:36] local.DEBUG: From: Laravel <hello@example.com>
+To: admin@elevate.local
+Subject: Your OTP Code
+MIME-Version: 1.0
+Date: Fri, 10 Jul 2026 03:04:36 +0000
+Message-ID: <5b2a5bbe157c5d52051e7d5b71e6dd2d@example.com>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<p>Your CCF Elevate one-time password is:</p>
+<p><strong style="font-size: 24px;">762470</strong></p>
+<p>This code expires in 5 minutes.</p>
+  
+[2026-07-10 03:35:35] local.ERROR: Command "migrate--seed" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"migrate--seed\" is not defined. at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find('migrate--seed')
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#5 {main}
+"} 
+[2026-07-10 03:35:50] local.ERROR: Command "migrate--seed" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"migrate--seed\" is not defined. at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find('migrate--seed')
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#5 {main}
+"} 
+[2026-07-10 03:36:39] local.ERROR: Command "migrate--seed" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"migrate--seed\" is not defined. at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find('migrate--seed')
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#5 {main}
+"} 
+[2026-07-10 03:45:10] local.ERROR: include(C:\Users\PLPASIG\ElevateHub\elevate-dgm\laravel-app\vendor\composer/../../app/Providers/AppServiceProvider.php): Failed to open stream: No such file or directory {"exception":"[object] (ErrorException(code: 0): include(C:\\Users\\PLPASIG\\ElevateHub\\elevate-dgm\\laravel-app\\vendor\\composer/../../app/Providers/AppServiceProvider.php): Failed to open stream: No such file or directory at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/composer/ClassLoader.php:576)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(262): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'include(C://User...', 'C://Users//PLPASI...', 576)
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/composer/ClassLoader.php(576): Illuminate/Foundation/Bootstrap/HandleExceptions->Illuminate/Foundation/Bootstrap/{closure}(2, 'include(C://User...', 'C://Users//PLPASI...', 576)
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/composer/ClassLoader.php(576): include('C://Users//PLPASI...')
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/composer/ClassLoader.php(427): Composer/Autoload/{closure}('C://Users//PLPASI...')
+#4 [internal function]: Composer/Autoload/ClassLoader->loadClass('App//Providers//A...')
+#5 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders.php(52): class_exists('App//Providers//A...')
+#6 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders.php(34): Illuminate/Foundation/Bootstrap/RegisterProviders->mergeAdditionalProviders(Object(Illuminate/Foundation/Application))
+#7 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(342): Illuminate/Foundation/Bootstrap/RegisterProviders->bootstrap(Object(Illuminate/Foundation/Application))
+#8 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(494): Illuminate/Foundation/Application->bootstrapWith(Array)
+#9 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(196): Illuminate/Foundation/Console/Kernel->bootstrap()
+#10 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#11 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#12 {main}
+"} 
+[2026-07-10 03:45:42] local.ERROR: require(C:\Users\PLPASIG\ElevateHub\elevate-dgm\laravel-app\bootstrap/../routes/web.php): Failed to open stream: No such file or directory {"exception":"[object] (ErrorException(code: 0): require(C:\\Users\\PLPASIG\\ElevateHub\\elevate-dgm\\laravel-app\\bootstrap/../routes/web.php): Failed to open stream: No such file or directory at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php:34)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(262): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'require(C://User...', 'C://Users//PLPASI...', 34)
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php(34): Illuminate/Foundation/Bootstrap/HandleExceptions->Illuminate/Foundation/Bootstrap/{closure}(2, 'require(C://User...', 'C://Users//PLPASI...', 34)
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php(34): require('C://Users//PLPASI...')
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(526): Illuminate/Routing/RouteFileRegistrar->register('C://Users//PLPASI...')
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(480): Illuminate/Routing/Router->loadRoutes('C://Users//PLPASI...')
+#5 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteRegistrar.php(212): Illuminate/Routing/Router->group(Array, 'C://Users//PLPASI...')
+#6 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php(248): Illuminate/Routing/RouteRegistrar->group('C://Users//PLPASI...')
+#7 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Foundation/Configuration/ApplicationBuilder->Illuminate/Foundation/Configuration/{closure}()
+#8 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#9 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(84): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#10 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Object(Closure), Object(Closure))
+#11 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Object(Closure), Array, NULL)
+#12 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Support/Providers/RouteServiceProvider.php(162): Illuminate/Container/Container->call(Object(Closure))
+#13 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Support/Providers/RouteServiceProvider.php(59): Illuminate/Foundation/Support/Providers/RouteServiceProvider->loadRoutes()
+#14 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Foundation/Support/Providers/RouteServiceProvider->Illuminate/Foundation/Support/Providers/{closure}()
+#15 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#16 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(84): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#17 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Object(Closure), Object(Closure))
+#18 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Object(Closure), Array, NULL)
+#19 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php(150): Illuminate/Container/Container->call(Object(Closure))
+#20 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1154): Illuminate/Support/ServiceProvider->callBootedCallbacks()
+#21 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1132): Illuminate/Foundation/Application->bootProvider(Object(Illuminate/Foundation/Support/Providers/RouteServiceProvider))
+#22 [internal function]: Illuminate/Foundation/Application->Illuminate/Foundation/{closure}(Object(Illuminate/Foundation/Support/Providers/RouteServiceProvider), 'Illuminate//Foun...')
+#23 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1131): array_walk(Array, Object(Closure))
+#24 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/BootProviders.php(17): Illuminate/Foundation/Application->boot()
+#25 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(342): Illuminate/Foundation/Bootstrap/BootProviders->bootstrap(Object(Illuminate/Foundation/Application))
+#26 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(494): Illuminate/Foundation/Application->bootstrapWith(Array)
+#27 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(196): Illuminate/Foundation/Console/Kernel->bootstrap()
+#28 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#29 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#30 {main}
+"} 
+[2026-07-10 03:45:51] local.ERROR: require(C:\Users\PLPASIG\ElevateHub\elevate-dgm\laravel-app\bootstrap/../routes/web.php): Failed to open stream: No such file or directory {"exception":"[object] (ErrorException(code: 0): require(C:\\Users\\PLPASIG\\ElevateHub\\elevate-dgm\\laravel-app\\bootstrap/../routes/web.php): Failed to open stream: No such file or directory at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php:34)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(262): Illuminate/Foundation/Bootstrap/HandleExceptions->handleError(2, 'require(C://User...', 'C://Users//PLPASI...', 34)
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php(34): Illuminate/Foundation/Bootstrap/HandleExceptions->Illuminate/Foundation/Bootstrap/{closure}(2, 'require(C://User...', 'C://Users//PLPASI...', 34)
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteFileRegistrar.php(34): require('C://Users//PLPASI...')
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(526): Illuminate/Routing/RouteFileRegistrar->register('C://Users//PLPASI...')
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(480): Illuminate/Routing/Router->loadRoutes('C://Users//PLPASI...')
+#5 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/RouteRegistrar.php(212): Illuminate/Routing/Router->group(Array, 'C://Users//PLPASI...')
+#6 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php(248): Illuminate/Routing/RouteRegistrar->group('C://Users//PLPASI...')
+#7 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Foundation/Configuration/ApplicationBuilder->Illuminate/Foundation/Configuration/{closure}()
+#8 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#9 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(84): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#10 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Object(Closure), Object(Closure))
+#11 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Object(Closure), Array, NULL)
+#12 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Support/Providers/RouteServiceProvider.php(162): Illuminate/Container/Container->call(Object(Closure))
+#13 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Support/Providers/RouteServiceProvider.php(59): Illuminate/Foundation/Support/Providers/RouteServiceProvider->loadRoutes()
+#14 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Foundation/Support/Providers/RouteServiceProvider->Illuminate/Foundation/Support/Providers/{closure}()
+#15 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#16 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(84): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#17 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Object(Closure), Object(Closure))
+#18 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Object(Closure), Array, NULL)
+#19 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php(150): Illuminate/Container/Container->call(Object(Closure))
+#20 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1154): Illuminate/Support/ServiceProvider->callBootedCallbacks()
+#21 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1132): Illuminate/Foundation/Application->bootProvider(Object(Illuminate/Foundation/Support/Providers/RouteServiceProvider))
+#22 [internal function]: Illuminate/Foundation/Application->Illuminate/Foundation/{closure}(Object(Illuminate/Foundation/Support/Providers/RouteServiceProvider), 'Illuminate//Foun...')
+#23 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1131): array_walk(Array, Object(Closure))
+#24 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/BootProviders.php(17): Illuminate/Foundation/Application->boot()
+#25 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(342): Illuminate/Foundation/Bootstrap/BootProviders->bootstrap(Object(Illuminate/Foundation/Application))
+#26 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(494): Illuminate/Foundation/Application->bootstrapWith(Array)
+#27 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(196): Illuminate/Foundation/Console/Kernel->bootstrap()
+#28 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#29 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#30 {main}
+"} 
+[2026-07-10 03:46:14] local.ERROR: SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: users.email (Connection: sqlite, Database: C:\Users\PLPASIG\ElevateHub\elevate-dgm\laravel-app\database\database.sqlite, SQL: insert into "users" ("name", "email", "password", "created_at", "updated_at") values (Admin, admin@elevate.local, $2y$12$lj/Op9r8qR9dDS4OB5hc5e0vr/Rd9lEHqi71oN7fU2bNgSfKKJVnW, 2026-07-10 03:46:14, 2026-07-10 03:46:14)) {"exception":"[object] (Illuminate\\Database\\UniqueConstraintViolationException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: users.email (Connection: sqlite, Database: C:\\Users\\PLPASIG\\ElevateHub\\elevate-dgm\\laravel-app\\database\\database.sqlite, SQL: insert into \"users\" (\"name\", \"email\", \"password\", \"created_at\", \"updated_at\") values (Admin, admin@elevate.local, $2y$12$lj/Op9r8qR9dDS4OB5hc5e0vr/Rd9lEHqi71oN7fU2bNgSfKKJVnW, 2026-07-10 03:46:14, 2026-07-10 03:46:14)) at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:838)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(794): Illuminate/Database/Connection->runQueryCallback('insert into \"us...', Array, Object(Closure))
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(573): Illuminate/Database/Connection->run('insert into \"us...', Array, Object(Closure))
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(537): Illuminate/Database/Connection->statement('insert into \"us...', Array)
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(4121): Illuminate/Database/Connection->insert('insert into \"us...', Array)
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/database/seeders/AdminUserSeeder.php(16): Illuminate/Database/Query/Builder->insert(Array)
+#5 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Database/Seeders/AdminUserSeeder->run()
+#6 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#7 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#8 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#9 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#10 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(184): Illuminate/Container/Container->call(Array, Array)
+#11 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(193): Illuminate/Database/Seeder->Illuminate/Database/{closure}()
+#12 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(59): Illuminate/Database/Seeder->__invoke(Array)
+#13 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/database/seeders/DatabaseSeeder.php(20): Illuminate/Database/Seeder->call('Database//Seeder...')
+#14 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Database/Seeders/DatabaseSeeder->run()
+#15 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#16 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#17 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#18 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#19 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(184): Illuminate/Container/Container->call(Array, Array)
+#20 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasEvents.php(454): Illuminate/Database/Seeder->Illuminate/Database/{closure}()
+#21 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/WithoutModelEvents.php(17): Illuminate/Database/Eloquent/Model::withoutEvents(Object(Closure))
+#22 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(193): Database/Seeders/DatabaseSeeder->Illuminate/Database/Console/Seeds/{closure}()
+#23 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/SeedCommand.php(71): Illuminate/Database/Seeder->__invoke()
+#24 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/GuardsAttributes.php(157): Illuminate/Database/Console/Seeds/SeedCommand->Illuminate/Database/Console/Seeds/{closure}()
+#25 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/SeedCommand.php(70): Illuminate/Database/Eloquent/Model::unguarded(Object(Closure))
+#26 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Database/Console/Seeds/SeedCommand->handle()
+#27 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#28 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#29 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#30 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#31 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(211): Illuminate/Container/Container->call(Array)
+#32 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Command/Command.php(341): Illuminate/Console/Command->execute(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#33 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony/Component/Console/Command/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#34 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(1117): Illuminate/Console/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#35 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(356): Symfony/Component/Console/Application->doRunCommand(Object(Illuminate/Database/Console/Seeds/SeedCommand), Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#36 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#37 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#38 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#39 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#40 {main}
+
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: users.email at C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:584)
+[stacktrace]
+#0 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(584): PDOStatement->execute()
+#1 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(827): Illuminate/Database/Connection->Illuminate/Database/{closure}('insert into \"us...', Array)
+#2 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(794): Illuminate/Database/Connection->runQueryCallback('insert into \"us...', Array, Object(Closure))
+#3 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(573): Illuminate/Database/Connection->run('insert into \"us...', Array, Object(Closure))
+#4 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php(537): Illuminate/Database/Connection->statement('insert into \"us...', Array)
+#5 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(4121): Illuminate/Database/Connection->insert('insert into \"us...', Array)
+#6 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/database/seeders/AdminUserSeeder.php(16): Illuminate/Database/Query/Builder->insert(Array)
+#7 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Database/Seeders/AdminUserSeeder->run()
+#8 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#9 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#10 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#11 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#12 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(184): Illuminate/Container/Container->call(Array, Array)
+#13 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(193): Illuminate/Database/Seeder->Illuminate/Database/{closure}()
+#14 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(59): Illuminate/Database/Seeder->__invoke(Array)
+#15 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/database/seeders/DatabaseSeeder.php(20): Illuminate/Database/Seeder->call('Database//Seeder...')
+#16 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Database/Seeders/DatabaseSeeder->run()
+#17 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#18 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#19 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#20 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#21 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(184): Illuminate/Container/Container->call(Array, Array)
+#22 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasEvents.php(454): Illuminate/Database/Seeder->Illuminate/Database/{closure}()
+#23 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/WithoutModelEvents.php(17): Illuminate/Database/Eloquent/Model::withoutEvents(Object(Closure))
+#24 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Seeder.php(193): Database/Seeders/DatabaseSeeder->Illuminate/Database/Console/Seeds/{closure}()
+#25 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/SeedCommand.php(71): Illuminate/Database/Seeder->__invoke()
+#26 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/GuardsAttributes.php(157): Illuminate/Database/Console/Seeds/SeedCommand->Illuminate/Database/Console/Seeds/{closure}()
+#27 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Console/Seeds/SeedCommand.php(70): Illuminate/Database/Eloquent/Model::unguarded(Object(Closure))
+#28 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate/Database/Console/Seeds/SeedCommand->handle()
+#29 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate/Container/BoundMethod::Illuminate/Container/{closure}()
+#30 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate/Container/Util::unwrapIfClosure(Object(Closure))
+#31 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate/Container/BoundMethod::callBoundMethod(Object(Illuminate/Foundation/Application), Array, Object(Closure))
+#32 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Container/Container.php(799): Illuminate/Container/BoundMethod::call(Object(Illuminate/Foundation/Application), Array, Array, NULL)
+#33 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(211): Illuminate/Container/Container->call(Array)
+#34 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Command/Command.php(341): Illuminate/Console/Command->execute(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#35 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony/Component/Console/Command/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Illuminate/Console/OutputStyle))
+#36 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(1117): Illuminate/Console/Command->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#37 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(356): Symfony/Component/Console/Application->doRunCommand(Object(Illuminate/Database/Console/Seeds/SeedCommand), Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#38 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#39 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#40 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#41 C:/Users/PLPASIG/ElevateHub/elevate-dgm/laravel-app/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#42 {main}
+"} 
