@@ -16,10 +16,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-<<<<<<< HEAD
         // Call the admin seeder that seeds the local admin user
         $this->call(AdminUserSeeder::class);
->>>>>>> admin-dashboard
 
         User::updateOrCreate([
             'email' => 'pagsuyuinwarren@gmail.com',
