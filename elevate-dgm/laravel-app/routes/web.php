@@ -35,9 +35,46 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('auth')
     ->name('dashboard');
 
-Route::view('/admin/dashboard', 'dashboard.admin')
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.dashboard');
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    $renderAdminDashboard = function (string $file) {
+        ob_start();
+        include base_path('../../' . $file);
+
+        return response(ob_get_clean());
+    };
+
+    Route::get('/admin/dashboard', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('AdminDashboard.php');
+    })->name('admin.dashboard');
+
+    Route::get('/admin/AdminDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('AdminDashboard.php');
+    })->name('admin.dashboard.file');
+
+    Route::get('/admin/SatellitesDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('SatellitesDashboard.php');
+    })->name('admin.satellites.file');
+
+    Route::get('/admin/MembersDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('MembersDashboard.php');
+    })->name('admin.members.file');
+
+    Route::get('/admin/SeekersDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('SeekersDashboard.php');
+    })->name('admin.seekers.file');
+
+    Route::get('/admin/UsersDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('UsersDashboard.php');
+    })->name('admin.users.file');
+
+    Route::get('/admin/ReportsDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('ReportsDashboard.php');
+    })->name('admin.reports.file');
+
+    Route::get('/admin/AnalyticsDashboard.php', function () use ($renderAdminDashboard) {
+        return $renderAdminDashboard('AnalyticsDashboard.php');
+    })->name('admin.analytics.file');
+});
 
 Route::view('/district/dashboard', 'dashboard.district')
     ->middleware(['auth', 'role:district,district_user,satellite,satellite_user'])

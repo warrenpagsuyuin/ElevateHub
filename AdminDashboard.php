@@ -102,6 +102,10 @@
             justify-content: center;
         }
 
+        .signout form {
+            margin: 0;
+        }
+
         .signout button {
             width: 170px;
             border: none;
@@ -319,17 +323,20 @@
         </div>
 
         <nav class="menu">
-            <a href="AdminDashboard.php" class="active">Dashboard</a>
-            <a href="SatellitesDashboard.php">Satellites</a>
-            <a href="MembersDashboard.php">Members</a>
-            <a href="SeekersDashboard.php">Seekers</a>
-            <a href="UsersDashboard.php">Users</a>
-            <a href="ReportsDashboard.php">Reports</a>
-            <a href="AnalyticsDashboard.php">Analytics</a>
+            <a href="/admin/dashboard" class="active">Dashboard</a>
+            <a href="/admin/SatellitesDashboard.php">Satellites</a>
+            <a href="/admin/MembersDashboard.php">Members</a>
+            <a href="/admin/SeekersDashboard.php">Seekers</a>
+            <a href="/admin/UsersDashboard.php">Users</a>
+            <a href="/admin/ReportsDashboard.php">Reports</a>
+            <a href="/admin/AnalyticsDashboard.php">Analytics</a>
         </nav>
 
         <div class="signout">
-            <button type="button">Sign out</button>
+            <form method="POST" action="<?php echo route('logout'); ?>">
+                <?php echo csrf_field(); ?>
+                <button type="submit">Sign out</button>
+            </form>
         </div>
 
     </aside>

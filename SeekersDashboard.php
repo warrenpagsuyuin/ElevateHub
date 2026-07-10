@@ -16,6 +16,7 @@
         .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
         .menu a.active { background: #fff; color: #111; }
         .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
+        .signout form { margin: 0; }
         .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: #e33c24; color: #fff; font-weight: 800; cursor: pointer; }
         .signout button:hover { background: #c92f1b; }
         .main { flex: 1; width: 100%; max-width: none; margin: 0; padding: 30px 32px; }
@@ -53,15 +54,15 @@
             </div>
         </div>
         <nav class="menu">
-            <a href="AdminDashboard.php">Dashboard</a>
-            <a href="SatellitesDashboard.php">Satellites</a>
-            <a href="MembersDashboard.php">Members</a>
-            <a href="SeekersDashboard.php" class="active">Seekers</a>
-            <a href="UsersDashboard.php">Users</a>
-            <a href="ReportsDashboard.php">Reports</a>
-            <a href="AnalyticsDashboard.php">Analytics</a>
+            <a href="/admin/dashboard">Dashboard</a>
+            <a href="/admin/SatellitesDashboard.php">Satellites</a>
+            <a href="/admin/MembersDashboard.php">Members</a>
+            <a href="/admin/SeekersDashboard.php" class="active">Seekers</a>
+            <a href="/admin/UsersDashboard.php">Users</a>
+            <a href="/admin/ReportsDashboard.php">Reports</a>
+            <a href="/admin/AnalyticsDashboard.php">Analytics</a>
         </nav>
-        <div class="signout"><button type="button">Sign out</button></div>
+        <div class="signout"><form method="POST" action="<?php echo route('logout'); ?>"><?php echo csrf_field(); ?><button type="submit">Sign out</button></form></div>
     </aside>
     <main class="main">
         <div class="header"><h1>Seekers Dashboard</h1></div>
