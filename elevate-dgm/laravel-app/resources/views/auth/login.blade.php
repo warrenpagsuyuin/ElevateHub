@@ -36,29 +36,15 @@
         .logo-wrap {
             display: flex;
             justify-content: center;
-            margin-bottom: 28px;
+            margin-bottom: 18px;
         }
 
         .brand-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: #111827;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 0;
-        }
-
-        .brand-mark {
-            display: inline-grid;
-            width: 38px;
-            height: 38px;
-            place-items: center;
-            border-radius: 8px;
-            background: #dc2626;
-            color: #ffffff;
-            font-size: 20px;
-            font-weight: 800;
+            display: block;
+            width: min(430px, 100%);
+            height: 112px;
+            object-fit: cover;
+            object-position: center;
         }
 
         .login-card {
@@ -207,12 +193,8 @@
             }
 
             .brand-logo {
-                font-size: 18px;
-            }
-
-            .brand-mark {
-                width: 34px;
-                height: 34px;
+                width: min(340px, 100%);
+                height: 88px;
             }
         }
     </style>
@@ -226,10 +208,7 @@
     <main class="login-page">
         <section class="login-shell">
             <div class="logo-wrap">
-                <div class="brand-logo" aria-label="ELEVATE">
-                    <span class="brand-mark" aria-hidden="true">E</span>
-                    <span>ELEVATE</span>
-                </div>
+                <img class="brand-logo" src="{{ asset('assets/images/elevate-logo-login.png') }}" alt="Elevate logo">
             </div>
 
             <div class="login-card">

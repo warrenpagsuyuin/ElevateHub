@@ -1,7 +1,15 @@
 <?php
 
+use App\Http\Controllers\AdminAnalyticsController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminSatelliteController;
+use App\Http\Controllers\AdminMemberController;
+use App\Http\Controllers\AdminReportController;
+use App\Http\Controllers\AdminSeekerController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SatelliteSeekerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [OtpLoginController::class, 'show'])->name('login');
@@ -36,45 +44,81 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    $renderAdminDashboard = function (string $file) {
-        ob_start();
-        include base_path('../../' . $file);
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/satellites', [AdminSatelliteController::class, 'index'])->name('admin.satellites');
+    Route::get('/admin/satellites/export', [AdminSatelliteController::class, 'export'])->name('admin.satellites.export');
+    Route::post('/admin/satellites', [AdminSatelliteController::class, 'store'])->name('admin.satellites.store');
+    Route::get('/admin/members', [AdminMemberController::class, 'index'])->name('admin.members');
+    Route::get('/admin/members/export', [AdminMemberController::class, 'export'])->name('admin.members.export');
+    Route::get('/admin/seekers', [AdminSeekerController::class, 'index'])->name('admin.seekers');
+    Route::get('/admin/seekers/export', [AdminSeekerController::class, 'export'])->name('admin.seekers.export');
+    Route::post('/admin/seekers/sync-google-sheet', [AdminSeekerController::class, 'syncGoogleSheet'])->name('admin.seekers.sync-google-sheet');
+    Route::patch('/admin/seekers/bulk', [AdminSeekerController::class, 'bulkUpdate'])->name('admin.seekers.bulk');
+    Route::patch('/admin/seekers/{seeker}/assign-district', [AdminSeekerController::class, 'assignDistrict'])->name('admin.seekers.assign-district');
+    Route::patch('/admin/seekers/{seeker}/status', [AdminSeekerController::class, 'updateStatus'])->name('admin.seekers.status');
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
+    Route::get('/admin/users/export', [AdminUserController::class, 'export'])->name('admin.users.export');
+    Route::patch('/admin/users/bulk', [AdminUserController::class, 'bulkUpdate'])->name('admin.users.bulk');
+    Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
+    Route::get('/admin/users/{user}', [AdminUserController::class, 'show'])->name('admin.users.show');
+    Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::get('/admin/reports', [AdminReportController::class, 'index'])->name('admin.reports');
+    Route::get('/admin/reports/export', [AdminReportController::class, 'export'])->name('admin.reports.export');
+    Route::get('/admin/analytics', [AdminAnalyticsController::class, 'index'])->name('admin.analytics');
+    Route::get('/api/analytics-data', [AdminAnalyticsController::class, 'data'])->name('admin.analytics.data');
 
-        return response(ob_get_clean());
-    };
-
-    Route::get('/admin/dashboard', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('AdminDashboard.php');
-    })->name('admin.dashboard');
-
-    Route::get('/admin/AdminDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('AdminDashboard.php');
-    })->name('admin.dashboard.file');
-
-    Route::get('/admin/SatellitesDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('SatellitesDashboard.php');
-    })->name('admin.satellites.file');
-
-    Route::get('/admin/MembersDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('MembersDashboard.php');
-    })->name('admin.members.file');
-
-    Route::get('/admin/SeekersDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('SeekersDashboard.php');
-    })->name('admin.seekers.file');
-
-    Route::get('/admin/UsersDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('UsersDashboard.php');
-    })->name('admin.users.file');
-
-    Route::get('/admin/ReportsDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('ReportsDashboard.php');
-    })->name('admin.reports.file');
-
-    Route::get('/admin/AnalyticsDashboard.php', function () use ($renderAdminDashboard) {
-        return $renderAdminDashboard('AnalyticsDashboard.php');
-    })->name('admin.analytics.file');
+    Route::redirect('/admin/AdminDashboard.php', '/admin/dashboard')->name('admin.dashboard.file');
+    Route::redirect('/admin/SatellitesDashboard.php', '/admin/satellites')->name('admin.satellites.file');
+    Route::redirect('/admin/MembersDashboard.php', '/admin/members')->name('admin.members.file');
+    Route::redirect('/admin/SeekersDashboard.php', '/admin/seekers')->name('admin.seekers.file');
+    Route::redirect('/admin/UsersDashboard.php', '/admin/users')->name('admin.users.file');
+    Route::redirect('/admin/ReportsDashboard.php', '/admin/reports')->name('admin.reports.file');
+    Route::redirect('/admin/AnalyticsDashboard.php', '/admin/analytics')->name('admin.analytics.file');
 });
+
+Route::get('/satellites/{satellite}/dashboard', [AdminSatelliteController::class, 'dashboard'])
+    ->middleware('auth')
+    ->name('satellites.dashboard');
+
+Route::get('/satellites/{satellite}/members', [AdminSatelliteController::class, 'members'])
+    ->middleware('auth')
+    ->name('satellites.members');
+Route::post('/satellites/{satellite}/members', [AdminSatelliteController::class, 'storeMember'])
+    ->middleware('auth')
+    ->name('satellites.members.store');
+Route::patch('/satellites/{satellite}/members/{member}', [AdminSatelliteController::class, 'updateMember'])
+    ->middleware('auth')
+    ->name('satellites.members.update');
+Route::delete('/satellites/{satellite}/members/{member}', [AdminSatelliteController::class, 'destroyMember'])
+    ->middleware('auth')
+    ->name('satellites.members.destroy');
+Route::post('/satellites/{satellite}/members/import-preview', [AdminSatelliteController::class, 'previewMemberImport'])
+    ->middleware('auth')
+    ->name('satellites.members.import-preview');
+Route::post('/satellites/{satellite}/members/import', [AdminSatelliteController::class, 'importMembers'])
+    ->middleware('auth')
+    ->name('satellites.members.import');
+Route::get('/satellites/{satellite}/members/import-template', [AdminSatelliteController::class, 'memberImportTemplate'])
+    ->middleware('auth')
+    ->name('satellites.members.import-template');
+
+Route::get('/satellites/{satellite}/seekers', [SatelliteSeekerController::class, 'index'])
+    ->middleware('auth')
+    ->name('satellites.seekers');
+
+Route::patch('/satellites/{satellite}/seekers/{seeker}/status', [SatelliteSeekerController::class, 'updateStatus'])
+    ->middleware('auth')
+    ->name('satellites.seekers.status');
+Route::patch('/satellites/{satellite}/seekers/{seeker}/leader', [SatelliteSeekerController::class, 'assignLeader'])
+    ->middleware('auth')
+    ->name('satellites.seekers.leader');
+Route::post('/satellites/{satellite}/seekers/{seeker}/convert', [SatelliteSeekerController::class, 'convertToMember'])
+    ->middleware('auth')
+    ->name('satellites.seekers.convert');
+
+Route::patch('/satellites/{satellite}/seekers/bulk-status', [SatelliteSeekerController::class, 'bulkUpdateStatus'])
+    ->middleware('auth')
+    ->name('satellites.seekers.bulk-status');
 
 Route::view('/district/dashboard', 'dashboard.district')
     ->middleware(['auth', 'role:district,district_user,satellite,satellite_user'])

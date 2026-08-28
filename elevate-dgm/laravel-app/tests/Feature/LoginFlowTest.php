@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\OtpMail;
+use App\Models\Satellite;
 use App\Models\User;
 use Database\Seeders\AdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +23,18 @@ class LoginFlowTest extends TestCase
             ->assertSee('name="email"', false)
             ->assertDontSee('name="password"', false)
             ->assertDontSee('name="otp"', false);
+    }
+
+    public function test_opening_site_always_starts_at_login_page(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertSee('Sign in');
+
+        $this->assertGuest();
     }
 
     public function test_unknown_email_shows_requested_error(): void
@@ -101,6 +114,66 @@ class LoginFlowTest extends TestCase
         $this->assertAuthenticatedAs($districtUser);
         $this->assertNull($districtUser->refresh()->otp_code);
         $this->assertNull($districtUser->otp_expires_at);
+    }
+
+    public function test_assigned_satellite_user_uses_otp_and_redirects_to_satellite_dashboard(): void
+    {
+        Mail::fake();
+
+        $satelliteUser = User::factory()->create([
+            'role' => 'satellite',
+        ]);
+        $satellite = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'assigned_user_id' => $satelliteUser->id,
+        ]);
+
+        $this->post(route('login.email'), ['email' => $satelliteUser->email])
+            ->assertRedirect(route('login'));
+
+        $sentOtp = null;
+
+        Mail::assertSent(OtpMail::class, function (OtpMail $mail) use (&$sentOtp): bool {
+            $sentOtp = $mail->otp;
+
+            return strlen($sentOtp) === 6;
+        });
+
+        $this->post(route('login.otp'), ['otp' => $sentOtp])
+            ->assertRedirect(route('satellites.dashboard', $satellite));
+
+        $this->assertAuthenticatedAs($satelliteUser);
+    }
+
+    public function test_assigned_staff_user_is_redirected_to_their_satellite_dashboard_after_otp_login(): void
+    {
+        Mail::fake();
+
+        $staffUser = User::factory()->create([
+            'role' => 'staff',
+        ]);
+        $satellite = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'assigned_user_id' => $staffUser->id,
+        ]);
+
+        $this->post(route('login.email'), ['email' => $staffUser->email])
+            ->assertRedirect(route('login'));
+
+        $sentOtp = null;
+
+        Mail::assertSent(OtpMail::class, function (OtpMail $mail) use (&$sentOtp): bool {
+            $sentOtp = $mail->otp;
+
+            return strlen($sentOtp) === 6;
+        });
+
+        $this->post(route('login.otp'), ['otp' => $sentOtp])
+            ->assertRedirect(route('satellites.dashboard', $satellite));
+
+        $this->assertAuthenticatedAs($staffUser);
     }
 
     public function test_member_uses_otp_and_redirects_to_homepage(): void

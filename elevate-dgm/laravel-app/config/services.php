@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'google_sheets' => [
+        'seekers_csv_url' => env('GOOGLE_SHEET_CSV_URL'),
+        'seekers_sheet_id' => env('GOOGLE_SHEET_ID'),
+        'seekers_gid' => env('GOOGLE_SHEET_GID', '0'),
+        'seekers_range' => env('GOOGLE_SHEET_RANGE'),
+        'service_account_json' => env('GOOGLE_SHEET_SERVICE_ACCOUNT_JSON'),
+    ],
+
 ];

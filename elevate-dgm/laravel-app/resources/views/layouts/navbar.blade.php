@@ -1,5 +1,5 @@
 <nav class="app-navbar">
-    <strong>Elevate DGM</strong>
+    <img class="app-logo" src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate DGM logo">
 
     @auth
         <form method="POST" action="{{ route('logout') }}" class="logout-form">

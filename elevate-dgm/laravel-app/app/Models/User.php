@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -22,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'role',
+        'district',
         'password',
     ];
 
@@ -48,5 +50,10 @@ class User extends Authenticatable
             'otp_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function assignedSatellites(): HasMany
+    {
+        return $this->hasMany(Satellite::class, 'assigned_user_id');
     }
 }

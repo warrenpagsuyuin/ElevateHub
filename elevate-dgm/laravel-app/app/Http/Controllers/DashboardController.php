@@ -8,7 +8,13 @@ class DashboardController extends Controller
 {
     public function index(): RedirectResponse
     {
-        $role = str_replace([' ', '-'], '_', strtolower((string) (auth()->user()->role ?: 'member')));
+        $user = auth()->user();
+        $role = str_replace([' ', '-'], '_', strtolower((string) ($user->role ?: 'member')));
+        $satellite = $user->assignedSatellites()->latest()->first();
+
+        if ($satellite) {
+            return redirect()->route('satellites.dashboard', $satellite);
+        }
 
         return match ($role) {
             'admin' => redirect()->route('admin.dashboard'),

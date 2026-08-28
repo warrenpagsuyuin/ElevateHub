@@ -25,10 +25,13 @@ class OtpLoginController extends Controller
      */
     private const DISTRICT_ROLES = ['district', 'district_user', 'satellite', 'satellite_user'];
 
-    public function show(Request $request): View|RedirectResponse
+    public function show(Request $request): View
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            Auth::logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         $step = $request->session()->get(self::LOGIN_STEP_KEY, 'email');
@@ -232,7 +235,14 @@ class OtpLoginController extends Controller
 
     private function redirectPathFor(User $user): string
     {
-        if (in_array($this->role($user), self::DISTRICT_ROLES, true)) {
+        $role = $this->role($user);
+        $satellite = $user->assignedSatellites()->latest()->first();
+
+        if ($satellite) {
+            return route('satellites.dashboard', $satellite);
+        }
+
+        if (in_array($role, ['district', 'district_user', 'satellite', 'satellite_user'], true)) {
             return route('district.dashboard');
         }
 
