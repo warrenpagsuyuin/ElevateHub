@@ -80,7 +80,7 @@ class AdminMemberController extends Controller
     private function filteredSatellitesQuery(array $filters)
     {
         return Satellite::query()
-            ->with('assignedUser')
+            ->with('assignedUsers')
             ->when($filters['search'] !== '', fn ($query) => $query->where('name', 'like', '%'.$filters['search'].'%'));
     }
 

@@ -1,93 +1,273 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; color: #111; }
-        .page { display: flex; min-height: 100vh; background: #f3f4f6; }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: #e33c24; text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: #e33c24; color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: #c92f1b; }
-        .main { flex: 1; width: 100%; max-width: none; margin: 0; padding: 30px 32px; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-        .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
-        .dashboard-intro { margin-bottom: 26px; }
-        .today-date { margin: 0 0 8px; color: #4b5563; font-size: 16px; font-weight: 700; }
-        .summary-title { margin: 0; color: #111; font-size: 18px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
-        .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 24px; }
-        .summary-card { min-height: 258px; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding: 28px; background: #fff; border-radius: 14px; box-shadow: 0 16px 34px rgba(17, 24, 39, 0.12); }
-        .summary-main-number { display: block; color: #e33c24; font-size: 54px; line-height: 1; font-weight: 900; }
-        .summary-label { display: block; margin-top: 12px; color: #111; font-size: 14px; line-height: 1.25; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-        .summary-breakdown { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding-top: 22px; border-top: 1px solid #e5e7eb; }
-        .summary-segment { min-width: 0; }
-        .segment-number { display: block; color: #e33c24; font-size: 31px; line-height: 1; font-weight: 900; }
-        .segment-label { display: block; margin-top: 9px; color: #111; font-size: 12px; line-height: 1.25; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
-        @media (max-width: 900px) { .summary-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .page { flex-direction: column; } .sidebar { width: 100%; min-height: auto; } .sidebar .brand { height: 90px; } .menu { flex-direction: row; flex-wrap: wrap; } .menu a { padding: 12px 14px; font-size: 14px; } .signout { justify-content: flex-start; } .main { padding: 20px; } .header h1 { font-size: 26px; } .summary-card { min-height: 230px; padding: 24px; } .summary-main-number { font-size: 48px; } .segment-number { font-size: 28px; } }
-        @media (max-width: 440px) { .summary-breakdown { gap: 12px; } .summary-card { padding: 24px 20px; } .summary-label { font-size: 13px; } .segment-label { font-size: 11px; } }
-        @include('partials.sidebar-styles')
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Admin Dashboard | Elevate DGM')
+
+@section('content')
+<div class="admin-dashboard-page">
+    <div class="page-header admin-dashboard-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p class="page-subtitle">{{ now()->format('F j, Y') }}</p>
         </div>
-        <nav class="menu">
-            <a href="{{ route('admin.dashboard') }}" class="active">Dashboard</a>
-            <a href="{{ route('admin.satellites') }}">Satellites</a>
-            <a href="{{ route('admin.members') }}">Members</a>
-            <a href="{{ route('admin.seekers') }}">Seekers</a>
-            <a href="{{ route('admin.users') }}">Users</a>
-            <a href="{{ route('admin.reports') }}">Reports</a>
-            <a href="{{ route('admin.analytics') }}">Analytics</a>
-        </nav>
-        <div class="signout">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Sign out</button>
-            </form>
-        </div>
-    </aside>
-    <main class="main">
-        <div class="header"><h1>Dashboard</h1></div>
-        <section class="dashboard-intro" aria-labelledby="movement-summary-title">
-            <p class="today-date">{{ now()->format('F j, Y') }}</p>
-            <p class="summary-title" id="movement-summary-title">ELEVATE MOVEMENT WIDE SUMMARY</p>
-        </section>
-        <div class="summary-grid">
-            @foreach ($movementSummaryCards as $card)
-                <article class="summary-card">
-                    <div>
-                        <span class="summary-main-number">{{ number_format($card['total']) }}</span>
-                        <span class="summary-label">{{ $card['label'] }}</span>
-                    </div>
-                    <div class="summary-breakdown">
-                        @foreach ($card['segments'] as $segment)
-                            <div class="summary-segment">
-                                <span class="segment-number">{{ $segment['value'] === null ? '-' : number_format($segment['value']) }}</span>
-                                <span class="segment-label">{{ $segment['label'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </article>
-            @endforeach
-        </div>
-    </main>
+    </div>
+
+    <section class="dashboard-intro" aria-labelledby="movement-summary-title">
+        <p class="summary-title" id="movement-summary-title">ELEVATE MOVEMENT WIDE SUMMARY</p>
+    </section>
+
+    <div class="stats-grid admin-summary-grid">
+        @foreach ($movementSummaryCards as $card)
+            <article class="stat-card admin-summary-card">
+                <div class="info">
+                    <span class="stat-value">{{ number_format($card['total']) }}</span>
+                    <span class="stat-label">{{ $card['label'] }}</span>
+                </div>
+                <div class="summary-breakdown">
+                    @foreach ($card['segments'] as $segment)
+                        <div class="summary-segment">
+                            <strong>{{ $segment['value'] === null ? '-' : number_format($segment['value']) }}</strong>
+                            <span>{{ $segment['label'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </article>
+        @endforeach
+    </div>
 </div>
-</body>
-</html>
+@endsection
+
+@push('styles')
+        .admin-dashboard-page {
+            min-height: 0;
+        }
+
+        .admin-dashboard-header {
+            margin-bottom: 14px;
+        }
+
+        .dashboard-intro {
+            margin-bottom: 22px;
+        }
+
+        .summary-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .stats-grid.admin-summary-grid {
+            grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+            gap: 24px;
+            margin-bottom: 0;
+            max-width: 100%;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .admin-summary-card {
+            display: flex;
+            align-items: stretch;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 18px;
+            min-height: 220px;
+            padding: 20px 24px 18px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(17, 24, 39, 0.08);
+            border-radius: 14px;
+            box-shadow: none;
+        }
+
+        .admin-summary-card .info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .admin-summary-card .stat-value {
+            color: var(--brand-red);
+            font-size: clamp(2.2rem, 3.4vw, 4rem);
+            line-height: 1;
+            letter-spacing: 0;
+            font-weight: 900;
+        }
+
+        .admin-summary-card .stat-label {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .summary-breakdown {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: auto;
+            padding-top: 18px;
+            border-top: 1px solid rgba(17, 24, 39, 0.12);
+        }
+
+        .summary-segment {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+            align-content: start;
+        }
+
+        .summary-segment strong {
+            color: var(--brand-red);
+            font-size: clamp(1.35rem, 2vw, 2.1rem);
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .summary-segment span {
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 1279px) {
+            .stats-grid.admin-summary-grid {
+                gap: 20px;
+            }
+
+            .admin-summary-card {
+                min-height: 220px;
+                padding: 24px;
+            }
+
+            .admin-summary-card .stat-value {
+                font-size: 46px;
+            }
+
+            .summary-segment strong {
+                font-size: 26px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid.admin-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .stats-grid.admin-summary-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .admin-summary-card {
+                gap: 22px;
+                min-height: 0;
+                padding: 22px;
+            }
+
+            .admin-summary-card .stat-value {
+                font-size: 40px;
+            }
+
+            .summary-breakdown {
+                gap: 12px;
+                padding-top: 18px;
+            }
+
+            .summary-segment strong {
+                font-size: 24px;
+            }
+
+            .summary-segment span {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 599px) {
+            .stats-grid.admin-summary-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-height: 760px) and (min-width: 768px) {
+            .admin-dashboard-header {
+                margin-bottom: 10px;
+            }
+
+            .dashboard-intro {
+                margin-bottom: 16px;
+            }
+
+            .admin-summary-card {
+                gap: 18px;
+                min-height: 206px;
+                padding: 22px 24px;
+            }
+
+            .admin-summary-card .stat-value {
+                font-size: 42px;
+            }
+
+            .admin-summary-card .stat-label {
+                font-size: 14px;
+            }
+
+            .summary-breakdown {
+                gap: 12px;
+                padding-top: 16px;
+            }
+
+            .summary-segment strong {
+                font-size: 24px;
+            }
+
+            .summary-segment span {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-height: 680px) and (min-width: 768px) {
+            .admin-dashboard-header .page-subtitle {
+                margin-top: 4px;
+            }
+
+            .dashboard-intro {
+                margin-bottom: 12px;
+            }
+
+            .admin-summary-card {
+                gap: 14px;
+                min-height: 180px;
+                padding: 18px 20px;
+            }
+
+            .admin-summary-card .stat-value {
+                font-size: 36px;
+            }
+
+            .admin-summary-card .stat-label {
+                font-size: 13px;
+            }
+
+            .summary-breakdown {
+                gap: 10px;
+                padding-top: 14px;
+            }
+
+            .summary-segment strong {
+                font-size: 22px;
+            }
+
+            .summary-segment span {
+                font-size: 11px;
+            }
+        }
+@endpush

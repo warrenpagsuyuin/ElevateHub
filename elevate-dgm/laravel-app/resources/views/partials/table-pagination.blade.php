@@ -13,7 +13,7 @@
 
     <nav class="pagination-bar" id="{{ $tableId }}-pagination" role="navigation" aria-label="{{ ucfirst($recordLabel) }} pagination" data-pagination-nav>
         <div class="pagination-summary">
-            Showing {{ $paginator->firstItem() }}&ndash;{{ $paginator->lastItem() }} of {{ $paginator->total() }} {{ $recordLabel }}
+            Showing {{ $paginator->firstItem() }}-{{ $paginator->lastItem() }} of {{ $paginator->total() }} {{ $recordLabel }}
         </div>
 
         <form method="GET" action="{{ url()->current() }}" class="pagination-page-size">
@@ -27,7 +27,7 @@
                 @endif
             @endforeach
             <label for="per-page-{{ spl_object_id($paginator) }}">Rows per page</label>
-            <select id="per-page-{{ spl_object_id($paginator) }}" name="per_page" data-auto-submit>
+            <select id="per-page-{{ spl_object_id($paginator) }}" name="per_page" data-pagination-page-size>
                 @foreach ($pageSizes as $pageSize)
                     <option value="{{ $pageSize }}" @selected((int) $currentPageSize === (int) $pageSize)>{{ $pageSize }}</option>
                 @endforeach
@@ -67,15 +67,49 @@
 
 @once
 <script>
-    document.querySelectorAll('[data-pagination-nav]').forEach((pagination) => {
-        pagination.querySelectorAll('[data-pagination-link]').forEach((link) => link.addEventListener('click', () => {
+    (() => {
+        document.addEventListener('click', (event) => {
+            if (!(event.target instanceof Element)) {
+                return;
+            }
+
+            const link = event.target.closest('[data-pagination-link]');
+            const pagination = link?.closest('[data-pagination-nav]');
+
+            if (!link || !pagination) {
+                return;
+            }
+
             pagination.classList.add('pagination-loading');
             pagination.querySelector('[data-pagination-loading-status]').textContent = 'Loading page...';
             pagination.querySelectorAll('a').forEach((control) => { control.setAttribute('aria-disabled', 'true'); control.style.pointerEvents = 'none'; });
             sessionStorage.setItem('pagination-scroll-target', pagination.id);
-        }));
-    });
-    const paginationScrollTarget = sessionStorage.getItem('pagination-scroll-target');
-    if (paginationScrollTarget) { sessionStorage.removeItem('pagination-scroll-target'); document.getElementById(paginationScrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        });
+
+        document.addEventListener('change', (event) => {
+            if (!(event.target instanceof HTMLSelectElement) || !event.target.matches('[data-pagination-page-size]')) {
+                return;
+            }
+
+            event.target.form?.requestSubmit();
+        });
+
+        const restorePaginationScroll = () => {
+            const paginationScrollTarget = sessionStorage.getItem('pagination-scroll-target');
+
+            if (!paginationScrollTarget) {
+                return;
+            }
+
+            sessionStorage.removeItem('pagination-scroll-target');
+            document.getElementById(paginationScrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', restorePaginationScroll, { once: true });
+        } else {
+            restorePaginationScroll();
+        }
+    })();
 </script>
 @endonce

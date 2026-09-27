@@ -7,7 +7,9 @@
         "dev": "vite"
     },
     "devDependencies": {
+        "@playwright/test": "^1.63.0",
         "@tailwindcss/vite": "^4.0.0",
+        "axe-core": "^4.13.0",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",

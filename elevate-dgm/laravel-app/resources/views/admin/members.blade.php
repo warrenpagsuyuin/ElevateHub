@@ -1,26 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Members Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; color: #111; }
-        .page { display: flex; min-height: 100vh; background: #f3f4f6; }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: #e33c24; text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: #e33c24; color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: #c92f1b; }
-        .main { flex: 1; width: 100%; max-width: none; margin: 0; padding: 30px 32px; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+@extends('layouts.app')
+
+@section('title', 'Members Dashboard | Elevate DGM')
+
+@push('styles')
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
         .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
         .stats { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
         .card { border-radius: 14px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 105px; color: #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10); }
@@ -33,31 +16,10 @@
 @include('partials.table-pagination-styles')
 @include('partials.data-table-styles')
         @media (max-width: 1200px) { .stats { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
-        @media (max-width: 768px) { .page { flex-direction: column; } .sidebar { width: 100%; min-height: auto; } .sidebar .brand { height: 90px; } .menu { flex-direction: row; flex-wrap: wrap; } .menu a { padding: 12px 14px; font-size: 14px; } .signout { justify-content: flex-start; } .main { padding: 20px; } .stats { grid-template-columns: 1fr; } .header h1 { font-size: 26px; } .table-card { overflow-x: auto; } }
-        @include('partials.sidebar-styles')
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
-            </div>
-        </div>
-        <nav class="menu">
-            <a href="{{ route('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ route('admin.satellites') }}">Satellites</a>
-            <a href="{{ route('admin.members') }}" class="active">Members</a>
-            <a href="{{ route('admin.seekers') }}">Seekers</a>
-            <a href="{{ route('admin.users') }}">Users</a>
-            <a href="{{ route('admin.reports') }}">Reports</a>
-            <a href="{{ route('admin.analytics') }}">Analytics</a>
-        </nav>
-        <div class="signout"><form method="POST" action="<?php echo route('logout'); ?>"><?php echo csrf_field(); ?><button type="submit">Sign out</button></form></div>
-    </aside>
-    <main class="main">
-        <div class="header"><h1>Members Dashboard</h1></div>
+@endpush
+
+@section('content')
+<div class="header"><h1>Members Dashboard</h1></div>
         <div class="stats">
             <div class="card red"><div class="info"><span class="label">Total Members</span><span class="value">{{ $totalMembers }}</span></div></div>
             <div class="card black"><div class="info"><span class="label">Total Satellites</span><span class="value">{{ $totalSatellites }}</span></div></div>
@@ -150,8 +112,8 @@
             </div>
             @include('partials.table-pagination', ['paginator' => $satellites, 'pageSizes' => $pageSizes, 'currentPageSize' => $perPage])
         </section>
-    </main>
-</div>
+@endsection
+
+@push('scripts')
 @include('partials.data-table-scripts')
-</body>
-</html>
+@endpush

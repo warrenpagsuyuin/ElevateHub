@@ -1,3 +1,5 @@
+@extends('layouts.app')
+
 @php
     $memberFormErrorBag = $errors->getBag('memberForm');
     $importErrorBag = $errors->getBag('memberImport');
@@ -49,30 +51,11 @@
         $oldMemberData[$fieldName] = old($fieldName);
     }
 @endphp
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $satellite->display_name }} Members</title>
-    <style>
-        :root { --brand-red: #e33c24; --brand-red-dark: #c92f1b; --brand-red-soft: #fff1ee; --ink: #111; --muted: #667085; --line: #e8edf3; --surface: #fff; --page: #f3f4f6; --green-bg: #dcfce7; --green-text: #07843f; --blue-bg: #dbeafe; --blue-text: #1d4ed8; --gray-bg: #e5e7eb; --gray-text: #4b5563; }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--page); color: var(--ink); }
-        button, input, select, textarea { font: inherit; }
-        .page { display: flex; min-height: 100vh; background: var(--page); }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: var(--brand-red); text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: var(--brand-red); color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: var(--brand-red-dark); }
-        .main { flex: 1; width: 100%; padding: 30px 32px 48px; }
+
+@section('title', $satellite->display_name.' Members | Elevate DGM')
+
+@push('styles')
+:root { --brand-red: #ef3b24; --brand-red-dark: #c92f1b; --brand-red-soft: #fff1ee; --ink: #111; --muted: #667085; --line: #e8edf3; --surface: #fff; --page: #f3f4f6; --green-bg: #dcfce7; --green-text: #07843f; --blue-bg: #dbeafe; --blue-text: #1d4ed8; --gray-bg: #e5e7eb; --gray-text: #4b5563; }
         .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
         .page-title { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
         .page-title h1 { margin: 0; color: var(--ink); font-size: 34px; line-height: 1.08; font-weight: 900; }
@@ -127,6 +110,15 @@
         .status-active { background: var(--green-bg); color: var(--green-text); }
         .status-new { background: var(--blue-bg); color: var(--blue-text); }
         .status-inactive { background: var(--gray-bg); color: var(--gray-text); }
+        .engagement-high { background: #dcfce7; color: #166534; }
+        .engagement-active { background: #dcfce7; color: #166534; }
+        .engagement-medium { background: #fef3c7; color: #92400e; }
+        .engagement-moderate { background: #fef3c7; color: #92400e; }
+        .engagement-low { background: #fee2e2; color: #991b1b; }
+        .engagement-needs-follow-up { background: #fee2e2; color: #991b1b; }
+        .engagement-inactive,
+        .engagement-insufficient,
+        .engagement-unclassified { background: #e5e7eb; color: #4b5563; }
         .leader-empty { color: #98a2b3; font-weight: 900; }
         .actions-cell { width: 80px; text-align: right; }
         .action-menu { position: relative; display: inline-flex; justify-content: flex-end; }
@@ -195,18 +187,10 @@
         .delete-copy { margin: 0; color: var(--muted); font-size: 15px; font-weight: 750; line-height: 1.5; }
         .delete-copy strong { color: var(--ink); font-weight: 900; }
         @include('partials.table-pagination-styles')
-        @include('partials.sidebar-styles')
         @media (max-width: 1100px) {
             .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 900px) {
-            .page { flex-direction: column; }
-            .sidebar { width: 100%; min-height: auto; }
-            .sidebar .brand { height: 90px; }
-            .menu { flex-direction: row; flex-wrap: wrap; }
-            .menu a { padding: 12px 14px; font-size: 14px; }
-            .signout { justify-content: flex-start; }
-            .main { padding: 22px 18px 36px; }
             .page-header, .filter-main-row { align-items: stretch; flex-direction: column; }
             .header-actions { justify-content: flex-start; }
             .search-field { min-width: 0; }
@@ -219,32 +203,10 @@
             .modal-footer { align-items: stretch; flex-direction: column-reverse; }
             .modal-footer .btn { width: 100%; }
         }
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
-            </div>
-        </div>
-        <nav class="menu">
-            <a href="{{ route('satellites.dashboard', $satellite) }}">Dashboard</a>
-            <a href="{{ route('satellites.members', $satellite) }}" class="active">Members</a>
-            <a href="{{ route('satellites.seekers', $satellite) }}">Seekers</a>
-            <a href="{{ route('satellites.dashboard', $satellite) }}">Analytics</a>
-        </nav>
-        <div class="signout">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Sign out</button>
-            </form>
-        </div>
-    </aside>
+@endpush
 
-    <main class="main">
-        <header class="page-header">
+@section('content')
+<header class="page-header">
             <div class="page-title">
                 <h1>Members</h1>
                 <span class="page-kicker">{{ $membersShown }} of {{ $membersTotal }} members - {{ $satellite->display_name }} Satellite</span>
@@ -281,25 +243,26 @@
             <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="hidden" name="per_page" value="{{ $perPage }}">
             <div class="filter-main-row">
-                <label class="search-field">
+                <label class="search-field" for="member-search">
+                    <span class="sr-only">Search members</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input type="search" name="search" value="{{ $filters['search'] }}" placeholder="Search member, leader, campus, email, or contact number">
+                    <input id="member-search" type="search" name="search" value="{{ $filters['search'] }}" placeholder="Search member, leader, campus, email, or contact number">
                 </label>
-                <button type="submit" class="btn btn-primary">Search</button>
-                <button type="button" class="btn btn-secondary filter-toggle" data-filter-toggle aria-expanded="{{ $hasActiveFilters ? 'true' : 'false' }}">
+                <button type="submit" class="btn btn-primary">Search Members</button>
+                <button type="button" class="btn btn-secondary filter-toggle" data-filter-toggle aria-controls="member-filter-panel" aria-expanded="{{ $hasActiveFilters ? 'true' : 'false' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
                     </svg>
                     Filters
                 </button>
                 @if ($hasActiveFilters)
-                    <a class="btn btn-secondary" href="{{ $clearFiltersUrl }}">Clear</a>
+                    <a class="btn btn-secondary" href="{{ $clearFiltersUrl }}">Clear Filters</a>
                 @endif
             </div>
-            <div class="filters-panel" data-filter-panel @unless ($hasActiveFilters) hidden @endunless>
+            <div class="filters-panel" id="member-filter-panel" data-filter-panel @unless ($hasActiveFilters) hidden @endunless>
                 <div class="filter-grid">
                     <div class="filter-field">
                         <label for="status-filter">Status</label>
@@ -372,20 +335,15 @@
             @endif
         </form>
 
-        <section class="directory-card">
+        <section class="directory-card" aria-labelledby="member-directory-title">
+            <h2 id="member-directory-title" class="sr-only">Member Directory</h2>
             <div class="table-scroll">
                 <table class="members-table">
                     <thead>
                         <tr>
                             <th>
-                                <a class="sortable-link" href="{{ $sortUrl('status') }}">
-                                    Status
-                                    <span class="sort-mark {{ $sortMark('status') }}" aria-hidden="true">{{ $sortMark('status') === 'up' ? '^' : ($sortMark('status') === 'down' ? 'v' : '-') }}</span>
-                                </a>
-                            </th>
-                            <th>
                                 <a class="sortable-link" href="{{ $sortUrl('name') }}">
-                                    Full Name
+                                    Member
                                     <span class="sort-mark {{ $sortMark('name') }}" aria-hidden="true">{{ $sortMark('name') === 'up' ? '^' : ($sortMark('name') === 'down' ? 'v' : '-') }}</span>
                                 </a>
                             </th>
@@ -401,7 +359,13 @@
                                     <span class="sort-mark {{ $sortMark('school') }}" aria-hidden="true">{{ $sortMark('school') === 'up' ? '^' : ($sortMark('school') === 'down' ? 'v' : '-') }}</span>
                                 </a>
                             </th>
-                            <th>Name of Dgroup Leader</th>
+                            <th>Dgroup Leader</th>
+                            <th>
+                                <a class="sortable-link" href="{{ $sortUrl('status') }}">
+                                    Status
+                                    <span class="sort-mark {{ $sortMark('status') }}" aria-hidden="true">{{ $sortMark('status') === 'up' ? '^' : ($sortMark('status') === 'down' ? 'v' : '-') }}</span>
+                                </a>
+                            </th>
                             <th class="actions-cell">Actions</th>
                         </tr>
                     </thead>
@@ -414,7 +378,6 @@
                                 $deleteUrl = route('satellites.members.destroy', [$satellite, $member]);
                             @endphp
                             <tr>
-                                <td><span class="status-pill status-{{ $member->status_class }}">{{ $member->status ?: 'Active' }}</span></td>
                                 <td>
                                     <div class="member-name-cell">
                                         <button type="button" class="member-details-button" data-member-details='{!! $memberDetailsJson !!}' data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="View details for {{ $member->display_name }}">
@@ -435,31 +398,32 @@
                                         <span class="leader-empty">-</span>
                                     @endif
                                 </td>
+                                <td><span class="status-pill status-{{ $member->status_class }}">{{ $member->status ?: 'Active' }}</span></td>
                                 <td class="actions-cell">
                                     <div class="action-menu" data-action-menu>
-                                        <button type="button" class="row-action-button" data-action-menu-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Open actions for {{ $member->display_name }}">
+                                        <button type="button" class="row-action-button" data-action-menu-trigger aria-controls="member-actions-{{ $member->id }}" aria-expanded="false" aria-label="Actions for {{ $member->display_name }}">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                 <circle cx="12" cy="12" r="1" />
                                                 <circle cx="19" cy="12" r="1" />
                                                 <circle cx="5" cy="12" r="1" />
                                             </svg>
                                         </button>
-                                        <div class="action-menu-panel" role="menu">
-                                            <button type="button" data-member-details='{!! $memberDetailsJson !!}' data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" role="menuitem">
+                                        <div id="member-actions-{{ $member->id }}" class="action-menu-panel">
+                                            <button type="button" data-member-details='{!! $memberDetailsJson !!}' data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="View details for {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
                                                     <circle cx="12" cy="12" r="3" />
                                                 </svg>
                                                 View Details
                                             </button>
-                                            <button type="button" data-open-member-edit data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" role="menuitem">
+                                            <button type="button" data-open-member-edit data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="Edit member {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M12 20h9" />
                                                     <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                                 </svg>
                                                 Edit Member
                                             </button>
-                                            <button type="button" class="danger-action" data-open-member-delete data-member-delete-url="{{ $deleteUrl }}" data-member-name="{{ $member->display_name }}" role="menuitem">
+                                            <button type="button" class="danger-action" data-open-member-delete data-member-delete-url="{{ $deleteUrl }}" data-member-name="{{ $member->display_name }}" aria-label="Delete member {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M3 6h18" />
                                                     <path d="M8 6V4h8v2" />
@@ -473,7 +437,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6">
+                                <td colspan="7">
                                     <div class="empty-state">
                                         @if ($membersTotal === 0)
                                             <h3>No members yet</h3>
@@ -496,15 +460,15 @@
             </div>
             @include('partials.table-pagination', ['paginator' => $members, 'pageSizes' => $pageSizes, 'currentPageSize' => $perPage])
         </section>
-    </main>
-</div>
+@endsection
 
+@push('scripts')
 <div class="modal-backdrop" data-modal="member-details" aria-hidden="true">
     <section class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="member-details-title">
         <div class="modal-header">
             <div>
                 <span class="modal-kicker">Member details</span>
-                <h2 id="member-details-title"></h2>
+                <h2 id="member-details-title">Member Details</h2>
             </div>
         </div>
         <button type="button" class="modal-close" data-modal-close aria-label="Close member details">&times;</button>
@@ -556,7 +520,7 @@
             <input type="hidden" name="_method" value="" data-member-form-method disabled>
             <div class="modal-body">
                 @if ($memberFormErrorBag->any())
-                    <div class="form-errors">
+                    <div class="form-errors" role="alert" tabindex="-1" data-validation-summary>
                         Please check the highlighted member fields.
                         <ul>
                             @foreach ($memberFormErrorBag->all() as $message)
@@ -571,56 +535,56 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-status">Status *</label>
-                            <select id="member-status" name="status" @class(['is-invalid' => $memberFormErrorBag->has('status')]) required>
+                            <select id="member-status" name="status" @class(['is-invalid' => $memberFormErrorBag->has('status')]) @if ($memberFormErrorBag->has('status')) aria-invalid="true" aria-describedby="member-status-error" @endif required>
                                 @foreach ($statuses as $statusOption)
                                     <option value="{{ $statusOption }}" @selected(old('status', 'Active') === $statusOption)>{{ $statusOption }}</option>
                                 @endforeach
                             </select>
-                            @if ($memberFormErrorBag->has('status'))<span class="field-error">{{ $memberFormErrorBag->first('status') }}</span>@endif
+                            @if ($memberFormErrorBag->has('status'))<span id="member-status-error" class="field-error">{{ $memberFormErrorBag->first('status') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-role">Dgroup Role *</label>
-                            <select id="member-role" name="dgroup_role" @class(['is-invalid' => $memberFormErrorBag->has('dgroup_role')]) required>
+                            <select id="member-role" name="dgroup_role" @class(['is-invalid' => $memberFormErrorBag->has('dgroup_role')]) @if ($memberFormErrorBag->has('dgroup_role')) aria-invalid="true" aria-describedby="member-role-error" @endif required>
                                 @foreach ($dgroupRoles as $roleOption)
                                     <option value="{{ $roleOption }}" @selected(old('dgroup_role', 'Member') === $roleOption)>{{ $roleOption }}</option>
                                 @endforeach
                             </select>
-                            @if ($memberFormErrorBag->has('dgroup_role'))<span class="field-error">{{ $memberFormErrorBag->first('dgroup_role') }}</span>@endif
+                            @if ($memberFormErrorBag->has('dgroup_role'))<span id="member-role-error" class="field-error">{{ $memberFormErrorBag->first('dgroup_role') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-first-name">First Name *</label>
-                            <input id="member-first-name" name="first_name" value="{{ old('first_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('first_name')]) required>
-                            @if ($memberFormErrorBag->has('first_name'))<span class="field-error">{{ $memberFormErrorBag->first('first_name') }}</span>@endif
+                            <input id="member-first-name" name="first_name" value="{{ old('first_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('first_name')]) @if ($memberFormErrorBag->has('first_name')) aria-invalid="true" aria-describedby="member-first-name-error" @endif required>
+                            @if ($memberFormErrorBag->has('first_name'))<span id="member-first-name-error" class="field-error">{{ $memberFormErrorBag->first('first_name') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-last-name">Last Name *</label>
-                            <input id="member-last-name" name="last_name" value="{{ old('last_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('last_name')]) required>
-                            @if ($memberFormErrorBag->has('last_name'))<span class="field-error">{{ $memberFormErrorBag->first('last_name') }}</span>@endif
+                            <input id="member-last-name" name="last_name" value="{{ old('last_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('last_name')]) @if ($memberFormErrorBag->has('last_name')) aria-invalid="true" aria-describedby="member-last-name-error" @endif required>
+                            @if ($memberFormErrorBag->has('last_name'))<span id="member-last-name-error" class="field-error">{{ $memberFormErrorBag->first('last_name') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-full-name">Full Name</label>
-                            <input id="member-full-name" name="full_name" value="{{ old('full_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('full_name')])>
-                            @if ($memberFormErrorBag->has('full_name'))<span class="field-error">{{ $memberFormErrorBag->first('full_name') }}</span>@endif
+                            <input id="member-full-name" name="full_name" value="{{ old('full_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('full_name')]) @if ($memberFormErrorBag->has('full_name')) aria-invalid="true" aria-describedby="member-full-name-error" @endif>
+                            @if ($memberFormErrorBag->has('full_name'))<span id="member-full-name-error" class="field-error">{{ $memberFormErrorBag->first('full_name') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-gender">Gender</label>
-                            <select id="member-gender" name="gender" @class(['is-invalid' => $memberFormErrorBag->has('gender')])>
+                            <select id="member-gender" name="gender" @class(['is-invalid' => $memberFormErrorBag->has('gender')]) @if ($memberFormErrorBag->has('gender')) aria-invalid="true" aria-describedby="member-gender-error" @endif>
                                 <option value="">Select</option>
                                 @foreach ($genders as $genderOption)
                                     <option value="{{ $genderOption }}" @selected(old('gender') === $genderOption)>{{ $genderOption }}</option>
                                 @endforeach
                             </select>
-                            @if ($memberFormErrorBag->has('gender'))<span class="field-error">{{ $memberFormErrorBag->first('gender') }}</span>@endif
+                            @if ($memberFormErrorBag->has('gender'))<span id="member-gender-error" class="field-error">{{ $memberFormErrorBag->first('gender') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-birthdate">Birthdate</label>
-                            <input id="member-birthdate" type="date" name="birthdate" value="{{ old('birthdate') }}" @class(['is-invalid' => $memberFormErrorBag->has('birthdate')])>
-                            @if ($memberFormErrorBag->has('birthdate'))<span class="field-error">{{ $memberFormErrorBag->first('birthdate') }}</span>@endif
+                            <input id="member-birthdate" type="date" name="birthdate" value="{{ old('birthdate') }}" @class(['is-invalid' => $memberFormErrorBag->has('birthdate')]) @if ($memberFormErrorBag->has('birthdate')) aria-invalid="true" aria-describedby="member-birthdate-error" @endif>
+                            @if ($memberFormErrorBag->has('birthdate'))<span id="member-birthdate-error" class="field-error">{{ $memberFormErrorBag->first('birthdate') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-age">Age</label>
-                            <input id="member-age" type="number" min="0" max="130" name="age" value="{{ old('age') }}" @class(['is-invalid' => $memberFormErrorBag->has('age')])>
-                            @if ($memberFormErrorBag->has('age'))<span class="field-error">{{ $memberFormErrorBag->first('age') }}</span>@endif
+                            <input id="member-age" type="number" min="0" max="130" name="age" value="{{ old('age') }}" @class(['is-invalid' => $memberFormErrorBag->has('age')]) @if ($memberFormErrorBag->has('age')) aria-invalid="true" aria-describedby="member-age-error" @endif>
+                            @if ($memberFormErrorBag->has('age'))<span id="member-age-error" class="field-error">{{ $memberFormErrorBag->first('age') }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -630,18 +594,18 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-email">Email Address</label>
-                            <input id="member-email" type="email" name="email_address" value="{{ old('email_address') }}" @class(['is-invalid' => $memberFormErrorBag->has('email_address')])>
-                            @if ($memberFormErrorBag->has('email_address'))<span class="field-error">{{ $memberFormErrorBag->first('email_address') }}</span>@endif
+                            <input id="member-email" type="email" name="email_address" value="{{ old('email_address') }}" @class(['is-invalid' => $memberFormErrorBag->has('email_address')]) @if ($memberFormErrorBag->has('email_address')) aria-invalid="true" aria-describedby="member-email-error" @endif>
+                            @if ($memberFormErrorBag->has('email_address'))<span id="member-email-error" class="field-error">{{ $memberFormErrorBag->first('email_address') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-contact">Contact Number</label>
-                            <input id="member-contact" name="contact_number" value="{{ old('contact_number') }}" @class(['is-invalid' => $memberFormErrorBag->has('contact_number')])>
-                            @if ($memberFormErrorBag->has('contact_number'))<span class="field-error">{{ $memberFormErrorBag->first('contact_number') }}</span>@endif
+                            <input id="member-contact" name="contact_number" value="{{ old('contact_number') }}" @class(['is-invalid' => $memberFormErrorBag->has('contact_number')]) @if ($memberFormErrorBag->has('contact_number')) aria-invalid="true" aria-describedby="member-contact-error" @endif>
+                            @if ($memberFormErrorBag->has('contact_number'))<span id="member-contact-error" class="field-error">{{ $memberFormErrorBag->first('contact_number') }}</span>@endif
                         </div>
                         <div class="field full">
                             <label for="member-facebook">Facebook Link</label>
-                            <input id="member-facebook" type="url" name="facebook_link" value="{{ old('facebook_link') }}" @class(['is-invalid' => $memberFormErrorBag->has('facebook_link')])>
-                            @if ($memberFormErrorBag->has('facebook_link'))<span class="field-error">{{ $memberFormErrorBag->first('facebook_link') }}</span>@endif
+                            <input id="member-facebook" type="url" name="facebook_link" value="{{ old('facebook_link') }}" @class(['is-invalid' => $memberFormErrorBag->has('facebook_link')]) @if ($memberFormErrorBag->has('facebook_link')) aria-invalid="true" aria-describedby="member-facebook-error" @endif>
+                            @if ($memberFormErrorBag->has('facebook_link'))<span id="member-facebook-error" class="field-error">{{ $memberFormErrorBag->first('facebook_link') }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -651,28 +615,28 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-leader">Name of Dgroup Leader</label>
-                            <input id="member-leader" name="dgroup_leader_name" list="member-leader-options" value="{{ old('dgroup_leader_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('dgroup_leader_name')])>
+                            <input id="member-leader" name="dgroup_leader_name" list="member-leader-options" value="{{ old('dgroup_leader_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('dgroup_leader_name')]) @if ($memberFormErrorBag->has('dgroup_leader_name')) aria-invalid="true" aria-describedby="member-leader-error" @endif>
                             <datalist id="member-leader-options">
                                 @foreach ($leaderOptions as $leaderOption)
                                     <option value="{{ $leaderOption }}"></option>
                                 @endforeach
                             </datalist>
-                            @if ($memberFormErrorBag->has('dgroup_leader_name'))<span class="field-error">{{ $memberFormErrorBag->first('dgroup_leader_name') }}</span>@endif
+                            @if ($memberFormErrorBag->has('dgroup_leader_name'))<span id="member-leader-error" class="field-error">{{ $memberFormErrorBag->first('dgroup_leader_name') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-active-disciples">No. of Active Disciples</label>
-                            <input id="member-active-disciples" type="number" min="0" name="active_disciples" value="{{ old('active_disciples') }}" @class(['is-invalid' => $memberFormErrorBag->has('active_disciples')])>
-                            @if ($memberFormErrorBag->has('active_disciples'))<span class="field-error">{{ $memberFormErrorBag->first('active_disciples') }}</span>@endif
+                            <input id="member-active-disciples" type="number" min="0" name="active_disciples" value="{{ old('active_disciples') }}" @class(['is-invalid' => $memberFormErrorBag->has('active_disciples')]) @if ($memberFormErrorBag->has('active_disciples')) aria-invalid="true" aria-describedby="member-active-disciples-error" @endif>
+                            @if ($memberFormErrorBag->has('active_disciples'))<span id="member-active-disciples-error" class="field-error">{{ $memberFormErrorBag->first('active_disciples') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-weekly-dgroups">How many Dgroups do you lead each week?</label>
-                            <input id="member-weekly-dgroups" type="number" min="0" name="weekly_dgroups_led" value="{{ old('weekly_dgroups_led') }}" @class(['is-invalid' => $memberFormErrorBag->has('weekly_dgroups_led')])>
-                            @if ($memberFormErrorBag->has('weekly_dgroups_led'))<span class="field-error">{{ $memberFormErrorBag->first('weekly_dgroups_led') }}</span>@endif
+                            <input id="member-weekly-dgroups" type="number" min="0" name="weekly_dgroups_led" value="{{ old('weekly_dgroups_led') }}" @class(['is-invalid' => $memberFormErrorBag->has('weekly_dgroups_led')]) @if ($memberFormErrorBag->has('weekly_dgroups_led')) aria-invalid="true" aria-describedby="member-weekly-dgroups-error" @endif>
+                            @if ($memberFormErrorBag->has('weekly_dgroups_led'))<span id="member-weekly-dgroups-error" class="field-error">{{ $memberFormErrorBag->first('weekly_dgroups_led') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-generation">Generation</label>
-                            <input id="member-generation" name="generation" value="{{ old('generation') }}" @class(['is-invalid' => $memberFormErrorBag->has('generation')])>
-                            @if ($memberFormErrorBag->has('generation'))<span class="field-error">{{ $memberFormErrorBag->first('generation') }}</span>@endif
+                            <input id="member-generation" name="generation" value="{{ old('generation') }}" @class(['is-invalid' => $memberFormErrorBag->has('generation')]) @if ($memberFormErrorBag->has('generation')) aria-invalid="true" aria-describedby="member-generation-error" @endif>
+                            @if ($memberFormErrorBag->has('generation'))<span id="member-generation-error" class="field-error">{{ $memberFormErrorBag->first('generation') }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -682,18 +646,18 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-district">District *</label>
-                            <input id="member-district" name="district" value="{{ old('district', $satellite->display_name) }}" @class(['is-invalid' => $memberFormErrorBag->has('district')]) required>
-                            @if ($memberFormErrorBag->has('district'))<span class="field-error">{{ $memberFormErrorBag->first('district') }}</span>@endif
+                            <input id="member-district" name="district" value="{{ old('district', $satellite->display_name) }}" @class(['is-invalid' => $memberFormErrorBag->has('district')]) @if ($memberFormErrorBag->has('district')) aria-invalid="true" aria-describedby="member-district-error" @endif required>
+                            @if ($memberFormErrorBag->has('district'))<span id="member-district-error" class="field-error">{{ $memberFormErrorBag->first('district') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-area">Area</label>
-                            <input id="member-area" name="area" value="{{ old('area') }}" @class(['is-invalid' => $memberFormErrorBag->has('area')])>
-                            @if ($memberFormErrorBag->has('area'))<span class="field-error">{{ $memberFormErrorBag->first('area') }}</span>@endif
+                            <input id="member-area" name="area" value="{{ old('area') }}" @class(['is-invalid' => $memberFormErrorBag->has('area')]) @if ($memberFormErrorBag->has('area')) aria-invalid="true" aria-describedby="member-area-error" @endif>
+                            @if ($memberFormErrorBag->has('area'))<span id="member-area-error" class="field-error">{{ $memberFormErrorBag->first('area') }}</span>@endif
                         </div>
                         <div class="field full">
                             <label for="member-campus">Campus/School *</label>
-                            <input id="member-campus" name="campus_school" value="{{ old('campus_school') }}" @class(['is-invalid' => $memberFormErrorBag->has('campus_school')]) required>
-                            @if ($memberFormErrorBag->has('campus_school'))<span class="field-error">{{ $memberFormErrorBag->first('campus_school') }}</span>@endif
+                            <input id="member-campus" name="campus_school" value="{{ old('campus_school') }}" @class(['is-invalid' => $memberFormErrorBag->has('campus_school')]) @if ($memberFormErrorBag->has('campus_school')) aria-invalid="true" aria-describedby="member-campus-error" @endif required>
+                            @if ($memberFormErrorBag->has('campus_school'))<span id="member-campus-error" class="field-error">{{ $memberFormErrorBag->first('campus_school') }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -703,33 +667,33 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-year-joined">Year Joined</label>
-                            <input id="member-year-joined" type="number" min="1900" max="{{ now()->year + 1 }}" name="year_joined" value="{{ old('year_joined') }}" @class(['is-invalid' => $memberFormErrorBag->has('year_joined')])>
-                            @if ($memberFormErrorBag->has('year_joined'))<span class="field-error">{{ $memberFormErrorBag->first('year_joined') }}</span>@endif
+                            <input id="member-year-joined" type="number" min="1900" max="{{ now()->year + 1 }}" name="year_joined" value="{{ old('year_joined') }}" @class(['is-invalid' => $memberFormErrorBag->has('year_joined')]) @if ($memberFormErrorBag->has('year_joined')) aria-invalid="true" aria-describedby="member-year-joined-error" @endif>
+                            @if ($memberFormErrorBag->has('year_joined'))<span id="member-year-joined-error" class="field-error">{{ $memberFormErrorBag->first('year_joined') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-ministry">Ministry Involvement</label>
-                            <input id="member-ministry" name="ministry_involvement" value="{{ old('ministry_involvement') }}" @class(['is-invalid' => $memberFormErrorBag->has('ministry_involvement')])>
-                            @if ($memberFormErrorBag->has('ministry_involvement'))<span class="field-error">{{ $memberFormErrorBag->first('ministry_involvement') }}</span>@endif
+                            <input id="member-ministry" name="ministry_involvement" value="{{ old('ministry_involvement') }}" @class(['is-invalid' => $memberFormErrorBag->has('ministry_involvement')]) @if ($memberFormErrorBag->has('ministry_involvement')) aria-invalid="true" aria-describedby="member-ministry-error" @endif>
+                            @if ($memberFormErrorBag->has('ministry_involvement'))<span id="member-ministry-error" class="field-error">{{ $memberFormErrorBag->first('ministry_involvement') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-refresh-date">Refresh Date</label>
-                            <input id="member-refresh-date" type="date" name="refresh_date" value="{{ old('refresh_date') }}" @class(['is-invalid' => $memberFormErrorBag->has('refresh_date')])>
-                            @if ($memberFormErrorBag->has('refresh_date'))<span class="field-error">{{ $memberFormErrorBag->first('refresh_date') }}</span>@endif
+                            <input id="member-refresh-date" type="date" name="refresh_date" value="{{ old('refresh_date') }}" @class(['is-invalid' => $memberFormErrorBag->has('refresh_date')]) @if ($memberFormErrorBag->has('refresh_date')) aria-invalid="true" aria-describedby="member-refresh-date-error" @endif>
+                            @if ($memberFormErrorBag->has('refresh_date'))<span id="member-refresh-date-error" class="field-error">{{ $memberFormErrorBag->first('refresh_date') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-year">Year</label>
-                            <input id="member-year" type="number" min="1900" max="{{ now()->year + 1 }}" name="year" value="{{ old('year') }}" @class(['is-invalid' => $memberFormErrorBag->has('year')])>
-                            @if ($memberFormErrorBag->has('year'))<span class="field-error">{{ $memberFormErrorBag->first('year') }}</span>@endif
+                            <input id="member-year" type="number" min="1900" max="{{ now()->year + 1 }}" name="year" value="{{ old('year') }}" @class(['is-invalid' => $memberFormErrorBag->has('year')]) @if ($memberFormErrorBag->has('year')) aria-invalid="true" aria-describedby="member-year-error" @endif>
+                            @if ($memberFormErrorBag->has('year'))<span id="member-year-error" class="field-error">{{ $memberFormErrorBag->first('year') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-month">Month</label>
-                            <select id="member-month" name="month" @class(['is-invalid' => $memberFormErrorBag->has('month')])>
+                            <select id="member-month" name="month" @class(['is-invalid' => $memberFormErrorBag->has('month')]) @if ($memberFormErrorBag->has('month')) aria-invalid="true" aria-describedby="member-month-error" @endif>
                                 <option value="">Select</option>
                                 @foreach (['January','February','March','April','May','June','July','August','September','October','November','December'] as $monthOption)
                                     <option value="{{ $monthOption }}" @selected(old('month') === $monthOption)>{{ $monthOption }}</option>
                                 @endforeach
                             </select>
-                            @if ($memberFormErrorBag->has('month'))<span class="field-error">{{ $memberFormErrorBag->first('month') }}</span>@endif
+                            @if ($memberFormErrorBag->has('month'))<span id="member-month-error" class="field-error">{{ $memberFormErrorBag->first('month') }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -753,7 +717,7 @@
         <button type="button" class="modal-close" data-modal-close aria-label="Close upload sheet">&times;</button>
         <div class="modal-body">
             @if ($importErrorBag->any())
-                <div class="form-errors">
+                <div class="form-errors" role="alert" tabindex="-1" data-validation-summary>
                     Please check the uploaded member sheet.
                     <ul>
                         @foreach ($importErrorBag->all() as $message)
@@ -768,7 +732,8 @@
                 <label class="import-drop" for="member-sheet">
                     <strong>Choose CSV or XLSX file</strong>
                     <span>Columns are matched by header name. Use the template for the safest import.</span>
-                    <input id="member-sheet" type="file" name="member_sheet" accept=".csv,.txt,.xlsx" required>
+                    <input id="member-sheet" type="file" name="member_sheet" accept=".csv,.txt,.xlsx" required @if ($importErrorBag->has('member_sheet')) aria-invalid="true" aria-describedby="member-sheet-error" @endif>
+                    @if ($importErrorBag->has('member_sheet'))<span id="member-sheet-error" class="field-error">{{ $importErrorBag->first('member_sheet') }}</span>@endif
                 </label>
                 <div class="header-actions" style="justify-content: flex-start;">
                     <button type="submit" class="btn btn-primary" data-loading-text="Checking...">Preview Import</button>
@@ -893,8 +858,10 @@
 
         const closeActionMenus = () => {
             document.querySelectorAll('[data-action-menu].open').forEach((menu) => {
+                const trigger = menu.querySelector('[data-action-menu-trigger]');
+                if (menu.contains(document.activeElement)) trigger?.focus();
                 menu.classList.remove('open');
-                menu.querySelector('[data-action-menu-trigger]')?.setAttribute('aria-expanded', 'false');
+                trigger?.setAttribute('aria-expanded', 'false');
             });
         };
 
@@ -1141,5 +1108,4 @@
         @endif
     })();
 </script>
-</body>
-</html>
+@endpush

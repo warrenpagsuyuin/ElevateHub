@@ -3,7 +3,7 @@
 @section('content')
 @php
     $user = auth()->user();
-    $satellites = $user?->assignedSatellites()->latest()->get() ?? collect();
+    $satellites = $user?->assignedSatellites()->with('assignedUsers')->latest()->get() ?? collect();
 @endphp
 
 <div class="header">
@@ -43,7 +43,7 @@
         <thead>
             <tr>
                 <th>Satellite</th>
-                <th>Assigned User</th>
+                <th>Assigned Users</th>
                 <th>Access</th>
             </tr>
         </thead>
@@ -51,7 +51,7 @@
             @forelse ($satellites as $satellite)
                 <tr>
                     <td>{{ $satellite->display_name }}</td>
-                    <td>{{ $satellite->assignedUser?->name ?? 'Unassigned' }}</td>
+                    <td>{{ $satellite->assignedUsers->pluck('name')->implode(', ') ?: 'Unassigned' }}</td>
                     <td>Open</td>
                 </tr>
             @empty

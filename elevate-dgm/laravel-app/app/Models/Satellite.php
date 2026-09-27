@@ -34,6 +34,22 @@ class Satellite extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::created(function (Satellite $satellite): void {
+            if ($satellite->assigned_user_id === null) {
+                return;
+            }
+
+            User::whereKey($satellite->assigned_user_id)
+                ->where(function ($query): void {
+                    $query->whereNull('district')
+                        ->orWhere('district', '');
+                })
+                ->update(['district' => $satellite->name]);
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -50,6 +66,11 @@ class Satellite extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function assignedUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'district', 'name');
     }
 
     public function creator(): BelongsTo

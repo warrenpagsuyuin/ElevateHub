@@ -236,7 +236,7 @@ class OtpLoginController extends Controller
     private function redirectPathFor(User $user): string
     {
         $role = $this->role($user);
-        $satellite = $user->assignedSatellites()->latest()->first();
+        $satellite = $user->satelliteForDistrict();
 
         if ($satellite) {
             return route('satellites.dashboard', $satellite);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class Member extends Model
@@ -48,6 +49,21 @@ class Member extends Model
         return $this->belongsTo(Satellite::class);
     }
 
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class);
+    }
+
+    public function engagementResult()
+    {
+        return $this->hasOne(EngagementResult::class);
+    }
+
+    public function recommendations()
+    {
+        return $this->hasMany(Recommendation::class);
+    }
+
     public function getDisplayNameAttribute(): string
     {
         return $this->full_name ?: $this->name;
@@ -74,6 +90,31 @@ class Member extends Model
     public function getStatusClassAttribute(): string
     {
         return Str::slug($this->status ?: self::STATUS_ACTIVE);
+    }
+
+    public function setBirthdateAttribute(mixed $value): void
+    {
+        $this->attributes['birthdate'] = $this->dateOnlyValue($value);
+    }
+
+    public function setRefreshDateAttribute(mixed $value): void
+    {
+        $this->attributes['refresh_date'] = $this->dateOnlyValue($value);
+    }
+
+    private function dateOnlyValue(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return $value instanceof \DateTimeInterface
+                ? Carbon::instance($value)->toDateString()
+                : Carbon::parse($value)->toDateString();
+        } catch (\Throwable) {
+            return (string) $value;
+        }
     }
 
     public function detailPayload(): array

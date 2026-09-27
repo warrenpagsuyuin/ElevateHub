@@ -1,0 +1,154 @@
+{
+  "table13": [
+    {
+      "condition": "Classification displayed",
+      "expected": "The CART engagement category is shown.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: The CART engagement category is shown.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_displays_exact_stored_engagement_category"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    },
+    {
+      "condition": "Approved factors displayed",
+      "expected": "Only recorded model inputs are shown.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Only recorded model inputs are shown.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_displays_recorded_model_inputs_without_protected_predictors"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    },
+    {
+      "condition": "Decision path displayed",
+      "expected": "Stored threshold, branch and leaf match the result.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Stored threshold, branch and leaf match the result.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_displays_stored_threshold_branch_and_final_leaf"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    },
+    {
+      "condition": "Model/version displayed",
+      "expected": "Model version and generation date are visible.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Model version and generation date are visible.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_displays_model_version_and_generation_date"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    },
+    {
+      "condition": "Human-review notice displayed",
+      "expected": "Authorized human review and nonjudgment notice are shown.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Authorized human review and nonjudgment notice are shown.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_displays_human_review_and_nonjudgment_notice"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    },
+    {
+      "condition": "Unauthorized access blocked",
+      "expected": "Unauthorized and unauthenticated accounts cannot access XAI.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Unauthorized and unauthenticated accounts cannot access XAI.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t13_xai_denies_unauthorized_and_unauthenticated_access"
+      ],
+      "route": "/satellites/{satellite}/engagement/{member}",
+      "source": "EngagementClassificationController; EngagementResult; satellite.access",
+      "screenshot": "Authorized member engagement detail; redact identities."
+    }
+  ],
+  "table14": [
+    {
+      "condition": "Recommendation generation",
+      "expected": "Only an approved matching action can be assigned; insufficient data permits validation only.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Only an approved matching action can be assigned; insufficient data permits validation only.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_generates_pending_recommendation_from_approved_matching_catalogue",
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_rejects_inactive_unapproved_and_mismatched_catalogue_actions",
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_insufficient_information_allows_only_reviewed_data_validation",
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_missing_result_and_empty_catalogue_do_not_invent_recommendations"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "Approve",
+      "expected": "Authorized reviewer can approve with recorded history.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Authorized reviewer can approve with recorded history.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_authorized_reviewer_can_approve_and_history_records_actor_action_time"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "Modify",
+      "expected": "Reviewer can modify with notes, then approve while retaining history.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Reviewer can modify with notes, then approve while retaining history.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_modified_wording_requires_notes_and_can_be_approved_with_history_preserved"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "Reject",
+      "expected": "Reviewer can reject with a required reason.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Reviewer can reject with a required reason.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_authorized_reviewer_can_reject_with_required_reason"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "Audit trail",
+      "expected": "Actor, action, timestamp and review history persist.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Actor, action, timestamp and review history persist.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_authorized_reviewer_can_approve_and_history_records_actor_action_time",
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_modified_wording_requires_notes_and_can_be_approved_with_history_preserved"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "Access restriction",
+      "expected": "Cross-district, unassigned, expired and finalized reviews are blocked.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Cross-district, unassigned, expired and finalized reviews are blocked.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_permissions_deny_cross_district_and_unassigned_recommendation_access",
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_duplicate_pending_and_finalized_or_expired_reviews_are_blocked"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    },
+    {
+      "condition": "No automatic contact/discipline",
+      "expected": "Recommendations do not automatically contact, discipline or exclude members.",
+      "verified_result": "Verified by HTTP assertions against isolated SQLite fixtures: Recommendations do not automatically contact, discipline or exclude members.",
+      "tests": [
+        "Tests\\Feature\\ThesisFunctionalEvidenceTest::test_t14_recommendations_do_not_contact_discipline_or_exclude_members"
+      ],
+      "route": "/satellites/{satellite}/recommendations/{recommendation}",
+      "source": "RecommendationController; RecommendationAction; Recommendation; EngagementResearchAudit; satellite.access",
+      "screenshot": "Recommendation details and review history; no live records currently available. Authorized test environment only."
+    }
+  ]
+}

@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/.audit-npm-cache/
+/.npm-cache/
+/.psysh-appdata/
+/output.txt
+/test-output.txt
+/t14-output.txt

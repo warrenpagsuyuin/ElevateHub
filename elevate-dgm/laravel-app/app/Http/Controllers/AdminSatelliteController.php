@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EngagementResult;
+use App\Models\FollowUp;
 use App\Models\Member;
 use App\Models\Satellite;
+use App\Models\Seeker;
 use App\Models\User;
+use App\Services\EngagementClassificationService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -86,7 +90,7 @@ class AdminSatelliteController extends Controller
             ->orderBy('id')
             ->paginate($perPage)
             ->withQueryString();
-        $assignableUsers = User::whereIn('role', ['satellite', 'satellite_user'])
+        $assignableUsers = User::where('role', '!=', 'admin')
             ->orderBy('name')
             ->get();
 
@@ -111,16 +115,20 @@ class AdminSatelliteController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120', 'unique:satellites,name'],
             'hub' => ['required', 'in:'.implode(',', self::HUBS)],
-            'assigned_user_id' => ['nullable', 'exists:users,id'],
+            'initial_user_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $satellite = Satellite::create([
             'name' => $validated['name'],
             'slug' => $this->uniqueSlug($validated['name']),
             'hub' => $validated['hub'],
-            'assigned_user_id' => $validated['assigned_user_id'] ?? null,
             'created_by_id' => Auth::id(),
         ]);
+
+        if (! empty($validated['initial_user_id'])) {
+            User::whereKey($validated['initial_user_id'])
+                ->update(['district' => $satellite->name]);
+        }
 
         return redirect()
             ->route('admin.satellites')
@@ -139,14 +147,14 @@ class AdminSatelliteController extends Controller
 
         return response()->streamDownload(function () use ($query): void {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Satellite', 'Hub', 'Assigned User', 'Leaders', 'Members', 'Seekers', 'New Members']);
+            fputcsv($handle, ['Satellite', 'Hub', 'Assigned Users', 'Leaders', 'Members', 'Seekers', 'New Members']);
 
             $query->chunk(500, function ($satellites) use ($handle): void {
                 foreach ($satellites as $satellite) {
                     fputcsv($handle, [
                         $satellite->display_name,
                         $satellite->hub,
-                        $satellite->assignedUser?->name ?? 'Unassigned',
+                        $satellite->assignedUsers->pluck('name')->implode(', ') ?: 'Unassigned',
                         $satellite->leaders_count,
                         $satellite->members_count,
                         $satellite->seekers_count,
@@ -161,14 +169,19 @@ class AdminSatelliteController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($this->canOpenSatellite($satellite, $user), 403);
-        $satellite->load('assignedUser');
+        abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
+        $satellite->load('assignedUsers');
 
         return view('satellites.dashboard', [
             'satellite' => $satellite,
+            'satelliteUsers' => $satellite->assignedUsers,
+            'canManageSatellite' => $user->canManageSatellite($satellite),
             'dashboardMonths' => self::DASHBOARD_MONTHS,
             'selectedDashboardMonth' => now()->format('F'),
             'satelliteSummaryCards' => $this->satelliteSummaryCards($satellite),
+            'engagementSummary' => $this->engagementSummary($satellite),
+            'seekerSummary' => $this->seekerSummary($satellite),
+            'recentActivity' => $this->recentActivity($satellite),
         ]);
     }
 
@@ -176,14 +189,15 @@ class AdminSatelliteController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
 
-        $satellite->load('assignedUser');
+        $satellite->load('assignedUsers');
         $filters = $this->memberFilters($request);
         [$sort, $direction] = $this->memberSort($request);
         $perPage = $this->perPage($request);
         $allMembersQuery = $satellite->members();
         $members = $this->filteredSatelliteMembersQuery($satellite, $filters)
+            ->with('engagementResult')
             ->orderBy(self::MEMBER_SORTS[$sort], $direction)
             ->orderBy('id')
             ->paginate($perPage)
@@ -215,6 +229,7 @@ class AdminSatelliteController extends Controller
             'filterOptions' => $filterOptions,
             'hasActiveFilters' => $this->hasActiveMemberFilters($filters),
             'importPreview' => session('memberImportPreview'),
+            'canManageSatellite' => $user->canManageSatellite($satellite),
         ]);
     }
 
@@ -377,18 +392,11 @@ class AdminSatelliteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    private function canOpenSatellite(Satellite $satellite, User $user): bool
-    {
-        $role = str_replace([' ', '-'], '_', strtolower((string) ($user->role ?: 'member')));
-
-        return $role !== 'admin' && $satellite->assigned_user_id === $user->id;
-    }
-
     private function authorizeSatelliteMemberManagement(Satellite $satellite, ?Member $member = null): void
     {
         $user = Auth::user();
 
-        abort_unless($user instanceof User && $this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
 
         if ($member !== null) {
             abort_unless((int) $member->satellite_id === (int) $satellite->id, 404);
@@ -1420,6 +1428,73 @@ class AdminSatelliteController extends Controller
         ];
     }
 
+    private function engagementSummary(Satellite $satellite): array
+    {
+        $classifiedCounts = EngagementResult::query()
+            ->whereHas('member', fn ($query) => $query->where('satellite_id', $satellite->id))
+            ->selectRaw('classification, COUNT(*) as total')
+            ->groupBy('classification')
+            ->pluck('total', 'classification');
+        $memberCount = $satellite->members()->count();
+        $classifiedTotal = (int) $classifiedCounts->sum();
+
+        return [
+            [
+                'label' => 'Active',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_ACTIVE] ?? 0) + ($classifiedCounts['High'] ?? 0)),
+            ],
+            [
+                'label' => 'Moderately Active',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_MODERATELY_ACTIVE] ?? 0) + ($classifiedCounts['Medium'] ?? 0)),
+            ],
+            [
+                'label' => 'Possible Need for Follow-Up',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_NEEDS_FOLLOW_UP] ?? 0) + ($classifiedCounts['Low'] ?? 0)),
+            ],
+            [
+                'label' => 'Insufficient Information / Not Yet Classified',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_INSUFFICIENT] ?? 0) + ($classifiedCounts['Inactive'] ?? 0) + max(0, $memberCount - $classifiedTotal)),
+            ],
+        ];
+    }
+
+    private function seekerSummary(Satellite $satellite): array
+    {
+        $baseQuery = $satellite->seekers();
+        $pending = (clone $baseQuery)->whereNull('converted_member_id')->whereNull('archived_at')->where('status', Seeker::STATUS_PENDING)->count();
+        $underReview = (clone $baseQuery)->whereNull('converted_member_id')->whereNull('archived_at')->where('status', '!=', Seeker::STATUS_PENDING)->count();
+        $converted = (clone $baseQuery)->whereNotNull('converted_member_id')->count();
+
+        return [
+            ['label' => 'Pending', 'value' => $pending],
+            ['label' => 'Under Review', 'value' => $underReview],
+            ['label' => 'Converted', 'value' => $converted],
+        ];
+    }
+
+    private function recentActivity(Satellite $satellite): array
+    {
+        return FollowUp::query()
+            ->where('satellite_id', $satellite->id)
+            ->with(['member', 'seeker'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function (FollowUp $followUp): array {
+                $target = $followUp->member?->display_name
+                    ?? $followUp->seeker?->name
+                    ?? 'Unassigned target';
+
+                return [
+                    'target' => $target,
+                    'status' => $followUp->status,
+                    'method' => $followUp->method,
+                    'date' => $followUp->follow_up_date?->format('M d, Y') ?? $followUp->created_at?->format('M d, Y'),
+                ];
+            })
+            ->all();
+    }
+
     private function filters(Request $request): array
     {
         return [
@@ -1432,20 +1507,20 @@ class AdminSatelliteController extends Controller
     private function filteredSatellitesQuery(array $filters)
     {
         return Satellite::query()
-            ->with('assignedUser')
+            ->with('assignedUsers')
             ->when($filters['search'] !== '', function ($query) use ($filters): void {
                 $query->where(function ($query) use ($filters): void {
                     $query->where('name', 'like', '%'.$filters['search'].'%')
                         ->orWhere('hub', 'like', '%'.$filters['search'].'%')
-                        ->orWhereHas('assignedUser', function ($query) use ($filters): void {
+                        ->orWhereHas('assignedUsers', function ($query) use ($filters): void {
                             $query->where('name', 'like', '%'.$filters['search'].'%')
                                 ->orWhere('email', 'like', '%'.$filters['search'].'%');
                         });
                 });
             })
             ->when($filters['hub'] !== '', fn ($query) => $query->where('hub', $filters['hub']))
-            ->when($filters['assignment'] === 'assigned', fn ($query) => $query->whereNotNull('assigned_user_id'))
-            ->when($filters['assignment'] === 'unassigned', fn ($query) => $query->whereNull('assigned_user_id'));
+            ->when($filters['assignment'] === 'assigned', fn ($query) => $query->whereHas('assignedUsers'))
+            ->when($filters['assignment'] === 'unassigned', fn ($query) => $query->doesntHave('assignedUsers'));
     }
 
     private function sort(Request $request): array

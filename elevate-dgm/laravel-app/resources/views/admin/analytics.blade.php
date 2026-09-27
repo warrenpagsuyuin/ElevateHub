@@ -1,27 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; color: #111; }
-        .page { display: flex; min-height: 100vh; height: 100vh; overflow: hidden; background: #f3f4f6; }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: #e33c24; text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: #e33c24; color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: #c92f1b; }
-        .main { flex: 1; width: 100%; max-width: none; height: 100vh; margin: 0; overflow-y: auto; padding: 30px 32px 44px; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+@extends('layouts.app')
+
+@section('title', 'Analytics Dashboard | Elevate DGM')
+
+@push('styles')
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
         .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
+        .analytics-link { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 8px; background: #111; color: #fff; text-decoration: none; font-size: 13px; font-weight: 900; }
+        .analytics-link:hover { background: #e33c24; color: #fff; }
         .analytics-stack { display: flex; flex-direction: column; gap: 34px; }
         .analytics-section { display: flex; flex-direction: column; gap: 18px; }
         .section-title { margin: 0; color: #111; font-size: 23px; line-height: 1.2; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -41,36 +26,24 @@
         .analytics-status { padding: 24px; border-radius: 14px; background: #fff; color: #4b5563; box-shadow: 0 16px 34px rgba(17, 24, 39, 0.10); font-weight: 800; }
         .analytics-status.error { color: #b42318; }
         @media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr; } .plotly-chart { height: 340px; } }
-        @media (max-width: 900px) { body { overflow: auto; } .page { height: auto; min-height: 100vh; overflow: visible; } .main { height: auto; min-height: 0; overflow: visible; } }
-        @media (max-width: 768px) { .main { padding: 20px; } .header h1 { font-size: 26px; } .section-title { font-size: 20px; } .plotly-chart { height: 285px; } .chart-card, .data-card { border-radius: 12px; } }
-        @include('partials.sidebar-styles')
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
+@endpush
+
+@section('content')
+<div data-analytics-url="{{ route('admin.analytics.data') }}">
+<div class="header">
+            <h1>Analytics Dashboard</h1>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a class="analytics-link" href="{{ route('admin.engagement.index') }}">Engagement Classification</a>
+                <a class="analytics-link" href="{{ route('admin.recommendation-actions.index') }}">Recommendation Catalogue</a>
+                <a class="analytics-link" href="{{ route('admin.analytics.sentiment') }}">Sentiment Analysis</a>
             </div>
         </div>
-        <nav class="menu">
-            <a href="{{ route('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ route('admin.satellites') }}">Satellites</a>
-            <a href="{{ route('admin.members') }}">Members</a>
-            <a href="{{ route('admin.seekers') }}">Seekers</a>
-            <a href="{{ route('admin.users') }}">Users</a>
-            <a href="{{ route('admin.reports') }}">Reports</a>
-            <a href="{{ route('admin.analytics') }}" class="active">Analytics</a>
-        </nav>
-        <div class="signout"><form method="POST" action="<?php echo route('logout'); ?>"><?php echo csrf_field(); ?><button type="submit">Sign out</button></form></div>
-    </aside>
-    <main class="main" data-analytics-url="{{ route('admin.analytics.data') }}">
-        <div class="header"><h1>Analytics Dashboard</h1></div>
         <div class="analytics-status" id="analytics-status">Loading analytics data...</div>
         <div class="analytics-stack" id="analytics-sections"></div>
-    </main>
 </div>
+@endsection
+
+@push('scripts')
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
     (() => {
@@ -251,5 +224,4 @@
             });
     })();
 </script>
-</body>
-</html>
+@endpush

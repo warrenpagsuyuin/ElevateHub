@@ -22,9 +22,9 @@ class SatelliteSeekerController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user instanceof User && $this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
 
-        $satellite->load('assignedUser');
+        $satellite->load('assignedUsers');
         $seekers = $satellite->seekers()
             ->whereNull('converted_member_id')
             ->whereNull('archived_at')
@@ -49,6 +49,7 @@ class SatelliteSeekerController extends Controller
             'totalMembers' => (int) $satellite->members_count,
             'totalLeaders' => (int) $satellite->leaders_count,
             'leaderOptions' => $leaderOptions,
+            'canManageSatellite' => $user->canManageSatellite($satellite),
         ]);
     }
 
@@ -146,18 +147,12 @@ class SatelliteSeekerController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user instanceof User && $this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
         $this->authorizeSeeker($satellite, $seeker);
 
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:'.implode(',', Seeker::STATUSES)],
         ]);
-
-        if ($validated['status'] === Seeker::STATUS_SUCCESSFUL && blank($seeker->converted_member_id)) {
-            return back()->with('error', blank($seeker->dgroup_leader_name)
-                ? 'Assign a DGroup Leader before converting this seeker to a member.'
-                : 'Complete the member information before converting this seeker.');
-        }
 
         $seeker->update([
             'status' => Seeker::normalizeStatus($validated['status']),
@@ -175,7 +170,7 @@ class SatelliteSeekerController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user instanceof User && $this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
 
         $validated = $request->validate([
             'selection_scope' => ['required', 'in:ids,matching'],
@@ -211,17 +206,10 @@ class SatelliteSeekerController extends Controller
                 : $count.' seeker'.($count === 1 ? '' : 's').' moved to '.$status.'.');
     }
 
-    private function canOpenSatellite(Satellite $satellite, User $user): bool
-    {
-        $role = str_replace([' ', '-'], '_', strtolower((string) ($user->role ?: 'member')));
-
-        return $role !== 'admin' && $satellite->assigned_user_id === $user->id;
-    }
-
     private function authorizeSeeker(Satellite $satellite, Seeker $seeker): void
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $this->canOpenSatellite($satellite, $user), 403);
+        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
         abort_unless($seeker->assigned_satellite_slug === $satellite->slug, 404);
     }
 

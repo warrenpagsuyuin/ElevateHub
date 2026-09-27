@@ -66,6 +66,11 @@ class Seeker extends Model
         return $this->belongsTo(Satellite::class, 'assigned_satellite_slug', 'slug');
     }
 
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class);
+    }
+
     public function getStatusClassAttribute(): string
     {
         return Str::slug($this->status ?: self::STATUS_PENDING);

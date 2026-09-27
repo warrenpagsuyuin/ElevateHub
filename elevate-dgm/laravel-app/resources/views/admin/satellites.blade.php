@@ -1,26 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satellites Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; color: #111; }
-        .page { display: flex; min-height: 100vh; background: #f3f4f6; }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: #e33c24; text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: #e33c24; color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: #c92f1b; }
-        .main { flex: 1; width: 100%; max-width: none; margin: 0; padding: 30px 32px; }
-        .header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+@extends('layouts.app')
+
+@section('title', 'Satellites Dashboard | Elevate DGM')
+
+@push('styles')
+.header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
         .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
         .new-button { display: inline-flex; align-items: center; gap: 10px; border: none; border-radius: 999px; background: #e33c24; color: #fff; cursor: pointer; font-size: 15px; font-weight: 900; padding: 14px 24px; box-shadow: 0 4px 12px rgba(227, 60, 36, 0.22); }
         .new-button:hover { background: #c92f1b; }
@@ -34,8 +17,8 @@
         .card .label { font-size: 14px; font-weight: 800; opacity: 0.95; }
         .card .value { font-size: 30px; font-weight: 900; line-height: 1; }
 @include('partials.admin-summary-table-styles')
-        .satellite-name { color: #fff; font: inherit; }
-        .muted { color: rgba(255, 255, 255, 0.78); font-size: 13px; font-weight: 600; }
+        .satellite-name { color: inherit; font: inherit; font-weight: 800; }
+        .muted { color: rgba(17, 24, 39, 0.68); font-size: 13px; font-weight: 600; }
 @include('partials.table-pagination-styles')
 @include('partials.data-table-styles')
         .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-start; justify-content: center; background: rgba(0, 0, 0, 0.44); padding: 64px 16px 24px; }
@@ -52,36 +35,10 @@
         .modal-submit { width: 100%; min-height: 45px; border: none; border-radius: 999px; background: #e33c24; color: #fff; cursor: pointer; font: inherit; font-weight: 900; }
         .modal-submit:hover { background: #c92f1b; }
         @media (max-width: 1200px) { .stats { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
-        @media (max-width: 768px) { .page { flex-direction: column; } .sidebar { width: 100%; min-height: auto; } .sidebar .brand { height: 90px; } .menu { flex-direction: row; flex-wrap: wrap; } .menu a { padding: 12px 14px; font-size: 14px; } .signout { justify-content: flex-start; } .main { padding: 20px; } .header { align-items: flex-start; flex-direction: column; } .stats { grid-template-columns: 1fr; } .header h1 { font-size: 26px; } .table-card { overflow-x: auto; } }
-        @include('partials.sidebar-styles')
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
-            </div>
-        </div>
-        <nav class="menu">
-            <a href="{{ route('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ route('admin.satellites') }}" class="active">Satellites</a>
-            <a href="{{ route('admin.members') }}">Members</a>
-            <a href="{{ route('admin.seekers') }}">Seekers</a>
-            <a href="{{ route('admin.users') }}">Users</a>
-            <a href="{{ route('admin.reports') }}">Reports</a>
-            <a href="{{ route('admin.analytics') }}">Analytics</a>
-        </nav>
-        <div class="signout">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Sign out</button>
-            </form>
-        </div>
-    </aside>
-    <main class="main">
-        <div class="header">
+@endpush
+
+@section('content')
+<div class="header">
             <h1>Satellites Dashboard</h1>
             <button type="button" class="new-button" data-open-satellite-modal><span>+</span> New satellite</button>
         </div>
@@ -113,7 +70,7 @@
             <div class="data-table-field search">
                 <label for="satellites-search">Search</label>
                 <div class="data-table-search">
-                    <input id="satellites-search" name="search" type="search" value="{{ $filters['search'] }}" placeholder="Search satellite, hub, or assignee" data-debounced-submit>
+                    <input id="satellites-search" name="search" type="search" value="{{ $filters['search'] }}" placeholder="Search satellite, hub, or assigned user" data-debounced-submit>
                     <button type="button" class="data-table-search-clear" data-search-clear aria-label="Clear search">&times;</button>
                 </div>
             </div>
@@ -166,7 +123,7 @@
                         <tr>
                             <td>
                                 <span class="satellite-name">{{ $satellite->display_name }}</span>
-                                <div class="muted">Assigned to {{ $satellite->assignedUser?->name ?? 'Unassigned' }}</div>
+                                <div class="muted">{{ $satellite->assignedUsers->count() }} assigned {{ \Illuminate\Support\Str::plural('user', $satellite->assignedUsers->count()) }}</div>
                             </td>
                             <td>{{ $satellite->hub ?: 'Unassigned' }}</td>
                             <td>{{ $satellite->leaders_count }}</td>
@@ -177,9 +134,7 @@
                                     <div class="data-table-menu" role="menu">
                                         <a href="{{ route('admin.members', ['search' => $satellite->display_name]) }}" role="menuitem">View members</a>
                                         <a href="{{ route('admin.seekers', ['district' => $satellite->display_name]) }}" role="menuitem">View seekers</a>
-                                        @if ($satellite->assignedUser)
-                                            <a href="{{ route('admin.users.show', $satellite->assignedUser) }}" role="menuitem">View assigned user</a>
-                                        @endif
+                                        <a href="{{ route('admin.users', ['district' => $satellite->display_name]) }}" role="menuitem">View assigned users</a>
                                         <a href="{{ route('admin.satellites.export', ['search' => $satellite->display_name]) }}" role="menuitem">Export satellite row</a>
                                     </div>
                                 </div>
@@ -209,9 +164,9 @@
             </div>
             @include('partials.table-pagination', ['paginator' => $satellites, 'pageSizes' => $pageSizes, 'currentPageSize' => $perPage])
         </section>
-    </main>
-</div>
+@endsection
 
+@push('scripts')
 <div class="modal-backdrop {{ $errors->any() ? 'open' : '' }}" data-satellite-modal>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="new-satellite-title">
         <div class="modal-header">
@@ -221,17 +176,20 @@
 
         <form method="POST" action="{{ route('admin.satellites.store') }}">
             @csrf
+            @if ($errors->any())
+                <div class="field-error" role="alert" tabindex="-1" data-validation-summary>Please correct the satellite fields below.</div>
+            @endif
             <div class="field">
                 <label for="satellite-name">Name of satellite</label>
-                <input id="satellite-name" name="name" type="text" value="{{ old('name') }}" placeholder="e.g. Santolan" required>
+                <input id="satellite-name" @error('name') aria-invalid="true" aria-describedby="satellite-name-error" @enderror name="name" type="text" value="{{ old('name') }}" placeholder="e.g. Santolan" required>
             </div>
             @error('name')
-                <div class="field-error">{{ $message }}</div>
+                <div id="satellite-name-error" class="field-error">{{ $message }}</div>
             @enderror
 
             <div class="field">
                 <label for="satellite-hub">Elevate hub</label>
-                <select id="satellite-hub" name="hub" required>
+                <select id="satellite-hub" @error('hub') aria-invalid="true" aria-describedby="satellite-hub-error" @enderror name="hub" required>
                     <option value="">Select a hub</option>
                     @foreach ($hubs as $hub)
                         <option value="{{ $hub }}" @selected(old('hub') === $hub)>{{ $hub }}</option>
@@ -239,22 +197,22 @@
                 </select>
             </div>
             @error('hub')
-                <div class="field-error">{{ $message }}</div>
+                <div id="satellite-hub-error" class="field-error">{{ $message }}</div>
             @enderror
 
             <div class="field">
-                <label for="satellite-assigned-user">Assigned user</label>
-                <select id="satellite-assigned-user" name="assigned_user_id">
+                <label for="satellite-initial-user">Initial district account</label>
+                <select id="satellite-initial-user" @error('initial_user_id') aria-invalid="true" aria-describedby="satellite-initial-user-error" @enderror name="initial_user_id">
                     <option value="">Unassigned</option>
                     @foreach ($assignableUsers as $assignableUser)
-                        <option value="{{ $assignableUser->id }}" @selected(old('assigned_user_id') == $assignableUser->id)>
+                        <option value="{{ $assignableUser->id }}" @selected(old('initial_user_id') == $assignableUser->id)>
                             {{ $assignableUser->name }} ({{ $assignableUser->email }})
                         </option>
                     @endforeach
                 </select>
             </div>
-            @error('assigned_user_id')
-                <div class="field-error">{{ $message }}</div>
+            @error('initial_user_id')
+                <div id="satellite-initial-user-error" class="field-error">{{ $message }}</div>
             @enderror
 
             <button type="submit" class="modal-submit">Add satellite</button>
@@ -277,5 +235,4 @@
     });
 </script>
 @include('partials.data-table-scripts')
-</body>
-</html>
+@endpush

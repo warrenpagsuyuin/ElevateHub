@@ -1,26 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $satellite->display_name }} Seekers</title>
-    <style>
-        :root { --brand-red: #e33c24; --brand-red-dark: #c92f1b; --brand-red-soft: #fff1ee; --ink: #111; --muted: #667085; --line: #e8edf3; --surface: #fff; }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; color: var(--ink); }
-        .page { display: flex; min-height: 100vh; background: #f3f4f6; }
-        .sidebar { width: 260px; background: #000; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; padding: 18px 14px; }
-        .sidebar .brand { display: flex; justify-content: center; align-items: center; height: 110px; background: #111; padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-        .sidebar .brand-icon img { display: block; width: 228px; max-width: 100%; height: auto; object-fit: contain; }
-        .menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .menu a { display: flex; align-items: center; gap: 12px; color: var(--brand-red); text-decoration: none; padding: 15px 18px; border-radius: 8px; font-weight: 800; font-size: 16px; transition: 0.15s ease; }
-        .menu a:hover { background: rgba(227, 60, 36, 0.12); color: #ff6b53; }
-        .menu a.active { background: #fff; color: #111; }
-        .signout { margin-top: auto; padding-top: 20px; display: flex; justify-content: center; }
-        .signout form { margin: 0; }
-        .signout button { width: 170px; border: none; padding: 12px 20px; border-radius: 999px; background: var(--brand-red); color: #fff; font-weight: 800; cursor: pointer; }
-        .signout button:hover { background: var(--brand-red-dark); }
-        .main { flex: 1; width: 100%; max-width: none; margin: 0; padding: 30px 32px 48px; }
+@extends('layouts.app')
+
+@section('title', $satellite->display_name.' Seekers | Elevate DGM')
+
+@push('styles')
+:root { --brand-red: #ef3b24; --brand-red-dark: #c92f1b; --brand-red-soft: #fff1ee; --ink: #111; --muted: #667085; --line: #e8edf3; --surface: #fff; }
         .seekers-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
         .title-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
         .title-group h1 { margin: 0; color: var(--ink); font-size: 32px; line-height: 1.1; font-weight: 900; }
@@ -102,44 +85,14 @@
         .leader-error.open { display: block; }
         @include('partials.table-pagination-styles')
         @media (max-width: 900px) {
-            .page { flex-direction: column; }
-            .sidebar { width: 100%; min-height: auto; }
-            .sidebar .brand { height: 90px; }
-            .menu { flex-direction: row; flex-wrap: wrap; }
-            .menu a { padding: 12px 14px; font-size: 14px; }
-            .signout { justify-content: flex-start; }
-            .main { padding: 22px 18px 36px; }
             .seekers-toolbar { align-items: stretch; flex-direction: column; }
             .toolbar-actions { justify-content: space-between; }
             .sync-button { min-width: 0; }
         }
-        @include('partials.sidebar-styles')
-    </style>
-</head>
-<body>
-<div class="page">
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">
-                <img src="{{ asset('assets/images/elevate-logo.png') }}" alt="Elevate logo">
-            </div>
-        </div>
-        <nav class="menu">
-            <a href="{{ route('satellites.dashboard', $satellite) }}">Dashboard</a>
-            <a href="{{ route('satellites.members', $satellite) }}">Members</a>
-            <a href="{{ route('satellites.seekers', $satellite) }}" class="active">Seekers</a>
-            <a href="{{ route('satellites.dashboard', $satellite) }}">Analytics</a>
-        </nav>
-        <div class="signout">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Sign out</button>
-            </form>
-        </div>
-    </aside>
+@endpush
 
-    <main class="main">
-        <div class="seekers-toolbar">
+@section('content')
+<div class="seekers-toolbar">
             <div class="title-group">
                 <h1>Seekers</h1>
                 <span class="page-kicker">{{ $satellite->display_name }} Satellite</span>
@@ -239,8 +192,9 @@
             </div>
             @include('partials.table-pagination', ['paginator' => $seekers, 'pageSizes' => [10], 'currentPageSize' => 10, 'recordLabel' => 'seekers', 'tableId' => 'satellite-seekers'])
         </section>
-    </main>
-</div>
+@endsection
+
+@push('scripts')
 <div class="leader-modal-backdrop" data-leader-modal aria-hidden="true">
     <section class="leader-modal" role="dialog" aria-modal="true" aria-labelledby="leader-modal-title">
         <button type="button" class="leader-modal-close" data-modal-close aria-label="Close dialog">&times;</button>
@@ -382,5 +336,4 @@
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') document.querySelectorAll('[data-leader-modal].open, [data-convert-modal].open').forEach(closeModal); });
 
 </script>
-</body>
-</html>
+@endpush

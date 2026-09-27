@@ -2,24 +2,29 @@
             width: 100%;
             max-width: none;
             overflow: hidden;
-            background: #e33c24;
-            border-radius: 16px;
+            background: #f1f1f1;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 18px;
             box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
-            color: #fff;
+            color: #111827;
         }
 
         .table-card h2 {
             margin: 0;
-            padding: 26px 34px 14px;
+            padding: 18px 22px 16px;
+            background: #e33c24;
             color: #fff;
-            font-size: 20px;
+            font-size: 24px;
+            line-height: 1.2;
             font-weight: 900;
+            letter-spacing: -0.02em;
         }
 
         .table-card table {
             width: 100%;
             border-collapse: collapse;
-            color: #fff;
+            color: #111827;
+            background: transparent;
             font-size: 15px;
             font-weight: 700;
             table-layout: fixed;
@@ -27,20 +32,25 @@
 
         .table-card th,
         .table-card td {
-            padding: 17px 34px;
+            padding: 16px 22px;
             text-align: left;
             vertical-align: middle;
         }
 
         .table-card th {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-            color: rgba(255, 255, 255, 0.94);
-            font-size: 14px;
+            border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+            color: rgba(17, 24, 39, 0.76);
+            font-size: 12px;
             font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: transparent;
         }
 
         .table-card td {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+            background: rgba(255, 255, 255, 0.18);
+            color: #111827;
         }
 
         .table-card tbody tr:last-child td {
@@ -48,5 +58,5 @@
         }
 
         .table-card tbody tr:hover td {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.28);
         }

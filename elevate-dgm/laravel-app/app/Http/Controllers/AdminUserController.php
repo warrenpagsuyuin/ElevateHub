@@ -34,7 +34,6 @@ class AdminUserController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $nonAdminUsers = User::where('role', '!=', 'admin');
         $districts = $this->availableDistricts();
 
         return view('admin.users', [
@@ -46,13 +45,10 @@ class AdminUserController extends Controller
             'direction' => $direction,
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
-            'totalUsers' => (clone $nonAdminUsers)->count(),
+            'totalUsers' => User::count(),
             'activeMembers' => User::where('role', 'member')->count(),
             'totalLeaders' => User::where('role', 'leader')->count(),
-            'pendingApprovals' => (clone $nonAdminUsers)
-                ->whereNull('district')
-                ->doesntHave('assignedSatellites')
-                ->count(),
+            'otherUsers' => User::whereNotIn('role', ['member', 'leader'])->count(),
         ]);
     }
 
@@ -72,11 +68,10 @@ class AdminUserController extends Controller
             'district' => $validated['district'] ?? null,
             'password' => Hash::make('password'),
         ]);
-        $this->syncSatelliteAssignment($user);
 
         return redirect()
             ->route('admin.users.show', $user)
-            ->with('status', "{$user->name}'s account was created.");
+            ->with('status', 'User created successfully.');
     }
 
     public function show(User $user): View
@@ -94,15 +89,13 @@ class AdminUserController extends Controller
             'district' => ['nullable', Rule::in($this->availableDistricts())],
         ]);
 
-        $oldDistrict = $user->district;
         $user->update([
             'district' => $validated['district'] ?? null,
         ]);
-        $this->syncSatelliteAssignment($user, $oldDistrict);
 
         return redirect()
             ->route('admin.users')
-            ->with('status', "{$user->name}'s account was updated.");
+            ->with('status', 'User updated successfully.');
     }
 
     public function bulkUpdate(Request $request): RedirectResponse
@@ -132,15 +125,11 @@ class AdminUserController extends Controller
 
         $district = $validated['district'] ?? null;
 
-        $users->each(function (User $user) use ($district): void {
-            $oldDistrict = $user->district;
-            $user->update(['district' => $district]);
-            $this->syncSatelliteAssignment($user, $oldDistrict);
-        });
+        User::whereKey($users->modelKeys())->update(['district' => $district]);
 
         return redirect()
             ->to($request->input('return_to', route('admin.users')))
-            ->with('status', $users->count().' user'.($users->count() === 1 ? '' : 's').' reassigned.');
+            ->with('status', $district === null ? 'District assignments cleared successfully.' : 'District assigned successfully.');
     }
 
     public function export(Request $request)
@@ -163,7 +152,7 @@ class AdminUserController extends Controller
                         $user->name,
                         $user->email,
                         str_replace('_', ' ', $user->role ?: 'member'),
-                        $user->assignedSatellites->first()?->name ?? $user->district ?? 'Unassigned',
+                        $user->district ?? 'Unassigned',
                     ]);
                 }
             });
@@ -187,7 +176,6 @@ class AdminUserController extends Controller
     private function filteredUsersQuery(array $filters)
     {
         return User::query()
-            ->with('assignedSatellites')
             ->where('role', '!=', 'admin')
             ->when($filters['search'] !== '', function ($query) use ($filters): void {
                 $query->where(function ($query) use ($filters): void {
@@ -198,14 +186,11 @@ class AdminUserController extends Controller
             ->when($filters['role'] !== '', fn ($query) => $query->where('role', $filters['role']))
             ->when($filters['district'] !== '', function ($query) use ($filters): void {
                 if ($filters['district'] === 'unassigned') {
-                    $query->whereNull('district')->doesntHave('assignedSatellites');
+                    $query->whereNull('district');
                     return;
                 }
 
-                $query->where(function ($query) use ($filters): void {
-                    $query->where('district', $filters['district'])
-                        ->orWhereHas('assignedSatellites', fn ($query) => $query->where('name', $filters['district']));
-                });
+                $query->where('district', $filters['district']);
             });
     }
 
@@ -240,19 +225,5 @@ class AdminUserController extends Controller
             ->pluck('name')
             ->unique()
             ->values();
-    }
-
-    private function syncSatelliteAssignment(User $user, ?string $oldDistrict = null): void
-    {
-        if ($oldDistrict && $oldDistrict !== $user->district) {
-            Satellite::where('name', $oldDistrict)
-                ->where('assigned_user_id', $user->id)
-                ->update(['assigned_user_id' => null]);
-        }
-
-        if ($user->district) {
-            Satellite::where('name', $user->district)
-                ->update(['assigned_user_id' => $user->id]);
-        }
     }
 }

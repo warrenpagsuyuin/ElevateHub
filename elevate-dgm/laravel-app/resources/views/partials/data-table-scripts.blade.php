@@ -456,6 +456,18 @@
         return template.replace(/\{([a-z_]+)\}/gi, (_, key) => data[key] ?? '');
     };
 
+    const markFormSubmitting = (form) => {
+        if (!form || form.dataset.submitting === 'true') {
+            return;
+        }
+
+        form.dataset.submitting = 'true';
+        form.classList.add('data-table-loading');
+        form.querySelectorAll('button').forEach((control) => {
+            control.disabled = true;
+        });
+    };
+
     const initConfirmingControls = () => {
         document.querySelectorAll('form[data-confirm-message]').forEach((form) => {
             form.addEventListener('submit', async (event) => {
@@ -468,6 +480,7 @@
                 const ok = await confirmChange(form.dataset.confirmMessage);
                 if (ok) {
                     form.dataset.confirmed = 'true';
+                    markFormSubmitting(form);
                     form.submit();
                 }
             });
@@ -496,7 +509,16 @@
                 }
 
                 select.dataset.previousValue = nextValue;
+                markFormSubmitting(select.form);
                 select.form?.submit();
+            });
+        });
+    };
+
+    const initFilterLoading = () => {
+        document.querySelectorAll('[data-table-filter-form]').forEach((form) => {
+            form.addEventListener('submit', () => {
+                form.classList.add('data-table-loading');
             });
         });
     };
@@ -547,9 +569,12 @@
                 summaryBar.hidden = count === 0;
 
                 if (summary) {
+                    const label = scope.dataset.recordLabel || 'records';
+                    const singularLabel = scope.dataset.recordSingularLabel || label.replace(/s$/, '');
+                    const countLabel = count === 1 ? singularLabel : label;
                     summary.textContent = selectionMode === 'matching'
-                        ? `${count} matching records selected`
-                        : `${count} selected`;
+                        ? `${count} matching ${countLabel} selected`
+                        : `${count} ${countLabel} selected`;
                 }
 
                 if (help) {
@@ -633,6 +658,7 @@
                 const ok = await confirmChange(message);
 
                 if (ok) {
+                    markFormSubmitting(form);
                     form.submit();
                 }
             });
@@ -705,35 +731,65 @@
                 }
 
                 pagination.innerHTML = '';
+                pagination.classList.add('pagination-bar');
+
                 const summary = document.createElement('span');
+                summary.className = 'pagination-summary';
                 const start = total === 0 ? 0 : ((page - 1) * Number(pageSize?.value || 10)) + 1;
                 const end = Math.min(total, page * Number(pageSize?.value || 10));
                 summary.textContent = `Showing ${start}-${end} of ${total}`;
                 pagination.appendChild(summary);
 
                 const actions = document.createElement('div');
-                actions.className = 'data-table-actions';
-                const previous = document.createElement('button');
-                previous.type = 'button';
-                previous.className = 'data-table-button';
-                previous.textContent = 'Previous';
-                previous.disabled = page <= 1;
-                previous.addEventListener('click', () => {
-                    page--;
-                    render();
+                actions.className = 'pagination-links';
+
+                const pageLinks = [...new Set([1, pageCount, page - 1, page, page + 1])]
+                    .filter((pageNumber) => pageNumber >= 1 && pageNumber <= pageCount)
+                    .sort((a, b) => a - b);
+
+                const makeButton = (label, targetPage, disabled = false, current = false) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = current ? 'pagination-current' : (disabled ? 'pagination-disabled' : 'pagination-link');
+                    button.textContent = label;
+                    button.disabled = disabled || current;
+
+                    if (current) {
+                        button.setAttribute('aria-current', 'page');
+                        button.setAttribute('aria-label', `Page ${label}, current page`);
+                    } else if (!disabled) {
+                        button.setAttribute('aria-label', label.includes('Previous') ? 'Go to previous page' : (label.includes('Next') ? 'Go to next page' : `Go to page ${label}`));
+                        button.addEventListener('click', () => {
+                            page = targetPage;
+                            render();
+                        });
+                    }
+
+                    return button;
+                };
+
+                actions.appendChild(makeButton('\u2039 Previous', page - 1, page <= 1));
+
+                const mobileStatus = document.createElement('span');
+                mobileStatus.className = 'pagination-mobile-status';
+                mobileStatus.textContent = `Page ${page} of ${pageCount}`;
+                actions.appendChild(mobileStatus);
+
+                let previousPage = null;
+                pageLinks.forEach((pageNumber) => {
+                    if (previousPage !== null && pageNumber > previousPage + 1) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'pagination-ellipsis';
+                        ellipsis.setAttribute('aria-hidden', 'true');
+                        ellipsis.textContent = '\u2026';
+                        actions.appendChild(ellipsis);
+                    }
+
+                    actions.appendChild(makeButton(String(pageNumber), pageNumber, false, pageNumber === page));
+                    previousPage = pageNumber;
                 });
 
-                const next = document.createElement('button');
-                next.type = 'button';
-                next.className = 'data-table-button';
-                next.textContent = 'Next';
-                next.disabled = page >= pageCount;
-                next.addEventListener('click', () => {
-                    page++;
-                    render();
-                });
-
-                actions.append(previous, next);
+                actions.appendChild(makeButton('Next \u203A', page + 1, page >= pageCount));
                 pagination.appendChild(actions);
             };
 
@@ -818,6 +874,7 @@
         initSearchClear();
         initDebouncedForms();
         initConfirmingControls();
+        initFilterLoading();
         initBulkSelection();
         initClientTables();
     });

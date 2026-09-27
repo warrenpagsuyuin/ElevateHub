@@ -23,10 +23,10 @@
             flex-wrap: wrap;
             gap: 12px;
             border: 1px solid #e8edf3;
-            border-radius: 14px;
+            border-radius: 12px;
             background: #fff;
             color: #0f172a;
-            padding: 14px;
+            padding: 16px;
             box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
         }
 
@@ -64,14 +64,14 @@
         .data-table-field select,
         .data-table-selection-bar select {
             width: 100%;
-            height: 40px;
-            border: 1px solid transparent;
+            height: 44px;
+            border: 1px solid #d9dee7;
             border-radius: 8px;
-            background: #f3f4f7;
+            background: #ffffff;
             color: #0f172a;
             font: inherit;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             padding: 0 12px;
             outline: none;
         }
@@ -89,7 +89,12 @@
         }
 
         .data-table-search input {
+            padding-left: 40px;
             padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+            background-position: 13px center;
+            background-repeat: no-repeat;
+            background-size: 18px 18px;
         }
 
         .data-table-search-clear {
@@ -135,15 +140,15 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 40px;
+            min-height: 44px;
             border: 1px solid #d9dee7;
             border-radius: 8px;
             background: #fff;
             color: #0f172a;
             cursor: pointer;
             font: inherit;
-            font-size: 13px;
-            font-weight: 900;
+            font-size: 14px;
+            font-weight: 700;
             text-decoration: none;
             transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
         }
@@ -156,7 +161,7 @@
 
         .data-table-icon-button,
         .data-table-menu-button {
-            width: 40px;
+            width: 44px;
             padding: 0;
         }
 
@@ -180,6 +185,27 @@
         .data-table-link-button.primary:hover {
             background: #c92f1b;
             color: #fff;
+        }
+
+        .data-table-button.tertiary,
+        .data-table-link-button.tertiary {
+            border-color: transparent;
+            background: transparent;
+            color: #475467;
+            box-shadow: none;
+        }
+
+        .data-table-button.tertiary:hover,
+        .data-table-link-button.tertiary:hover {
+            background: #fff4f2;
+            color: #c92f1b;
+        }
+
+        .data-table-button.danger,
+        .data-table-link-button.danger {
+            border-color: #b42318;
+            background: #b42318;
+            color: #ffffff;
         }
 
         .data-table-button:disabled,
@@ -271,19 +297,14 @@
 
         .data-table-scroll {
             width: 100%;
-            max-height: 62vh;
-            overflow: auto;
+            max-height: none;
+            overflow-x: auto;
+            overflow-y: visible;
         }
 
         .data-table-scroll table,
         table[data-enhanced-table] {
             min-width: 760px;
-        }
-
-        table[data-enhanced-table] th {
-            position: sticky;
-            top: 0;
-            z-index: 3;
         }
 
         .data-table-sort-link,
@@ -309,7 +330,7 @@
             height: 16px;
             border-radius: 999px;
             color: currentColor;
-            font-size: 11px;
+            font-size: 13px;
             line-height: 1;
             opacity: 0.58;
         }
@@ -333,11 +354,9 @@
         }
 
         .data-table-selection-bar {
-            position: sticky;
-            bottom: 12px;
             z-index: 10;
             border-color: rgba(227, 60, 36, 0.22);
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
         }
 
         .data-table-selection-summary {
@@ -347,9 +366,7 @@
         }
 
         .data-table-selection-help {
-            color: #667085;
-            font-size: 13px;
-            font-weight: 700;
+            display: none;
         }
 
         .data-table-row-menu {
@@ -380,7 +397,7 @@
         .data-table-menu a {
             display: flex;
             width: 100%;
-            min-height: 38px;
+            min-height: 40px;
             align-items: center;
             border: 0;
             background: #fff;
@@ -435,17 +452,67 @@
             font-weight: 700;
         }
 
-        .data-table-client-pagination {
+        .data-table-filter-chips {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
-            border-top: 1px solid #edf0f4;
-            padding: 14px;
-            color: #475569;
+            gap: 8px;
+            margin: -10px 0 18px;
+        }
+
+        .data-table-chip {
+            display: inline-flex;
+            min-height: 34px;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #f1c3ba;
+            border-radius: 999px;
+            background: #fff7f5;
+            color: #9f2a1d;
             font-size: 13px;
+            font-weight: 700;
+            padding: 0 12px;
+            text-decoration: none;
+        }
+
+        .data-table-chip:hover,
+        .data-table-chip:focus-visible {
+            border-color: #e33c24;
+            color: #c92f1b;
+            outline: none;
+        }
+
+        .data-table-badge {
+            display: inline-flex;
+            min-height: 28px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d9dee7;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #344054;
+            font-size: 12px;
             font-weight: 800;
+            line-height: 1;
+            padding: 0 11px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .data-table-badge.muted {
+            border-color: #f1c3ba;
+            background: #fff7f5;
+            color: #b42318;
+        }
+
+        .data-table-loading {
+            opacity: 0.72;
+            cursor: progress;
+        }
+
+        .data-table-client-pagination {
+            margin: 0;
+            padding: 17px 20px 20px;
         }
 
         .data-table-modal-backdrop {

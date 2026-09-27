@@ -1,12 +1,14 @@
+@once
         .pagination-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            margin-top: 18px;
-            padding-top: 16px;
-            border-top: 1px solid #edf0f4;
-            color: #475569;
+            margin-top: 0;
+            padding: 16px 20px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            background: #e33c24;
+            color: #fff;
             font-size: 13px;
             font-weight: 800;
         }
@@ -14,6 +16,8 @@
         .pagination-summary {
             line-height: 1.3;
             white-space: nowrap;
+            color: #fff;
+            font-weight: 900;
         }
 
         .pagination-page-size {
@@ -22,14 +26,17 @@
             gap: 8px;
             margin: 0;
             white-space: nowrap;
+            color: #fff;
+            font-weight: 900;
         }
 
         .pagination-page-size select {
-            height: 42px;
-            border: 1px solid #d9dee7;
+            height: 38px;
+            min-width: 64px;
+            border: 1px solid rgba(17, 24, 39, 0.08);
             border-radius: 8px;
             background: #fff;
-            color: #0f172a;
+            color: #111827;
             font: inherit;
             padding: 0 10px;
             outline: none;
@@ -59,9 +66,12 @@
             line-height: 1;
             padding: 0 13px;
             text-decoration: none;
+            background: #fff;
+            cursor: pointer;
+            font-family: inherit;
         }
 
-        .pagination-link:hover {
+        .pagination-link:hover:not(:disabled) {
             border-color: #e33c24;
             background: #fff7f5;
             color: #e33c24;
@@ -82,6 +92,7 @@
             color: #94a3b8;
             opacity: 1;
             cursor: not-allowed;
+            pointer-events: none;
         }
 
         .pagination-ellipsis { min-width: 20px; text-align: center; color: #667085; }
@@ -94,7 +105,9 @@
 
         .table-card .pagination-bar {
             margin: 0;
-            padding: 17px 34px 24px;
+            padding: 16px 20px 18px;
+            background: #e33c24;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .directory-card .pagination-bar {
@@ -171,3 +184,4 @@
             .pagination-links .pagination-disabled:last-child,
             .pagination-links .pagination-link:last-child { order: 3; }
         }
+@endonce

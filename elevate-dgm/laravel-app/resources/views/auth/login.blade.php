@@ -112,7 +112,7 @@
         .input {
             width: 100%;
             height: 48px;
-            border: 1px solid #d4d4d8;
+            border: 1px solid #71717a;
             border-radius: 8px;
             background: #ffffff;
             color: #18181b;
@@ -125,6 +125,24 @@
         .input:focus {
             border-color: #dc2626;
             box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+        }
+
+        .input::placeholder {
+            color: #71717a;
+            opacity: 1;
+        }
+
+        .input:focus-visible,
+        .primary-button:focus-visible,
+        .secondary-button:focus-visible {
+            outline: 3px solid #18181b;
+            outline-offset: 3px;
+        }
+
+        .error ul {
+            margin: 0;
+            padding-left: 20px;
+            list-style: disc;
         }
 
         .otp-input {
@@ -156,7 +174,6 @@
         }
 
         .primary-button:focus {
-            outline: none;
             box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.16);
         }
 
@@ -170,6 +187,7 @@
 
         .secondary-button {
             width: 100%;
+            min-height: 44px;
             background: transparent;
             color: #52525b;
             font-size: 14px;
@@ -197,28 +215,31 @@
                 height: 88px;
             }
         }
+        @include('partials.accessibility-styles')
+        @include('partials.cs114-theme-styles')
     </style>
 </head>
-<body>
+<body class="antialiased">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     @php
         $currentStep = $step ?? 'email';
         $accountEmail = old('email', $email ?? '');
     @endphp
 
-    <main class="login-page">
-        <section class="login-shell">
+    <main class="login-page" id="main-content" tabindex="-1">
+        <section class="login-shell" aria-labelledby="login-title">
             <div class="logo-wrap">
                 <img class="brand-logo" src="{{ asset('assets/images/elevate-logo-login.png') }}" alt="Elevate logo">
             </div>
 
             <div class="login-card">
                 <div class="login-copy">
-                    <h1 class="login-title">Sign in</h1>
-                    <p class="login-instruction">
+                    <h1 class="login-title" id="login-title">Sign in</h1>
+                    <p class="login-instruction" id="login-instruction">
                         @if ($currentStep === 'password')
                             Enter your admin password to continue.
                         @elseif ($currentStep === 'otp')
-                            Enter the one-time password sent to your email.
+                            Enter the six-digit one-time password sent to your email.
                         @else
                             Enter your email address to continue.
                         @endif
@@ -226,14 +247,18 @@
                 </div>
 
                 @if (session('status'))
-                    <p class="notice">
+                    <p class="notice" role="status">
                         {{ session('status') }}
                     </p>
                 @endif
 
                 @if ($errors->any())
-                    <div class="error">
-                        {{ $errors->first() }}
+                    <div class="error" id="login-errors" role="alert">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
 
@@ -248,6 +273,8 @@
                                 name="password"
                                 type="password"
                                 autocomplete="current-password"
+                                aria-invalid="{{ $errors->has('password') ? 'true' : 'false' }}"
+                                aria-describedby="login-instruction{{ $errors->any() ? ' login-errors' : '' }}"
                                 required
                                 autofocus
                                 class="input"
@@ -258,7 +285,7 @@
                             type="submit"
                             class="primary-button"
                         >
-                            Continue
+                            Sign in with password
                         </button>
                     </form>
                 @elseif ($currentStep === 'otp')
@@ -272,9 +299,12 @@
                                 name="otp"
                                 type="text"
                                 inputmode="numeric"
-                                pattern="[0-9]*"
+                                pattern="[0-9]{6}"
+                                minlength="6"
                                 maxlength="6"
                                 autocomplete="one-time-code"
+                                aria-invalid="{{ $errors->has('otp') ? 'true' : 'false' }}"
+                                aria-describedby="login-instruction{{ $errors->any() ? ' login-errors' : '' }}"
                                 required
                                 autofocus
                                 class="input otp-input"
@@ -285,7 +315,7 @@
                             type="submit"
                             class="primary-button"
                         >
-                            Continue
+                            Verify code and sign in
                         </button>
                     </form>
 
@@ -307,6 +337,8 @@
                                 type="email"
                                 value="{{ $accountEmail }}"
                                 autocomplete="email"
+                                aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
+                                aria-describedby="login-instruction{{ $errors->any() ? ' login-errors' : '' }}"
                                 required
                                 autofocus
                                 class="input"
@@ -318,7 +350,7 @@
                             type="submit"
                             class="primary-button"
                         >
-                            Continue
+                            Continue with email
                         </button>
                     </form>
                 @endif

@@ -10,7 +10,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $role = str_replace([' ', '-'], '_', strtolower((string) ($user->role ?: 'member')));
-        $satellite = $user->assignedSatellites()->latest()->first();
+        $satellite = $user->satelliteForDistrict();
 
         if ($satellite) {
             return redirect()->route('satellites.dashboard', $satellite);

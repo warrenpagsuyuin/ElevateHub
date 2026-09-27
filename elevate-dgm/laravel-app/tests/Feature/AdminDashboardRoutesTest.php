@@ -58,7 +58,7 @@ class AdminDashboardRoutesTest extends TestCase
         }
     }
 
-    public function test_admin_can_create_a_satellite_dashboard_for_an_assigned_user(): void
+    public function test_admin_can_create_a_satellite_dashboard_with_an_initial_district_account(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $assignedUser = User::factory()->create(['role' => 'satellite']);
@@ -67,7 +67,7 @@ class AdminDashboardRoutesTest extends TestCase
             ->post(route('admin.satellites.store'), [
                 'name' => 'Santolan',
                 'hub' => 'NCP',
-                'assigned_user_id' => $assignedUser->id,
+                'initial_user_id' => $assignedUser->id,
             ])
             ->assertRedirect(route('admin.satellites'));
 
@@ -75,15 +75,16 @@ class AdminDashboardRoutesTest extends TestCase
             'name' => 'Santolan',
             'slug' => 'santolan',
             'hub' => 'NCP',
-            'assigned_user_id' => $assignedUser->id,
+            'assigned_user_id' => null,
             'created_by_id' => $admin->id,
         ]);
+        $this->assertSame('Santolan', $assignedUser->refresh()->district);
 
         $this->actingAs($admin)
             ->get(route('admin.satellites'))
             ->assertOk()
             ->assertSee('Santolan')
-            ->assertSee('Assigned to '.$assignedUser->name);
+            ->assertSee('1 assigned user');
     }
 
     public function test_satellite_form_uses_fixed_hub_values(): void
@@ -116,7 +117,7 @@ class AdminDashboardRoutesTest extends TestCase
             ->get(route('admin.satellites'))
             ->assertOk()
             ->assertSee('Pasig')
-            ->assertSee('Assigned to Warren Pagsuyuin')
+            ->assertSee('1 assigned user')
             ->assertSee('Total Satellites')
             ->assertDontSee('Rosario')
             ->assertDontSee('Maybunga')
@@ -140,7 +141,8 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertDontSee('Site Growth')
             ->assertDontSee('Attendance')
             ->assertDontSee('Membership Growth')
-            ->assertDontSee('Engagement')
+            ->assertSee('Engagement Classification')
+            ->assertSee(route('admin.engagement.index'), false)
             ->assertDontSee('Top Performing Satellites');
     }
 
@@ -180,6 +182,39 @@ class AdminDashboardRoutesTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
+        $mainSatellite = Satellite::create([
+            'name' => 'Main Hub',
+            'slug' => 'main-hub',
+            'hub' => 'MAIN',
+            'leaders_count' => 3,
+            'members_count' => 12,
+            'created_by_id' => $admin->id,
+        ]);
+        $ncpSatellite = Satellite::create([
+            'name' => 'NCP Hub',
+            'slug' => 'ncp-hub',
+            'hub' => 'NCP',
+            'leaders_count' => 2,
+            'members_count' => 8,
+            'created_by_id' => $admin->id,
+        ]);
+        $icpSatellite = Satellite::create([
+            'name' => 'ICP Hub',
+            'slug' => 'icp-hub',
+            'hub' => 'ICP',
+            'leaders_count' => 1,
+            'members_count' => 4,
+            'created_by_id' => $admin->id,
+        ]);
+
+        Member::create(['name' => 'Leader One', 'satellite_id' => $mainSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Dgroup Leader', 'full_name' => 'Leader One', 'email_address' => 'leader1@example.com']);
+        Member::create(['name' => 'Leader Two', 'satellite_id' => $mainSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Dgroup Leader', 'full_name' => 'Leader Two', 'email_address' => 'leader2@example.com']);
+        Member::create(['name' => 'Member One', 'satellite_id' => $mainSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Member', 'full_name' => 'Member One', 'email_address' => 'member1@example.com']);
+        Member::create(['name' => 'Member Two', 'satellite_id' => $mainSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Member', 'full_name' => 'Member Two', 'email_address' => 'member2@example.com']);
+        Member::create(['name' => 'Leader Three', 'satellite_id' => $ncpSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Dgroup Leader', 'full_name' => 'Leader Three', 'email_address' => 'leader3@example.com']);
+        Member::create(['name' => 'Member Three', 'satellite_id' => $ncpSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Member', 'full_name' => 'Member Three', 'email_address' => 'member3@example.com']);
+        Member::create(['name' => 'Leader Four', 'satellite_id' => $icpSatellite->id, 'status' => 'Active', 'dgroup_role' => 'Dgroup Leader', 'full_name' => 'Leader Four', 'email_address' => 'leader4@example.com']);
+
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
@@ -187,13 +222,13 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee(now()->format('F j, Y'))
             ->assertSee('ELEVATE MOVEMENT WIDE SUMMARY')
             ->assertSee('DGROUP LEADERS')
-            ->assertSee('3,006')
+            ->assertSee('4')
             ->assertSee('DGROUPS')
-            ->assertSee('3,147')
+            ->assertSee('3')
             ->assertSee('DGROUP MEMBERS')
-            ->assertSee('13,420')
+            ->assertSee('24')
             ->assertSee('CAMPUSES')
-            ->assertSee('335')
+            ->assertSee('3')
             ->assertSee('MAIN')
             ->assertSee('NCP')
             ->assertSee('ICP')
@@ -202,6 +237,38 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertDontSee('Total Leaders')
             ->assertDontSee('Total Users')
             ->assertDontSee('Satellite Summary');
+    }
+
+    public function test_admin_dashboard_counts_active_dgroups_from_leader_records(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $satellite = Satellite::create([
+            'name' => 'Main Hub',
+            'slug' => 'main-hub',
+            'hub' => 'MAIN',
+            'leaders_count' => 0,
+            'members_count' => 0,
+            'created_by_id' => $admin->id,
+        ]);
+
+        foreach (range(1, 3) as $index) {
+            Member::create([
+                'name' => "Leader {$index}",
+                'satellite_id' => $satellite->id,
+                'status' => 'Active',
+                'dgroup_role' => 'Dgroup Leader',
+                'full_name' => "Leader {$index}",
+                'email_address' => "leader{$index}@example.com",
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('DGROUP LEADERS')
+            ->assertSee('3')
+            ->assertSee('DGROUPS')
+            ->assertSee('3');
     }
 
     public function test_new_satellite_is_not_auto_assigned(): void
@@ -225,7 +292,7 @@ class AdminDashboardRoutesTest extends TestCase
             ->get(route('admin.satellites'))
             ->assertOk()
             ->assertSee('Anonas')
-            ->assertSee('Assigned to Unassigned')
+            ->assertSee('0 assigned users')
             ->assertDontSee('Assigned to Warren Pagsuyuin');
     }
 
@@ -800,7 +867,6 @@ class AdminDashboardRoutesTest extends TestCase
                 'member_sheet' => UploadedFile::fake()->createWithContent('pasig-members.xlsx', $xlsx),
             ]);
 
-        fwrite(STDERR, 'SESSION: '.json_encode($response->baseResponse->getSession()->all())."\n");
 
         $response
             ->assertRedirect(route('satellites.members', $satellite))
@@ -1211,10 +1277,11 @@ class AdminDashboardRoutesTest extends TestCase
         ]);
         $user = User::where('email', 'warrenpagsuyuin810@gmail.com')->firstOrFail();
 
-        $this->assertSame($user->id, $satellite->refresh()->assigned_user_id);
+        $this->assertTrue($satellite->assignedUsers()->whereKey($user->id)->exists());
+        $this->assertNull($satellite->refresh()->assigned_user_id);
     }
 
-    public function test_updating_user_district_transfers_matching_satellite_assignment(): void
+    public function test_updating_user_district_adds_them_to_the_shared_satellite_assignment(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $warren = User::factory()->create(['name' => 'Warren Pagsuyuin', 'role' => 'member']);
@@ -1232,14 +1299,98 @@ class AdminDashboardRoutesTest extends TestCase
             ])
             ->assertRedirect(route('admin.users'));
 
-        $this->assertSame($maria->id, $anonas->refresh()->assigned_user_id);
+        $this->assertSame('Anonas', $warren->refresh()->district);
+        $this->assertSame('Anonas', $maria->refresh()->district);
+        $this->assertSame($warren->id, $anonas->refresh()->assigned_user_id);
+        $this->assertSame(2, $anonas->assignedUsers()->count());
 
         $this->actingAs($admin)
             ->get(route('admin.satellites'))
             ->assertOk()
             ->assertSee('Anonas')
-            ->assertSee('Assigned to Maria Santos')
-            ->assertDontSee('Assigned to Warren Pagsuyuin');
+            ->assertSee('2 assigned users')
+            ->assertDontSee('Assigned to Maria Santos');
+    }
+
+    public function test_bulk_assign_users_to_same_satellite_district_does_not_overwrite_existing_accounts(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pasig = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'created_by_id' => $admin->id,
+        ]);
+        $lea = User::factory()->create(['name' => 'Lea Ignacio', 'role' => 'member', 'district' => null]);
+        $hannah = User::factory()->create(['name' => 'Hannah Arceo', 'role' => 'volunteer', 'district' => null]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.users.bulk'), [
+                'bulk_action' => 'assign_district',
+                'selection_scope' => 'ids',
+                'ids' => [$lea->id, $hannah->id],
+                'district' => 'Pasig',
+            ])
+            ->assertRedirect(route('admin.users'));
+
+        $this->assertSame('Pasig', $lea->refresh()->district);
+        $this->assertSame('Pasig', $hannah->refresh()->district);
+        $this->assertNull($pasig->refresh()->assigned_user_id);
+        $this->assertSame(2, $pasig->assignedUsers()->count());
+    }
+
+    public function test_same_district_users_share_satellite_dashboard_and_other_districts_are_blocked(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pasig = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'leaders_count' => 4,
+            'members_count' => 18,
+            'seekers_count' => 7,
+            'new_members_count' => 3,
+            'created_by_id' => $admin->id,
+        ]);
+        $anonas = Satellite::create([
+            'name' => 'Anonas',
+            'slug' => 'anonas',
+            'created_by_id' => $admin->id,
+        ]);
+        $member = User::factory()->create(['name' => 'Pasig Member', 'role' => 'member', 'district' => 'Pasig']);
+        $volunteer = User::factory()->create(['name' => 'Pasig Volunteer', 'role' => 'volunteer', 'district' => 'Pasig']);
+        $leader = User::factory()->create(['name' => 'Pasig Leader', 'role' => 'leader', 'district' => 'Pasig']);
+        $otherDistrictUser = User::factory()->create(['name' => 'Anonas Member', 'role' => 'member', 'district' => 'Anonas']);
+
+        foreach ([$member, $volunteer, $leader] as $districtUser) {
+            $this->actingAs($districtUser)
+                ->get(route('satellites.dashboard', $pasig))
+                ->assertOk()
+                ->assertSee('Pasig Dashboard')
+                ->assertSee('Pasig Member')
+                ->assertSee('Pasig Volunteer')
+                ->assertSee('Pasig Leader');
+        }
+
+        $this->actingAs($member)
+            ->get(route('satellites.dashboard', $pasig))
+            ->assertOk()
+            ->assertSee('View Members')
+            ->assertSee('View Follow-Ups')
+            ->assertDontSee('Add Member')
+            ->assertDontSee('Add Follow-Up');
+
+        $this->actingAs($leader)
+            ->get(route('satellites.dashboard', $pasig))
+            ->assertOk()
+            ->assertSee('Add Member')
+            ->assertSee('Add Follow-Up');
+
+        $this->actingAs($otherDistrictUser)
+            ->get(route('satellites.dashboard', $pasig))
+            ->assertForbidden();
+
+        $this->actingAs($member)
+            ->get(route('satellites.dashboard', $anonas))
+            ->assertForbidden();
     }
 
     public function test_admin_users_dashboard_can_search_and_filter_users(): void
