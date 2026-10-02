@@ -2,6 +2,23 @@
 
 Laravel web application for the Elevate DGM dashboards, member records, attendance, feedback, reports, and analytics views.
 
+## Offline thesis evidence
+
+Thesis evidence is paper material, not an admin feature. Generate a fresh report when preparing or auditing the paper:
+
+```bash
+php artisan research:thesis-evidence --format=md --output=storage/research/
+php artisan research:thesis-evidence --format=json --output=storage/research/
+```
+
+The command prints the generated filename. Outputs must stay under `storage/research/`, outside public and signed-download storage disks; linked paths and traversal are rejected. Files have unique names and are not committed. Production refuses to run unless you explicitly add `--force` for an authorized export.
+
+Database access is SELECT-only, enforced before query execution. The command does not synchronize, seed, train, save predictions, update labels/consent, or run tests. It writes the requested offline file (Markdown rendering also uses Laravel's template cache). Reports preserve the evidence tables and audit content while withholding names, contacts, answers and free-text notes. Record identifiers and links are replaced by pseudonymous codes derived with the application key; rotating that key changes the codes. Keep reports within authorized research access.
+
+The strict paper cohort can differ from Sentiment Analytics; neither eligibility rules nor metric math are changed by export. Functional evidence stays UNTESTED when its source fingerprint is stale or missing. To refresh it, separately run `php scripts/verify-thesis-evidence.php`, which executes the suite against isolated in-memory fixtures and writes private verification artifacts. The export command never runs this script automatically.
+
+The former `/admin/research/thesis-evidence` URL permanently redirects to Sentiment Analytics. Its HTML/JSON download endpoint has been removed.
+
 ## Requirements
 
 - PHP 8.2 or newer
