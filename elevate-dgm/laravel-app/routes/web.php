@@ -17,6 +17,9 @@ use App\Http\Controllers\SatelliteSeekerController;
 use App\Http\Controllers\SatelliteFollowUpController;
 use Illuminate\Support\Facades\Route;
 
+// Retain old bookmarks; the report itself is available only through the CLI.
+Route::permanentRedirect('/admin/research/thesis-evidence', '/admin/analytics/sentiment');
+
 Route::get('/', [OtpLoginController::class, 'show'])->name('login');
 Route::get('/login', [OtpLoginController::class, 'show']);
 
@@ -56,8 +59,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/research/thesis-evidence', [\App\Http\Controllers\ThesisEvidenceController::class, 'index'])->name('admin.thesis-evidence.index');
-    Route::get('/admin/research/thesis-evidence/export', [\App\Http\Controllers\ThesisEvidenceController::class, 'export'])->name('admin.thesis-evidence.export');
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/satellites', [AdminSatelliteController::class, 'index'])->name('admin.satellites');
     Route::get('/admin/satellites/export', [AdminSatelliteController::class, 'export'])->name('admin.satellites.export');

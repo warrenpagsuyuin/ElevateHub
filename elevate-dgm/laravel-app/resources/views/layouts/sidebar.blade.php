@@ -21,7 +21,6 @@
         <a href="{{ route('admin.users') }}" class="{{ $sidebarLinkClass('admin.users*') }}" @if($sidebarCurrentPage('admin.users*')) aria-current="page" @endif>Users</a>
         <a href="{{ route('admin.reports') }}" class="{{ $sidebarLinkClass('admin.reports*') }}" @if($sidebarCurrentPage('admin.reports*')) aria-current="page" @endif>Reports</a>
         <span class="sidebar-section-label">Analytics</span>
-        <a href="{{ route('admin.thesis-evidence.index') }}" class="{{ $sidebarLinkClass('admin.thesis-evidence.*') }}">Thesis Evidence</a>
         <a href="{{ route('admin.analytics') }}" class="{{ $sidebarLinkClass('admin.analytics') }}" @if($sidebarCurrentPage('admin.analytics')) aria-current="page" @endif>Overview</a>
         <a href="{{ route('admin.analytics.sentiment') }}" class="{{ $sidebarLinkClass('admin.analytics.sentiment*') }}" @if($sidebarCurrentPage('admin.analytics.sentiment*')) aria-current="page" @endif>Sentiment Analysis</a>
         <a href="{{ route('feedback.create') }}" class="{{ $sidebarLinkClass('feedback*') }}" @if($sidebarCurrentPage('feedback*')) aria-current="page" @endif>Feedback</a>
