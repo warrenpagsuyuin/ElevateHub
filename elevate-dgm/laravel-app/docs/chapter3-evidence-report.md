@@ -470,7 +470,7 @@ Replace any wording that says:
 - [System-feedback research documentation](system-feedback-research.md)
 - [Complete user manual](user-manual.md)
 - Live database: `database/database.sqlite`
-- Historical engagement exports and temporary thesis integrity scripts in `outputs/` were removed during repository cleanup. They are not runtime dependencies. This document records historical findings; regenerate current evidence through the admin research/report pages and `scripts/verify-thesis-evidence.php`.
+- Historical engagement exports and temporary thesis integrity scripts in `outputs/` were removed during repository cleanup. They are not runtime dependencies. This document records historical findings; regenerate current paper evidence using `php artisan research:thesis-evidence --format=md` or `--format=json`. The thesis page and HTTP exports have been removed. Separately run `php scripts/verify-thesis-evidence.php` when current functional verification is needed; the export command never runs tests or writes research data.
 - Engagement evidence service: `app/Services/ThesisSentimentEvidenceService.php` for strict sentiment evidence
 - Survey evidence service: `app/Services/ThesisSurveyEvidenceService.php` for read-only survey integrity
 

@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.12.1...12.x)
 
+- Removed the paper-only Thesis Research Evidence page, sidebar entry and HTTP exports. Existing page bookmarks permanently redirect to Sentiment Analytics.
+- Added `research:thesis-evidence` for offline Markdown/JSON evidence with SELECT-only database access, pseudonymous record codes, restricted output paths and explicit production opt-in via `--force`.
+- Preserved shared sentiment services, labels, consent, metric calculations and database schema. Retained functional evidence tests and documented offline verification.
+
 ## [v12.12.1](https://github.com/laravel/laravel/compare/v12.12.0...v12.12.1) - 2026-03-10
 
 * [12.x] Makes imports consistent by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/laravel/pull/6760
