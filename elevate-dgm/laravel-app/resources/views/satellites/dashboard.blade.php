@@ -34,42 +34,6 @@
 </div>
 
 <div class="dashboard-panels">
-    <section class="data-card quick-actions" aria-labelledby="quick-actions-title">
-        <h2 class="section-title" id="quick-actions-title">Quick Actions</h2>
-        <div class="quick-action-grid">
-            @if ($canManageSatellite)
-                <a class="btn-primary" href="{{ route('satellites.members', $satellite) }}">Add Member</a>
-                <a class="btn-secondary" href="{{ route('satellites.seekers', $satellite) }}">Review Seekers</a>
-                <a class="btn-primary" href="{{ route('satellites.follow-ups.create', $satellite) }}">Add Follow-Up</a>
-                <a class="btn-secondary" href="{{ route('satellites.engagement.index', $satellite) }}">View Engagement</a>
-            @else
-                <a class="btn-secondary" href="{{ route('satellites.members', $satellite) }}">View Members</a>
-                <a class="btn-secondary" href="{{ route('satellites.seekers', $satellite) }}">View Seekers</a>
-                <a class="btn-secondary" href="{{ route('satellites.follow-ups.index', $satellite) }}">View Follow-Ups</a>
-                <a class="btn-secondary" href="{{ route('satellites.engagement.index', $satellite) }}">View Engagement</a>
-            @endif
-        </div>
-    </section>
-
-    <section class="data-card assigned-accounts" aria-labelledby="assigned-accounts-title">
-        <h2 class="section-title" id="assigned-accounts-title">Assigned Accounts</h2>
-        <div class="assigned-account-list">
-            @forelse ($satelliteUsers as $satelliteUser)
-                <div class="assigned-account-row">
-                    <div>
-                        <strong>{{ $satelliteUser->name }}</strong>
-                        <span>{{ $satelliteUser->email }}</span>
-                    </div>
-                    <span class="role-pill">{{ \Illuminate\Support\Str::headline($satelliteUser->role ?: 'member') }}</span>
-                </div>
-            @empty
-                <div class="empty-state">
-                    No user accounts are assigned to this satellite district yet.
-                </div>
-            @endforelse
-        </div>
-    </section>
-
     <section class="data-card" aria-labelledby="engagement-summary-title">
         <h2 class="section-title" id="engagement-summary-title">Engagement Summary</h2>
         <div class="mini-stat-list">
@@ -118,7 +82,7 @@
 
 @push('styles')
         .dashboard-intro {
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
 
         .summary-title {
@@ -131,38 +95,83 @@
         }
 
         .compact-dashboard-grid .stat-card {
-            min-height: 168px;
-            padding: 20px 24px 18px;
-            background: #FFFFFF;
-            border: 1px solid rgba(17, 24, 39, 0.08);
-            border-radius: 14px;
-            box-shadow: none;
+            min-height: 116px;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 18px 22px;
+            border: 0;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 3px 10px rgba(17, 24, 39, 0.09);
+            font-family: var(--font-ui);
+        }
+
+        .compact-dashboard-grid .stat-card:nth-child(odd) {
+            background: var(--brand-red);
+        }
+
+        .compact-dashboard-grid .stat-card:nth-child(even) {
+            background: #111111;
+        }
+
+        .compact-dashboard-grid .stat-card .info {
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 5px;
         }
 
         .compact-dashboard-grid .stat-value {
-            color: var(--brand-red);
-            font-weight: 900;
+            color: #ffffff;
+            font-family: var(--font-ui);
+            font-size: 36px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
 
         .compact-dashboard-grid .stat-label {
-            color: var(--text-primary);
-            font-weight: 900;
+            color: #ffffff;
+            font-family: var(--font-ui);
+            font-size: 14px;
+            line-height: 1.3;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        @media (max-width: 1024px) {
+            .compact-dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .compact-dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .compact-dashboard-grid .stat-card {
+                min-height: 100px;
+                padding: 16px 18px;
+            }
+
+            .compact-dashboard-grid .stat-value {
+                font-size: 32px;
+            }
+
+            .compact-dashboard-grid .stat-label {
+                font-size: 13px;
+            }
         }
 
         .dashboard-panels {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
+            gap: 16px;
         }
 
         .recent-activity {
             grid-column: 1 / -1;
-        }
-
-        .quick-action-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
         }
 
         .mini-stat-list {
@@ -170,61 +179,30 @@
             gap: 10px;
         }
 
-        .assigned-account-list {
-            display: grid;
-            gap: 10px;
-        }
-
         .mini-stat,
-        .activity-row,
-        .assigned-account-row {
+        .activity-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
             border: 1px solid var(--line);
             border-radius: var(--radius-md);
-            background: #f9fafb;
+            background: var(--surface-bg);
             padding: 13px 14px;
-        }
-
-        .assigned-account-row > div {
-            display: grid;
-            gap: 4px;
-            min-width: 0;
         }
 
         .mini-stat span,
         .activity-row span,
-        .activity-row small,
-        .assigned-account-row span {
+        .activity-row small {
             color: var(--text-muted);
             font-size: 13px;
             font-weight: 650;
         }
 
         .mini-stat strong,
-        .activity-row strong,
-        .assigned-account-row strong {
+        .activity-row strong {
             color: var(--text-primary);
             font-weight: 850;
-        }
-
-        .assigned-account-row strong,
-        .assigned-account-row span:not(.role-pill) {
-            overflow-wrap: anywhere;
-        }
-
-        .role-pill {
-            display: inline-flex;
-            align-items: center;
-            min-height: 26px;
-            flex-shrink: 0;
-            border-radius: 999px;
-            background: #eef2ff;
-            color: #3730a3 !important;
-            padding: 0 10px;
-            font-weight: 800 !important;
         }
 
         .mini-stat strong {
@@ -328,10 +306,6 @@
 
         @media (max-width: 900px) {
             .dashboard-panels {
-                grid-template-columns: 1fr;
-            }
-
-            .quick-action-grid {
                 grid-template-columns: 1fr;
             }
         }

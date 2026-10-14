@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Seeker;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -63,11 +64,27 @@ class GoogleSheetSeekerSync
                     ->first();
             }
 
-            if ($seeker === null) {
-                Seeker::create($values);
-            } else {
-                $seeker->update($values);
-            }
+            DB::transaction(function () use ($seeker, $values): void {
+                if ($seeker) {
+                    $seeker = Seeker::whereKey($seeker->id)->lockForUpdate()->firstOrFail();
+                    // Archived rows are historical records; sync cannot silently restore or reassign them.
+                    if ($seeker->archived_at) {
+                        return;
+                    }
+                    $status = $values['status'];
+                    unset($values['status']);
+                    $seeker->update($values);
+                    // An unchanged final status may be an explicitly restored, stay-active record.
+                    if ($seeker->status !== $status) {
+                        app(SeekerArchiveService::class)->changeStatus($seeker, $status, auth()->user());
+                    }
+                } else {
+                    $status = $values['status'];
+                    $values['status'] = Seeker::STATUS_PENDING;
+                    $seeker = Seeker::create($values);
+                    app(SeekerArchiveService::class)->changeStatus($seeker, $status, auth()->user());
+                }
+            }, 3);
 
             $synced++;
         }
@@ -76,7 +93,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function nameFromRow(array $row): string
     {
@@ -93,7 +110,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function statusFromRow(array $row): string
     {
@@ -112,7 +129,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function assignedDistrictFromRow(array $row): string
     {
@@ -138,7 +155,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function facebookLinkFromRow(array $row): ?string
     {
@@ -154,7 +171,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function sourceKeyFromRow(array $row): string
     {
@@ -166,8 +183,8 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string|null> $row
-     * @param array<int, string> $keys
+     * @param  array<string, string|null>  $row
+     * @param  array<int, string>  $keys
      */
     private function valueFromRow(array $row, array $keys): string
     {
@@ -416,7 +433,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<string, string> $entries
+     * @param  array<string, string>  $entries
      */
     private function firstWorksheetPath(array $entries): string
     {
@@ -473,6 +490,7 @@ class GoogleSheetSeekerSync
         foreach ($sharedStrings->si as $item) {
             if (isset($item->t)) {
                 $values[] = (string) $item->t;
+
                 continue;
             }
 
@@ -489,7 +507,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<int, string> $sharedStrings
+     * @param  array<int, string>  $sharedStrings
      */
     private function cellValue(\SimpleXMLElement $cell, array $sharedStrings): ?string
     {
@@ -746,6 +764,7 @@ class GoogleSheetSeekerSync
 
             if ($headers === null) {
                 $headers = array_map(fn (?string $header): string => $this->normalizeHeader((string) $header), $columns);
+
                 continue;
             }
 
@@ -760,7 +779,7 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<int, array<int, string|null>> $values
+     * @param  array<int, array<int, string|null>>  $values
      * @return array<int, array<string, string|null>>
      */
     private function rowsFromValues(array $values): array
@@ -778,6 +797,7 @@ class GoogleSheetSeekerSync
 
             if ($headers === null) {
                 $headers = array_map(fn (?string $header): string => $this->normalizeHeader((string) $header), $columns);
+
                 continue;
             }
 
@@ -790,8 +810,8 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<int, string> $headers
-     * @param array<int, string|null> $columns
+     * @param  array<int, string>  $headers
+     * @param  array<int, string|null>  $columns
      * @return array<string, string|null>
      */
     private function rowFromColumns(array $headers, array $columns, int $sourceRowNumber): array
@@ -829,8 +849,8 @@ class GoogleSheetSeekerSync
     }
 
     /**
-     * @param array<int, string> $headers
-     * @param array<int, string> $needles
+     * @param  array<int, string>  $headers
+     * @param  array<int, string>  $needles
      */
     private function firstHeaderIndex(array $headers, array $needles): ?int
     {

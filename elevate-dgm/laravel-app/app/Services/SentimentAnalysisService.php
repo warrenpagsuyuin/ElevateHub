@@ -196,6 +196,20 @@ class SentimentAnalysisService
 
     public function analyzeFollowUp(FollowUp $followUp): FollowUp
     {
+        if (trim((string) $followUp->notes) === '') {
+            $followUp->forceFill([
+                'sentiment_label' => null,
+                'sentiment_score' => null,
+                'sentiment_confidence' => null,
+                'sentiment_model' => null,
+                'sentiment_model_version' => null,
+                'sentiment_metrics' => null,
+                'sentiment_analyzed_at' => null,
+            ])->save();
+
+            return $followUp->refresh();
+        }
+
         $analysis = $this->analyze($followUp->notes);
 
         $followUp->forceFill([
@@ -240,7 +254,8 @@ class SentimentAnalysisService
         ];
         $count = 0;
 
-        $query->orderBy('id')->chunkById(100, function (Collection $followUps) use (&$labels, &$count): void {
+        $query->whereNotNull('notes')->whereRaw("TRIM(notes) <> ''")
+            ->orderBy('id')->chunkById(100, function (Collection $followUps) use (&$labels, &$count): void {
             foreach ($followUps as $followUp) {
                 $updated = $this->analyzeFollowUp($followUp);
                 $labels[$updated->sentiment_label] = ($labels[$updated->sentiment_label] ?? 0) + 1;
@@ -279,8 +294,7 @@ class SentimentAnalysisService
      *     total: int,
      *     analyzed: int,
      *     unanalyzed: int,
-     *     counts: array<string, int>,
-     *     trend: array<int, array<string, mixed>>
+     *     counts: array<string, int>
      * }
      */
     public function summarize(Collection $followUps): array
@@ -290,7 +304,7 @@ class SentimentAnalysisService
             self::LABEL_NEUTRAL => 0,
             self::LABEL_NEGATIVE => 0,
         ];
-        $trend = [];
+
         $analyzed = 0;
 
         foreach ($followUps as $followUp) {
@@ -302,30 +316,13 @@ class SentimentAnalysisService
 
             $counts[$label] = ($counts[$label] ?? 0) + 1;
             $analyzed++;
-
-            $date = $followUp->follow_up_date ?: $followUp->created_at;
-            $periodKey = $date ? $date->format('Y-m') : 'unscheduled';
-            $periodLabel = $date ? $date->format('M Y') : 'Unscheduled';
-
-            $trend[$periodKey] ??= [
-                'period' => $periodLabel,
-                self::LABEL_POSITIVE => 0,
-                self::LABEL_NEUTRAL => 0,
-                self::LABEL_NEGATIVE => 0,
-                'total' => 0,
-            ];
-            $trend[$periodKey][$label]++;
-            $trend[$periodKey]['total']++;
         }
-
-        ksort($trend);
 
         return [
             'total' => $followUps->count(),
             'analyzed' => $analyzed,
             'unanalyzed' => max(0, $followUps->count() - $analyzed),
             'counts' => $counts,
-            'trend' => array_slice(array_values($trend), -6),
         ];
     }
 

@@ -168,17 +168,7 @@ The page must show the unit as **Eligible** after the eligibility service refres
 
 ## Step 8: Approved evaluation period
 
-On **Sentiment Analytics**, use the **Approved evaluation period** section.
-
-Route: `/admin/analytics/sentiment`
-
-Only an actually approved evaluation period may be entered.
-
-1. Enter the real **Start** date.
-2. Enter the real **End** date.
-3. Enter the actual approval evidence.
-4. Confirm **These dates are approved for system evaluation**.
-5. Click **Save approved period**.
+The Settings tab and approved-period form have been removed. Existing approved-period metadata remains in use. Corrections require maintenance code using `SentimentResearchService::configure` with the actual authorized approver, approved start/end dates, and approval evidence. Missing approval continues to exclude records; no dates are inferred.
 
 Do not invent an approver, approval reason, or date. If the current approval does not identify a valid authorized approver, ask the responsible authority to supply the real approval record before proceeding.
 
@@ -192,12 +182,13 @@ Do not invent an approver, approval reason, or date. If the current approval doe
 4. Return to **Human Feedback Review**.
 5. Confirm that every intended unit says **Eligible**.
 
-## Step 2: Open the dataset page
+## Step 2: Export the evaluation workbook
 
-1. Open **Evaluation Dataset** from the Sentiment Analysis page.
-2. Direct route: `/admin/analytics/sentiment/research/dataset`.
-3. Confirm that the page shows the eligible counts by language and human sentiment.
-4. Do not proceed if any intended record is still Excluded / Pending.
+1. Select **Export evaluation** from the Sentiment Analytics workspace.
+2. Use the **Human Label Distribution** worksheet for eligible counts by language and human sentiment.
+3. Use the **Confusion Matrix**, **Overall Metrics**, and **Language Metrics** worksheets for Tables 18, 19, and 20.
+4. The former dataset URL `/admin/analytics/sentiment/research/dataset` now redirects to the Overview; it no longer displays a separate results page.
+5. Do not proceed if any intended record is still Excluded / Pending.
 
 ## Table 11 worksheet
 
@@ -232,12 +223,12 @@ Mark **TABLE 11 COMPLETE** only when:
 5. English + Filipino + Filipino-English equals the eligible record count.
 6. No F010 or F011 record is included.
 7. No split parent is included.
-8. The page's validation says **PASS**.
+8. The exported evaluation report's validation says **PASS**.
 
 Screenshot:
 
-- Capture the Evaluation Dataset page showing the final language/sentiment distribution and eligible count.
-- Include the page title and date if visible.
+- Capture the exported Human Label Distribution worksheet showing the final language/sentiment distribution and eligible count.
+- Include the workbook title and date if visible.
 - Do not include raw comments or private reviewer notes.
 
 ## Step 3: Run the fixed sentiment evaluation
@@ -245,9 +236,9 @@ Screenshot:
 Only after Table 11 is complete:
 
 1. Return to `/admin/analytics/sentiment`.
-2. Click **Predict / Evaluate reviewed feedback**.
+2. Ask the maintainer to run `php artisan sentiment:prepare-evaluation --predict --export` for eligible reviewed feedback.
 3. Wait for the success message.
-4. Return to **Evaluation Dataset**.
+4. Select **Export evaluation** and open the updated workbook.
 5. Confirm every Table 11 record has a current system prediction.
 6. If any prediction fails, stop. The evaluation is not complete.
 
@@ -263,8 +254,8 @@ Use exactly the same eligible records as Table 11. Do not add a new record becau
 
 ## Table 12 steps
 
-1. Open **Evaluation Dataset**.
-2. Open the **Feedback Samples** or Table 12 section.
+1. Open the exported evaluation workbook.
+2. Open the **Feedback Samples** worksheet.
 3. Use the displayed Feedback Code.
 4. Verify the Language against the finalized human language review.
 5. Verify the Human Reference against the saved human label.
@@ -286,7 +277,7 @@ Mark **TABLE 12 COMPLETE** only when:
 
 Screenshot:
 
-- Capture the Human Feedback Review or Evaluation Dataset page showing human reference and system prediction for the eligible records.
+- Capture Human Feedback Review for the human reference, and the exported Feedback Samples worksheet for system predictions.
 - If raw text is visible, redact names, contact information, private ministry details, and consent/reviewer notes before including the screenshot.
 
 # Part 4: Generate Tables 18, 19, and 20
@@ -295,7 +286,7 @@ These tables use exactly the same Table 11 records.
 
 ## Table 18: Confusion matrix
 
-1. Open `/admin/analytics/sentiment/research/dataset`.
+1. Open the **Confusion Matrix** worksheet in the exported evaluation workbook.
 2. Find **Table 18: Confusion Matrix of System-Feedback Sentiment Classification**.
 3. Copy the Positive, Neutral, and Negative rows and columns.
 4. Confirm the matrix total equals the Table 11 eligible count.
@@ -309,11 +300,11 @@ These tables use exactly the same Table 11 records.
 
 Screenshot:
 
-- Capture Table 18 with the Test N, Correct, Incorrect, and Accuracy text visible.
+- Capture the Confusion Matrix worksheet with the Test N, Correct, Incorrect, and Accuracy text visible.
 
 ## Table 19: Overall sentiment performance
 
-1. On the same Evaluation Dataset page, find **Table 19: Overall Sentiment Classification Performance**.
+1. In the exported evaluation workbook, open **Overall Metrics** for Table 19: Overall Sentiment Classification Performance.
 2. Record each class's Precision, Recall, F1 Score, and Support.
 3. Record Macro Average, Weighted Average, and Overall Accuracy.
 4. Confirm Table 18 and Table 19 use the same N.
@@ -336,15 +327,15 @@ For each class:
 - F1 = $2PR/(P+R)$ when $P+R > 0$.
 - Accuracy = correct predictions / total evaluation records.
 
-Mark **TABLE 19 COMPLETE** only when the page validation says **PASS**, Table 18 and Table 19 have identical N, and no metric is silently replaced with zero when N is zero.
+Mark **TABLE 19 COMPLETE** only when the evaluation report validation says **PASS**, Table 18 and Table 19 have identical N, and no metric is silently replaced with zero when N is zero.
 
 Screenshot:
 
-- Capture Table 19 with per-class metrics, macro/weighted averages, and accuracy visible.
+- Capture the Overall Metrics worksheet with per-class metrics, macro/weighted averages, and accuracy visible.
 
 ## Table 20: Performance according to language
 
-1. On the Evaluation Dataset page, find **Table 20: Sentiment Performance According to Language**.
+1. In the exported evaluation workbook, open **Language Metrics** for Table 20: Sentiment Performance According to Language.
 2. Record English, Filipino, and Filipino-English separately.
 3. Record N, Accuracy, Macro Precision, Macro Recall, and Macro F1.
 4. If a language has N=0, write **UNTESTED**, not 0%.
@@ -356,7 +347,7 @@ Screenshot:
 | Filipino | ___ | ___ | ___ | ___ | ___ |
 | Filipino-English | ___ | ___ | ___ | ___ | ___ |
 
-Mark **TABLE 20 COMPLETE** only when Table 19 and Table 20 use exactly the same evaluation records and the page validation says **PASS**.
+Mark **TABLE 20 COMPLETE** only when Table 19 and Table 20 use exactly the same evaluation records and the evaluation report validation says **PASS**.
 
 Screenshot:
 
@@ -590,6 +581,6 @@ Do not generate final Tables 11, 12, 18, 19, or 20 until:
 - Independence and reviewer provenance are truthful.
 - The approved evaluation period is valid and documented.
 - Every included unit has a current system prediction.
-- The Evaluation Dataset page shows Eligible records and PASS validations.
+- The exported evaluation report shows Eligible records and PASS validations.
 
 Do not call Table 14 fully passed until the no-automatic-action regression test is repaired and passes in the test database.

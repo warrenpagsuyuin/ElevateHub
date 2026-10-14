@@ -410,7 +410,7 @@ Use de-identified records and do not display passwords, OTPs, email addresses, p
 | 17 | `/admin/analytics/sentiment` | Engine notice, consent/inclusion counts, warnings, and UNTESTED state. |
 | 18 | `/admin/analytics/sentiment/research/review` | Feedback unit list showing consent, scope, language, human label, inclusion, and prediction visibility. |
 | 19 | `/admin/analytics/sentiment/research/units/{unit}` | Consent evidence and blind human-review form; redact original feedback. |
-| 20 | `/admin/analytics/sentiment/research/dataset` | Empty/UNTESTED Table 11, 18, 19, and 20 state. |
+| 20 | Legacy URL `/admin/analytics/sentiment/research/dataset` | Redirects to Sentiment Analytics Overview. Tables 11, 18, 19, and 20 remain available in the Export evaluation workbook. |
 | 21 | `/admin/reports` | Current No reports/zero placeholder state, clearly labelled as incomplete. |
 | 22 | Any authenticated page | Sidebar roles and Sign Out control. |
 

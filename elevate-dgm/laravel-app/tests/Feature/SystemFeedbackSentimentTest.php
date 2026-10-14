@@ -64,6 +64,30 @@ class SystemFeedbackSentimentTest extends TestCase
             ->assertSee('The system is helpful, clear, and useful');
     }
 
+    public function test_admin_cannot_access_feedback_form_or_see_sidebar_link(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->get(route('feedback.create'))->assertForbidden();
+        $this->actingAs($admin)->get(route('feedback.index'))->assertForbidden();
+        $this->actingAs($admin)->post(route('feedback.store'), $this->positiveFeedbackAnswers())->assertForbidden();
+        $this->assertSame(0, Feedback::count());
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertDontSee(route('feedback.create'), false);
+    }
+
+    public function test_non_admin_roles_can_access_feedback_form(): void
+    {
+        foreach (['member', 'satellite', 'leader', 'staff', 'volunteer', 'district'] as $role) {
+            $user = User::factory()->create(['role' => $role]);
+
+            $this->actingAs($user)->get(route('feedback.create'))->assertOk();
+        }
+    }
+
     public function test_admin_sentiment_analytics_shows_reference_metrics(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

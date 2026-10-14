@@ -151,6 +151,123 @@
             font-weight: 600;
         }
 
+        .otp-digits {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .otp-digits[hidden] {
+            display: none;
+        }
+
+        .otp-digit {
+            width: 100%;
+            min-width: 0;
+            height: 52px;
+            border: 1px solid #71717a;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #18181b;
+            padding: 0;
+            text-align: center;
+            font: 600 24px ui-monospace, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .otp-digit:focus {
+            outline: 3px solid #b42318;
+            outline-offset: 2px;
+        }
+
+        .otp-digit:disabled {
+            background: #f4f4f5;
+            color: #52525b;
+        }
+
+        .otp-timer,
+        .otp-lock {
+            margin: 0 0 16px;
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .otp-timer[data-state="warning"] {
+            color: #854d0e;
+        }
+
+        .otp-timer[data-state="expired"],
+        .otp-lock {
+            color: #b42318;
+        }
+
+        .otp-recipient {
+            margin: 0 0 16px;
+            color: #52525b;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .otp-help {
+            margin: 8px 0 0;
+            color: #52525b;
+            font-size: 13px;
+        }
+
+        .otp-feedback:empty {
+            display: none;
+        }
+
+        .primary-button:disabled,
+        .secondary-button:disabled {
+            cursor: not-allowed;
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .secondary-button.resend-emphasis {
+            border: 1px solid #b42318;
+            background: #fef2f2;
+            color: #b42318;
+        }
+
+        .otp-spinner {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            vertical-align: middle;
+            animation: otp-spin 0.7s linear infinite;
+        }
+
+        @keyframes otp-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 360px) {
+            .login-page {
+                padding: 24px 12px;
+            }
+
+            .login-card {
+                padding: 24px 12px;
+            }
+
+            .otp-digits {
+                gap: 4px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .otp-spinner {
+                animation: none;
+            }
+        }
+
         .primary-button,
         .secondary-button {
             border: 0;
@@ -289,42 +406,79 @@
                         </button>
                     </form>
                 @elseif ($currentStep === 'otp')
-                    <form method="POST" action="{{ route('login.otp') }}" class="form">
-                        @csrf
-
-                        <div>
-                            <label class="field-label" for="otp">One-time password</label>
-                            <input
-                                id="otp"
-                                name="otp"
-                                type="text"
-                                inputmode="numeric"
-                                pattern="[0-9]{6}"
-                                minlength="6"
-                                maxlength="6"
-                                autocomplete="one-time-code"
-                                aria-invalid="{{ $errors->has('otp') ? 'true' : 'false' }}"
-                                aria-describedby="login-instruction{{ $errors->any() ? ' login-errors' : '' }}"
-                                required
-                                autofocus
-                                class="input otp-input"
-                            >
-                        </div>
-
-                        <button
-                            type="submit"
-                            class="primary-button"
+                    <div
+                        id="otp-panel"
+                        data-state-url="{{ route('login.otp.state') }}"
+                        data-state="{{ json_encode($otpState) }}"
+                    >
+                        <p class="otp-recipient">Sent to <strong>{{ $otpState['masked_email'] }}</strong></p>
+                        @php
+                            $initialRemaining = max(
+                                0,
+                                \Illuminate\Support\Carbon::parse($otpState['expires_at'])->getTimestamp()
+                                    - \Illuminate\Support\Carbon::parse($otpState['server_now'])->getTimestamp()
+                            );
+                        @endphp
+                        <p
+                            class="otp-timer"
+                            id="otp-timer"
+                            data-state="{{ $initialRemaining === 0 ? 'expired' : ($initialRemaining <= 60 ? 'warning' : 'normal') }}"
                         >
-                            Verify code and sign in
-                        </button>
-                    </form>
+                            {{ $initialRemaining ? sprintf('Code expires in %02d:%02d', intdiv($initialRemaining, 60), $initialRemaining % 60) : 'Code expired. Request a new code.' }}
+                        </p>
+                        <p class="otp-lock" id="otp-lock" hidden></p>
+                        <p class="notice otp-feedback" id="otp-feedback" role="status" aria-live="polite"></p>
+                        <span class="sr-only" id="otp-announcement" role="status" aria-live="polite"></span>
 
-                    <form method="POST" action="{{ route('login.otp.resend') }}" class="resend-form">
-                        @csrf
-                        <button type="submit" class="secondary-button">
-                            Resend code
-                        </button>
-                    </form>
+                        <form method="POST" action="{{ route('login.otp') }}" class="form" id="otp-form">
+                            @csrf
+
+                            <div>
+                                <label class="field-label" for="otp" id="otp-label">One-time password</label>
+                                <input
+                                    id="otp"
+                                    name="otp"
+                                    type="text"
+                                    inputmode="numeric"
+                                    pattern="[0-9]{6}"
+                                    minlength="6"
+                                    maxlength="6"
+                                    autocomplete="one-time-code"
+                                    aria-invalid="{{ $errors->has('otp') ? 'true' : 'false' }}"
+                                    aria-describedby="login-instruction{{ $errors->any() ? ' login-errors' : '' }}"
+                                    required
+                                    autofocus
+                                    class="input otp-input"
+                                >
+                                <div class="otp-digits" id="otp-digits" role="group" aria-labelledby="otp-label" hidden>
+                                    @for ($digit = 1; $digit <= 6; $digit++)
+                                        <input
+                                            class="otp-digit"
+                                            type="text"
+                                            inputmode="numeric"
+                                            autocomplete="{{ $digit === 1 ? 'one-time-code' : 'off' }}"
+                                            aria-label="One-time password, digit {{ $digit }} of 6"
+                                            aria-describedby="otp-help otp-feedback"
+                                            autocapitalize="off"
+                                            spellcheck="false"
+                                        >
+                                    @endfor
+                                </div>
+                                <p class="otp-help" id="otp-help">Enter or paste your 6-digit code. It verifies automatically.</p>
+                            </div>
+
+                            <button type="submit" class="primary-button" id="otp-verify">
+                                <span class="otp-spinner" hidden></span><span data-button-label>Verify code and sign in</span>
+                            </button>
+                        </form>
+
+                        <form method="POST" action="{{ route('login.otp.resend') }}" class="resend-form" id="otp-resend-form">
+                            @csrf
+                            <button type="submit" class="secondary-button" id="otp-resend">Resend code</button>
+                        </form>
+                        <p class="otp-help" id="otp-resend-limit"></p>
+                    </div>
+                    <script src="{{ asset('js/otp-login.js') }}" defer></script>
                 @else
                     <form method="POST" action="{{ route('login.email') }}" class="form">
                         @csrf

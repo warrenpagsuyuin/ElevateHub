@@ -233,8 +233,8 @@ class ReferenceDatasetService
         $kind = $verified === 0 ? 'provisional reference engagement labels entered for dataset preparation' : 'reference engagement labels, including the recorded human verification updates';
         $chapter = 'Table 9 presents the distribution of the '.$total.' member records according to the '.$kind.'. Of the total records, '.$counts['Active'].' or '.$pct('Active').' percent were categorized as Active, '.$counts['Moderately Active'].' or '.$pct('Moderately Active').' percent as Moderately Active, and '.$counts['Possible Need for Follow-Up'].' or '.$pct('Possible Need for Follow-Up').' percent as Possible Need for Follow-Up. '.($counts[self::CLARIFICATION] === 6 ? 'Six' : $counts[self::CLARIFICATION]).' records or '.$pct(self::CLARIFICATION).' percent were marked as Needs Clarification and were not included as a CART target class.';
 
-        return ['available' => Member::count(), 'reference_count' => $total, 'provisional' => $rows->where('verification_status', 'Provisional')->count(), 'verified' => $verified,
-            'clarification' => $counts[self::CLARIFICATION], 'eligible' => array_sum($counts) - $counts[self::CLARIFICATION], 'unlabeled' => max(0, Member::count() - $total),
+        return ['available' => Member::active()->count(), 'reference_count' => $total, 'provisional' => $rows->where('verification_status', 'Provisional')->count(), 'verified' => $verified,
+            'clarification' => $counts[self::CLARIFICATION], 'eligible' => array_sum($counts) - $counts[self::CLARIFICATION], 'unlabeled' => max(0, Member::active()->count() - $total),
             'distribution' => $distribution, 'satellites' => $satellites, 'chapter_text' => $chapter,
             'evaluation_status' => $dataset?->evaluation_status ?? 'Provisional', 'dataset_version' => $dataset?->revision_version, 'revision' => $dataset?->revision,
             'split' => $dataset?->split_summary ?? ['train_count' => 0, 'test_count' => 0, 'classes' => [], 'seed' => 42, 'method' => 'Not prepared'],

@@ -77,6 +77,32 @@ class FollowUpSentimentTest extends TestCase
         $this->assertSame(FollowUp::SENTIMENT_POSITIVE, $followUp->refresh()->sentiment_label);
     }
 
+    public function test_empty_notes_remain_unanalyzed_and_later_notes_are_analyzed(): void
+    {
+        [$satellite, $satelliteUser, $seeker] = $this->followUpFixture();
+        $followUp = FollowUp::create([
+            'satellite_id' => $satellite->id,
+            'seeker_id' => $seeker->id,
+            'follow_up_date' => now()->toDateString(),
+            'method' => null,
+            'notes' => null,
+            'status' => FollowUp::STATUS_PENDING,
+        ]);
+        $service = app(SentimentAnalysisService::class);
+
+        $analyzed = $service->analyzeFollowUp($followUp);
+        $this->assertNull($analyzed->sentiment_label);
+        $this->assertNull($analyzed->sentiment_confidence);
+        $this->assertNull($analyzed->sentiment_analyzed_at);
+        $this->assertSame(0, $service->analyzeQuery(FollowUp::whereKey($followUp->id))['count']);
+
+        $followUp->update(['notes' => 'The seeker is interested and thankful.']);
+        $analyzed = $service->analyzeFollowUp($followUp->fresh());
+        $this->assertNotNull($analyzed->sentiment_label);
+        $this->assertNotNull($analyzed->sentiment_confidence);
+        $this->assertNotNull($analyzed->sentiment_analyzed_at);
+    }
+
     public function test_satellite_user_can_filter_follow_ups_by_sentiment(): void
     {
         [$satellite, $satelliteUser, $seeker] = $this->followUpFixture();
@@ -105,7 +131,9 @@ class FollowUpSentimentTest extends TestCase
         $this->actingAs($satelliteUser)
             ->get(route('satellites.follow-ups.index', [$satellite, 'sentiment' => FollowUp::SENTIMENT_NEGATIVE]))
             ->assertOk()
-            ->assertSee('Sentiment Trends')
+            ->assertDontSee('Sentiment Trends')
+            ->assertSee('Why this sentiment?')
+            ->assertViewHas('sentimentSummary', fn ($summary) => ! array_key_exists('trend', $summary) && $summary['counts']['Positive'] === 1 && $summary['counts']['Negative'] === 1)
             ->assertSee('No response and not interested')
             ->assertDontSee('Encouraged and interested');
     }

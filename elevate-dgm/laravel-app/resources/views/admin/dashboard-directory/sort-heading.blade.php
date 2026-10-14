@@ -1,0 +1,1 @@
+<th scope="col" aria-sort="{{ $sort === $column ? ($direction === 'asc' ? 'ascending' : 'descending') : 'none' }}"><a href="{{ request()->fullUrlWithQuery(['sort' => $column, 'direction' => $sort === $column && $direction === 'asc' ? 'desc' : 'asc', 'page' => 1]) }}">{{ $label }} @if ($sort === $column){{ $direction === 'asc' ? '(ascending)' : '(descending)' }}@endif</a></th>

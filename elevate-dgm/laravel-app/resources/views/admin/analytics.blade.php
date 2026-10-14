@@ -1,227 +1,56 @@
 @extends('layouts.app')
-
 @section('title', 'Analytics Dashboard | Elevate DGM')
-
 @push('styles')
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
-        .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
-        .analytics-link { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 8px; background: #111; color: #fff; text-decoration: none; font-size: 13px; font-weight: 900; }
-        .analytics-link:hover { background: #e33c24; color: #fff; }
-        .analytics-stack { display: flex; flex-direction: column; gap: 34px; }
-        .analytics-section { display: flex; flex-direction: column; gap: 18px; }
-        .section-title { margin: 0; color: #111; font-size: 23px; line-height: 1.2; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
-        .chart-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-        .chart-card, .data-card { min-width: 0; background: #fff; border-radius: 14px; box-shadow: 0 16px 34px rgba(17, 24, 39, 0.12); }
-        .chart-card { padding: 18px 18px 14px; }
-        .chart-card h3, .data-card h3 { margin: 0; color: #111; font-size: 13px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
-        .plotly-chart { width: 100%; height: 310px; margin-top: 10px; }
-        .data-card { padding: 18px; }
-        .table-wrap { max-height: 350px; overflow: auto; margin-top: 14px; border: 1px solid #e5e7eb; border-radius: 10px; }
-        .analytics-table { width: 100%; min-width: 620px; border-collapse: collapse; color: #111; background: #fff; font-size: 14px; }
-        .analytics-table th, .analytics-table td { padding: 13px 14px; text-align: left; border-bottom: 1px solid #edf0f3; }
-        .analytics-table th { position: sticky; top: 0; z-index: 1; background: #111; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
-        .analytics-table tbody tr:hover { background: #f9fafb; }
-        .analytics-table td:first-child { color: #e8402b; font-weight: 900; letter-spacing: 0.05em; }
-        .analytics-table td:nth-child(3), .analytics-table td:nth-child(4) { font-weight: 800; }
-        .analytics-status { padding: 24px; border-radius: 14px; background: #fff; color: #4b5563; box-shadow: 0 16px 34px rgba(17, 24, 39, 0.10); font-weight: 800; }
-        .analytics-status.error { color: #b42318; }
-        @media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr; } .plotly-chart { height: 340px; } }
+@include('admin.movement-analytics.styles')
 @endpush
-
 @section('content')
-<div data-analytics-url="{{ route('admin.analytics.data') }}">
-<div class="header">
-            <h1>Analytics Dashboard</h1>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a class="analytics-link" href="{{ route('admin.engagement.index') }}">Engagement Classification</a>
-                <a class="analytics-link" href="{{ route('admin.recommendation-actions.index') }}">Recommendation Catalogue</a>
-                <a class="analytics-link" href="{{ route('admin.analytics.sentiment') }}">Sentiment Analysis</a>
-            </div>
+<div class="movement" id="movement-app" data-endpoint="{{ route('admin.analytics.movement-data') }}" data-resolution-url="{{ route('admin.analytics.resolve') }}" data-csrf="{{ csrf_token() }}" data-default-checkpoint="{{ $defaultCheckpoint }}" data-members-url="{{ route('admin.members') }}" data-satellites-url="{{ route('admin.satellites') }}" data-active-satellites="{{ $activeSatelliteCounts['totalSatellites'] }}">
+    <header class="mv-header">
+        <div><p class="mv-eyebrow">ELEVATE / MOVEMENT INTELLIGENCE</p><h1>Analytics Dashboard</h1><p class="mv-subtitle">See the movement. Understand the change. Know where to act.</p></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">@include('admin.movement-analytics.checkpoint-workflow')<a class="mv-button mv-dark" id="mv-export" aria-disabled="true">Export CSV <span aria-hidden="true">&#8599;</span></a></div>
+    </header>
+    <section class="analytics-current-stats" aria-label="Current active satellite totals">
+        <p class="mv-note">Current active records, matching the Members and Satellites dashboards. Checkpoint metrics below retain their dated definitions and coverage.</p>
+        <div class="stats">
+        @foreach (['totalSatellites' => 'Total Satellites', 'activeLeaders' => 'Active Leaders', 'activeMembers' => 'Total Members', 'openReports' => 'Open Reports'] as $key => $label)
+            <div class="card {{ $loop->odd ? 'red' : 'black' }}"><div class="info"><span class="label">{{ $label }}</span><span class="value">{{ $activeSatelliteCounts[$key] }}</span></div></div>
+        @endforeach
         </div>
-        <div class="analytics-status" id="analytics-status">Loading analytics data...</div>
-        <div class="analytics-stack" id="analytics-sections"></div>
+    </section>
+    @if(app()->environment('local') && config('movement_analytics.sample_enabled'))
+        <p class="mv-note"><a href="{{ route('admin.analytics', ['sample'=>1]) }}">Open isolated sample preview</a> · <a href="{{ route('admin.analytics') }}">Return to real data</a></p>
+    @endif
+    <p id="mv-sample-banner" class="mv-state" hidden>SAMPLE DATA ? local preview only. No real records are shown and export is disabled.</p><form class="mv-filters" id="mv-filters" aria-label="Analytics filters">
+        <label>Checkpoint<select aria-label="Checkpoint" name="checkpoint" id="mv-checkpoint">@forelse($checkpoints as $checkpoint)<option value="{{ $checkpoint->key }}" @selected($checkpoint->key === $defaultCheckpoint)>{{ $checkpoint->label }} · {{ ucfirst($checkpoint->status) }}</option>@empty<option value="">No checkpoints configured</option>@endforelse</select><span class="mv-filter-help">Choose the reporting month. Open checkpoints can receive reports; closed checkpoints keep a saved snapshot.</span></label>
+        <label>Compare with<select aria-label="Compare with" name="compare"><option value="baseline">{{ $checkpoints->firstWhere('kind', 'baseline')?->label ?? 'Baseline' }} baseline</option><option value="previous">Previous checkpoint</option></select><span class="mv-filter-help">Compare with the baseline, the starting checkpoint, or with the previous checkpoint.</span></label>
+        <label>Movement group<select aria-label="Movement group" name="group"><option value="">All groups</option>@foreach($groups as $group)<option value="{{ $group->group }}">{{ $group->name }}</option>@endforeach</select><span class="mv-filter-help">Limit the view to one movement group. A unit is a DGroup used to organize satellites.</span></label>
+        <label>Count source<select aria-label="Count source" name="mode"><option value="auto">Auto</option><option value="reported">Reported only</option><option value="live">Live only</option></select><span class="mv-filter-help">Auto uses reports when available and live member records when a report is missing.</span></label>
+        <button class="mv-button" type="submit">Apply filters</button>
+    </form>
+    <details class="mv-data-definitions"><summary>How these numbers work</summary><dl><dt>Live dashboard totals</dt><dd>Active satellites, DGroup leaders, and members come from current active records, matching the Satellites and Members dashboards.</dd><dt>Checkpoint analytics</dt><dd>Reported data is the count submitted for the selected checkpoint. A unit is a DGroup. Open checkpoints can receive reports; closed checkpoints retain their saved counts. The baseline is the starting checkpoint used for comparison.</dd></dl></details>
+    <div class="mv-context"><span id="mv-context">Preparing your movement overview</span><span id="mv-updated">Data last updated: </span></div>
+    <section id="mv-state-card" class="mv-panel mv-state-card" role="status" aria-live="polite"><div id="mv-status" class="mv-state"><span class="mv-loader" aria-hidden="true"></span> Loading movement analytics...</div><div id="mv-state-actions" class="mv-state-actions" hidden></div><button id="mv-retry" class="mv-button" type="button" hidden>Try again</button></section>
+    <noscript><div class="mv-state">Enable JavaScript to explore the analytics dashboard.</div></noscript>
+    <p id="mv-completeness" class="mv-note" role="status"></p><div id="mv-content" hidden>
+        <section class="mv-verdict" aria-labelledby="mv-verdict-title"><div><p class="mv-eyebrow" id="mv-verdict-kicker">MOVEMENT PULSE</p><h2 id="mv-verdict-title"></h2><p id="mv-verdict-copy"></p></div><a href="#mv-attention" class="mv-verdict-link">Review attention items <span aria-hidden="true">&#8599;</span></a></section>
+        <section class="mv-kpis" id="mv-kpis" aria-label="Movement key performance indicators"></section>
+        <div class="mv-grid">
+            <section class="mv-panel mv-comparison" aria-labelledby="mv-groups-title"><div class="mv-section-head"><div><p class="mv-eyebrow">01 / THE BIG PICTURE</p><h2 id="mv-groups-title">Group comparison</h2></div><span class="mv-chip">Across checkpoints</span></div><div id="mv-metrics" class="mv-tabs" role="group" aria-label="Chart metric"></div><div id="mv-group-chart"></div><p class="mv-note">Available counts are shown with coverage. Missing values are never plotted as zero.</p></section>
+            <section class="mv-panel mv-attention" id="mv-attention" aria-labelledby="mv-attention-title"><div class="mv-section-head"><div><p class="mv-eyebrow">02 / WHERE TO ACT</p><h2 id="mv-attention-title">Needs attention</h2></div><span class="mv-chip" id="mv-issue-count"></span></div><div id="mv-issues"></div><details id="mv-all-issues"><summary>View all attention items</summary><div id="mv-more-issues"></div></details></section>
+        </div>
+        <section class="mv-panel" aria-labelledby="mv-units-title"><div class="mv-section-head"><div><p class="mv-eyebrow">03 / LOCAL MOMENTUM</p><h2 id="mv-units-title">Unit performance</h2><p class="mv-note">Select a unit to explore its satellites, history and reporting evidence.</p></div><label class="mv-sort">Rank by<select id="mv-sort"><option value="count">Current count</option><option value="growth">Growth percentage</option></select></label></div><div class="mv-rank-heading"><span>Unit / <span id="mv-ranked-metric">DMembers</span></span><span>Checkpoint history</span><span>Status</span></div><div id="mv-ranking"></div><button type="button" class="mv-button" id="mv-more-units" style="margin-top:16px" aria-expanded="false">Show all units</button></section>
+        <div class="mv-section-head mv-live-heading"><div><p class="mv-eyebrow">04 / PEOPLE & FOLLOW-THROUGH</p><h2>From connection to community</h2></div><span class="mv-chip" id="mv-current-scope">Current records</span></div>
+        <div class="mv-grid mv-equal">
+            <section class="mv-panel" aria-labelledby="mv-pipeline-title"><div class="mv-section-head"><h3 id="mv-pipeline-title">Seeker pipeline</h3><a href="{{ route('admin.seekers') }}">View seekers &#8599;</a></div><div id="mv-pipeline"></div><details><summary>Pipeline by unit & dated joining trend</summary><div id="mv-pipeline-details"></div></details></section>
+            <section class="mv-panel" aria-labelledby="mv-engagement-title"><div class="mv-section-head"><h3 id="mv-engagement-title">Engagement mix</h3><a href="{{ route('admin.engagement.index') }}">Engagement Classification &#8599;</a></div><div id="mv-engagement"></div><p class="mv-note">Model classifications support review. Active membership is decided by leaders.</p><details><summary>Engagement by unit</summary><div id="mv-engagement-details"></div></details><p class="mv-note">Historical sentiment includes archived satellites. Active totals exclude archived satellites; saved checkpoint evidence is retained.</p><div id="mv-sentiment" hidden></div></section>
+        </div>
+        <section class="mv-panel" aria-labelledby="mv-forecast-title"><div class="mv-section-head"><div><p class="mv-eyebrow">05 / LOOKING AHEAD</p><h2 id="mv-forecast-title">Next checkpoint outlook</h2></div><button class="mv-button" type="button" id="mv-method">How this works</button></div><div id="mv-forecasts"></div><p class="mv-note">Indicative ranges, not targets or guaranteed outcomes. At least three reported checkpoints are required.</p></section>
+        <details class="mv-panel mv-full-data" id="mv-full-data"><summary>Full data <span>All units, checkpoints and variances · matches CSV export</span></summary><div class="mv-table-wrap" tabindex="0" role="region" aria-label="Full movement data"><table id="mv-pivot"></table></div></details>
+        <footer class="mv-footer"><span id="mv-unit-scope">Every number has a source.</span><a href="{{ route('admin.analytics.sentiment') }}">Open Sentiment Analysis &#8599;</a></footer>
+    </div>
+    <dialog class="mv-drawer" id="mv-drawer" aria-labelledby="mv-drawer-title"><div class="mv-drawer-head"><div><p class="mv-eyebrow" id="mv-drawer-kicker">UNIT DETAIL</p><h2 id="mv-drawer-title"></h2></div><button class="mv-button" type="button" id="mv-close" aria-label="Close details">&times;</button></div><div id="mv-drawer-body"></div></dialog>
 </div>
 @endsection
-
 @push('scripts')
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<script>
-    (() => {
-        const main = document.querySelector('[data-analytics-url]');
-        const status = document.getElementById('analytics-status');
-        const sections = document.getElementById('analytics-sections');
-        const metrics = ['DLEADERS', 'DGROUPS', 'DMEMBERS'];
-        const sectionTitles = {
-            MAIN: 'ELEVATE MAIN',
-            NCP: 'ELEVATE NCP',
-            ICP: 'ELEVATE ICP',
-        };
-        const metricTitles = {
-            DLEADERS: 'DLEADERS',
-            DGROUPS: 'DGROUPS',
-            DMEMBERS: 'DMEMBERS',
-        };
-        const colors = {
-            2024: '#2563EB',
-            2025: '#E8402B',
-        };
-        const numberFormatter = new Intl.NumberFormat();
-        const plotConfig = {
-            responsive: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-        };
-
-        const escapeHtml = (value) => String(value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-
-        const chartId = (category, metric) => `analytics-${category.toLowerCase()}-${metric.toLowerCase()}`;
-
-        const tableRows = (categoryData) => metrics.map((metric) => {
-            const metricData = categoryData[metric] || { labels: [], 2024: [], 2025: [] };
-
-            return metricData.labels.map((label, index) => `
-                <tr>
-                    <td>${escapeHtml(metricTitles[metric])}</td>
-                    <td>${escapeHtml(label)}</td>
-                    <td>${numberFormatter.format(metricData[2024][index] ?? 0)}</td>
-                    <td>${numberFormatter.format(metricData[2025][index] ?? 0)}</td>
-                </tr>
-            `).join('');
-        }).join('');
-
-        const sectionTemplate = (category, categoryData) => `
-            <section class="analytics-section">
-                <h2 class="section-title">${sectionTitles[category]}</h2>
-                <div class="chart-grid">
-                    ${metrics.map((metric) => `
-                        <article class="chart-card">
-                            <h3>${metricTitles[metric]}</h3>
-                            <div class="plotly-chart" id="${chartId(category, metric)}"></div>
-                        </article>
-                    `).join('')}
-                </div>
-                <article class="data-card">
-                    <h3>${sectionTitles[category]} DATA</h3>
-                    <div class="table-wrap">
-                        <table class="analytics-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Satellite/Region</th>
-                                    <th>2024</th>
-                                    <th>2025</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tableRows(categoryData)}</tbody>
-                        </table>
-                    </div>
-                </article>
-            </section>
-        `;
-
-        const plotChart = (category, metric, metricData) => {
-            if (!window.Plotly) {
-                return;
-            }
-
-            const traces = [
-                {
-                    x: metricData.labels,
-                    y: metricData[2024],
-                    name: '2024',
-                    mode: 'lines+markers',
-                    line: { color: colors[2024], width: 3 },
-                    marker: { size: 7, color: colors[2024] },
-                    hovertemplate: '%{x}<br>2024: %{y:,}<extra></extra>',
-                },
-                {
-                    x: metricData.labels,
-                    y: metricData[2025],
-                    name: '2025',
-                    mode: 'lines+markers',
-                    line: { color: colors[2025], width: 3 },
-                    marker: { size: 7, color: colors[2025] },
-                    hovertemplate: '%{x}<br>2025: %{y:,}<extra></extra>',
-                },
-            ];
-            const layout = {
-                autosize: true,
-                margin: { t: 8, r: 10, b: 78, l: 52 },
-                paper_bgcolor: '#ffffff',
-                plot_bgcolor: '#ffffff',
-                font: {
-                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                    color: '#111111',
-                },
-                hovermode: 'x unified',
-                legend: {
-                    orientation: 'h',
-                    x: 0,
-                    y: 1.16,
-                    xanchor: 'left',
-                    font: { size: 12 },
-                },
-                xaxis: {
-                    automargin: true,
-                    tickangle: -28,
-                    gridcolor: '#f1f5f9',
-                    linecolor: '#d1d5db',
-                    zeroline: false,
-                },
-                yaxis: {
-                    automargin: true,
-                    rangemode: 'tozero',
-                    gridcolor: '#e5e7eb',
-                    linecolor: '#d1d5db',
-                    tickformat: ',d',
-                    zerolinecolor: '#e5e7eb',
-                },
-            };
-
-            Plotly.newPlot(chartId(category, metric), traces, layout, plotConfig);
-        };
-
-        const renderAnalytics = (data) => {
-            sections.innerHTML = Object.keys(sectionTitles)
-                .map((category) => sectionTemplate(category, data[category] || {}))
-                .join('');
-
-            if (!window.Plotly) {
-                status.textContent = 'Charts are unavailable because Plotly.js could not be loaded.';
-                status.classList.add('error');
-                return;
-            }
-
-            status.hidden = true;
-            requestAnimationFrame(() => {
-                Object.keys(sectionTitles).forEach((category) => {
-                    metrics.forEach((metric) => {
-                        const metricData = (data[category] || {})[metric] || { labels: [], 2024: [], 2025: [] };
-
-                        plotChart(category, metric, metricData);
-                    });
-                });
-            });
-        };
-
-        fetch(main.dataset.analyticsUrl, { headers: { Accept: 'application/json' } })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Analytics request failed with status ${response.status}`);
-                }
-
-                return response.json();
-            })
-            .then(renderAnalytics)
-            .catch(() => {
-                status.textContent = 'Unable to load analytics data.';
-                status.classList.add('error');
-            });
-    })();
-</script>
+<script>{!! file_get_contents(resource_path('js/movement-analytics.js')) !!}</script>
 @endpush

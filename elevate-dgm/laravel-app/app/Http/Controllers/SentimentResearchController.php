@@ -16,7 +16,22 @@ class SentimentResearchController extends Controller
     public function index(Request $request)
     {
         $this->service->authorize($request->user());
-        return view('admin.sentiment-research.index',['report'=>$this->service->report(),'units'=>FeedbackAnalysisUnit::with(['feedback','reviewer'])->orderBy('id')->paginate(10),'service'=>$this->service]);
+        if ($request->query->has('view') && $request->query('view') !== 'overview') {
+            return redirect()->route('admin.analytics.sentiment');
+        }
+        $section = $request->routeIs('admin.sentiment-research.review') ? 'review' : 'overview';
+        $search = trim((string) $request->query('search', ''));
+        $status = (string) $request->query('status', '');
+        $query = FeedbackAnalysisUnit::with(['feedback','reviewer'])->orderBy('id');
+        if ($search !== '') {
+            $query->where(fn ($q) => $q->where('feedback_code', 'like', '%'.$search.'%')->orWhere('feedback_text', 'like', '%'.$search.'%'));
+        }
+        if ($status === 'pending') $query->where(fn ($q) => $q->whereNull('human_review_status')->orWhere('human_review_status', '!=', 'Final'));
+        if ($status === 'reviewed') $query->where('human_review_status', 'Final');
+        return view('admin.sentiment-research.index',[
+            'report'=>$this->service->report(), 'units'=>$query->paginate(10)->withQueryString(),
+            'service'=>$this->service, 'section'=>$section, 'search'=>$search, 'status'=>$status,
+        ]);
     }
     public function show(Request $request, FeedbackAnalysisUnit $unit)
     {
@@ -30,12 +45,6 @@ class SentimentResearchController extends Controller
         $this->service->authorize($request->user());
         $count=$this->service->synchronize();
         return back()->with('status',"Imported $count existing feedback records for eligibility review. No human labels were generated.");
-    }
-    public function period(Request $request)
-    {
-        $data=$request->validate(['period_start'=>['required','date_format:Y-m-d'],'period_end'=>['required','date_format:Y-m-d','after_or_equal:period_start'],'approval_reason'=>['required','string','max:2000'],'attested'=>['accepted']]);
-        $this->service->configure($request->user(),$data['period_start'],$data['period_end'],$data['approval_reason']);
-        return back()->with('status','Approved evaluation period recorded.');
     }
     public function consent(Request $request, Feedback $feedback)
     {
@@ -67,13 +76,7 @@ class SentimentResearchController extends Controller
     public function evaluate(Request $request)
     {
         $this->service->evaluate($request->user());
-        return redirect()->route('admin.sentiment-research.dataset')->with('status','Fixed-engine evaluation saved. Tables 18–20 use the same records.');
-    }
-    public function applyApprovedReviewSet(Request $request)
-    {
-        $data=$request->validate(['confirm_apply'=>['accepted'],'consent_correction_attested'=>['accepted'],'independent_attested'=>['nullable','boolean'],'re_review_f001_f002'=>['nullable','boolean']]);
-        $result=$this->service->applyApprovedReviewSet($request->user(),(bool)$data['consent_correction_attested'],(bool)($data['independent_attested'] ?? false),(bool)($data['re_review_f001_f002'] ?? false));
-        return back()->with('status','Approved Human Review Set Applied to '.implode(', ',$result['applied']).'. '.$result['attestation_message']);
+        return redirect()->route('admin.analytics.sentiment')->with('status','Fixed-engine evaluation saved. Tables 18–20 use the same records.');
     }
     public function export(Request $request, SentimentResearchExportService $export)
     {

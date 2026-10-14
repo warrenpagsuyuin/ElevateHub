@@ -81,9 +81,9 @@
                                 <div class="data-table-row-menu">
                                     <button type="button" class="data-table-menu-button" data-menu-button aria-haspopup="menu" aria-expanded="false" aria-label="Actions for {{ $satellite->display_name }}"><span aria-hidden="true">&#8942;</span></button>
                                     <div class="data-table-menu" role="menu">
-                                        <a href="{{ route('admin.users', ['district' => $satellite->display_name]) }}" role="menuitem">View members</a>
-                                        <a href="{{ route('admin.satellites', ['search' => $satellite->display_name]) }}" role="menuitem">View satellite details</a>
-                                        <a href="{{ route('admin.users.export', ['district' => $satellite->display_name]) }}" role="menuitem">Export satellite members</a>
+                                        <a href="{{ route('satellites.members', $satellite) }}" role="menuitem">View members</a>
+                                        <a href="{{ route('admin.satellites', ['satellite' => $satellite->slug]) }}" role="menuitem">View satellite details</a>
+                                        <a href="{{ route('admin.satellites.members.export', $satellite) }}" role="menuitem">Export satellite members</a>
                                     </div>
                                 </div>
                             </td>

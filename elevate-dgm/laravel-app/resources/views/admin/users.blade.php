@@ -397,38 +397,11 @@
             </div>
         @endif
 
-        <section class="directory-card" data-bulk-scope data-matching-count="{{ $users->total() }}" data-record-label="users" data-record-singular-label="user">
-            <form method="POST" action="{{ route('admin.users.bulk') }}" data-bulk-form data-confirm-template="This will {action} for {count} user records.">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="selection_scope" value="ids" data-selection-scope>
-                <input type="hidden" name="bulk_action" value="" data-bulk-action-input>
-                <input type="hidden" name="return_to" value="{{ request()->fullUrl() }}">
-                @foreach ($filters as $filterName => $filterValue)
-                    <input type="hidden" name="filters[{{ $filterName }}]" value="{{ $filterValue }}">
-                @endforeach
-                <span data-selected-ids></span>
-                <div class="data-table-selection-bar" data-selection-bar hidden>
-                    <span class="data-table-selection-summary" data-selection-summary></span>
-                    <span class="data-table-selection-help" data-selection-help></span>
-                    <select name="district" aria-label="Bulk user district">
-                        <option value="">Remove District Assignment</option>
-                        @foreach ($districts as $district)
-                            <option value="{{ $district }}">{{ $district }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="data-table-button primary" data-bulk-action="assign_district" data-action-label="update selected users" data-confirm-template="This will update the district assignment for {count} user accounts.">Assign District</button>
-                    <button type="button" class="data-table-button tertiary" data-clear-selection>Clear Selection</button>
-                </div>
-            </form>
-
+        <section class="directory-card">
             <div class="data-table-scroll">
             <table class="directory-table" id="admin-users-table" data-enhanced-table data-table-id="admin-users">
                 <thead>
                     <tr>
-                        <th class="data-table-select-col" data-locked-column>
-                            <input class="data-table-checkbox" type="checkbox" data-select-page aria-label="Select all users on this page">
-                        </th>
                         <th data-column="name" data-label="Name" aria-sort="{{ $sort === 'name' ? ($direction === 'asc' ? 'ascending' : 'descending') : 'none' }}">
                             <a class="data-table-sort-link" href="{{ $sortUrl('name') }}" aria-label="Sort by name. {{ $sortLabel('name') }}">Name <span class="data-table-sort-indicator" aria-hidden="true">{!! $sortGlyph('name') !!}</span></a>
                         </th>
@@ -447,9 +420,6 @@
                 <tbody>
                     @forelse ($users as $user)
                         <tr>
-                            <td class="data-table-select-col">
-                                <input class="data-table-checkbox" type="checkbox" value="{{ $user->id }}" data-row-checkbox aria-label="Select {{ $user->name }}">
-                            </td>
                             <td class="name-cell">{{ $user->name }}</td>
                             <td class="email-cell">{{ $user->email }}</td>
                             <td><span class="role-badge">{{ str_replace('_', ' ', $user->role ?: 'member') }}</span></td>
@@ -494,7 +464,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td class="empty-row" colspan="6">
+                            <td class="empty-row" colspan="5">
                                 @if (array_filter($filters))
                                     <div class="data-table-empty-card">
                                         <strong>No users found.</strong>

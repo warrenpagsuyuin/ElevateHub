@@ -1,6 +1,6 @@
 # System-feedback sentiment research
 
-The entry point is Admin → Analytics → Sentiment Analysis (`/admin/analytics/sentiment`). Human Feedback Review and Evaluation Dataset share one eligibility service. Run `php artisan sentiment:prepare-evaluation --export` to import new existing feedback and export the available tables. This command cannot create research consent, human labels, language labels, or an approved period.
+The entry point is Admin → Analytics → Sentiment Analysis (`/admin/analytics/sentiment`). Human Feedback Review, the Overview, and the evaluation export share one eligibility service. Run `php artisan sentiment:prepare-evaluation --export` to import new existing feedback and export the available tables. This command cannot create research consent, human labels, language labels, or an approved period. The legacy `/admin/analytics/sentiment/research/dataset` URL redirects to the Overview.
 
 ## Initial audit, 2026-09-10
 
@@ -41,7 +41,6 @@ Missing/failed predictions remain visible in missing-prediction counts, and prev
 - GET `/admin/analytics/sentiment/research/units/{unit}`: blind initial review.
 - PATCH `/admin/analytics/sentiment/research/units/{unit}`: independent review with revision check.
 - POST `/admin/analytics/sentiment/research/units/{unit}/split`: verbatim analysis-unit split.
-- POST `/admin/analytics/sentiment/research/period`: approved dates with evidence/attestation.
 - POST `/admin/analytics/sentiment/research/sync`: import new stored responses.
 - POST `/admin/analytics/sentiment/research/evaluate`: predict final reviewed units and save a complete evaluation.
 - GET `/admin/analytics/sentiment/research/export`: current six-sheet XLSX.
@@ -56,3 +55,20 @@ Run `php artisan sentiment:prepare-evaluation --recognize-existing --predict --e
 F001 and F002 retain their saved Positive labels as Final / Human Reviewer. F004?F009 currently have no stored child labels or human language reviews, including audit history. F003 remains a split parent; F010/F011 have Denied consent. The user confirmed the approved period as September 3?10. Scope and language review metadata are also incomplete. There are 2 recognized human references, 0 eligible records and 0 evaluated records. Supply the actual missing review records and period approval evidence; do not invent labels, languages or dates.
 
 Prediction eligibility does not require a prior prediction; this avoids preventing the initial fixed-engine run. Table 11 counts eligible references, while the total human-labeled counter includes stored Final references even when other eligibility conditions are missing.
+
+## Settings tab retirement
+
+The workspace has two tabs: Overview and Human Feedback Review. Requests with `view=settings` or an unknown `view` redirect to the Overview. The period-save and approved-review-set HTTP endpoints and forms have been removed. Existing dates, consent, labels, predictions, and audit records are retained.
+
+The approved period still governs eligibility, Overview metrics, XLSX exports, and thesis evidence. Missing approval remains unapproved; empty metrics remain UNTESTED and export dates remain NOT PROVIDED. No approval is inferred. Documented period corrections require maintenance code using `SentimentResearchService::configure` with the actual authorized actor, dates, and evidence. There is no replacement period-editing UI.
+
+Import remains on Human Feedback Review. The evaluate endpoint and legacy analyze endpoint remain available and return to Overview; the CLI `php artisan sentiment:prepare-evaluation --predict --export` still imports, predicts, and exports without inventing eligibility evidence. Tab CSS and active-tab scrolling are shared and retained.
+
+### Removed controls and retained data
+
+| Removed form/action | Inputs | Stored data retained and still read |
+|---|---|---|
+| `POST research/period` (`period`) | `period_start`, `period_end`, `approval_reason`, `attested` | `sentiment_research_settings`: start/end, reason, `approved_by`, `approved_at`, `created_at`, `updated_at`; eligibility, Overview, evaluation, XLSX, and thesis sentiment/survey reports still read these values. Attestation was validated, not stored as a separate field. |
+| `POST research/apply-approved-review-set` (`applyApprovedReviewSet`) | `consent_correction_attested`, `independent_attested`, `re_review_f001_f002`, `confirm_apply` | Feedback consent status/source/evidence/time/recorder and `consent_corrected_by/at`; analysis-unit scope/reason/test status/reviewer/time, language/group/status/reviewer/time, human reference/status/reviewer/time/reason, original reference/reviewer/time, reference source, review independence, independent attestation, quote approval, revision, inclusion/reasons/partition, predictions and audit history. These remain inputs to review, eligibility, exports and thesis evidence. Only the bulk application code and its exclusive helpers were removed. |
+
+Import and Predict/Evaluate had only CSRF fields, not configurable settings. Import is still used by Human Feedback Review and the CLI. Evaluation is still used by the legacy sentiment-analyze controller and its dedicated processing endpoint. Both keep their existing services, stored predictions, and evaluation-run data. No config keys, cache settings, model options, language options, thresholds, database columns, or migrations were removed. Shared tab CSS and active-tab JavaScript remain unchanged.

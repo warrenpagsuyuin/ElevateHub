@@ -36,6 +36,12 @@ class Feedback extends Model
         ];
     }
 
+    public function getArchivedSatelliteAttribute(): ?Satellite
+    {
+        $user = $this->evaluator;
+        return $user ? Satellite::archived()->where('name', $user->district)->first() : null;
+    }
+
     public function evaluator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'evaluator_user_id');

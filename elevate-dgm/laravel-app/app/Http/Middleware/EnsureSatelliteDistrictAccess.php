@@ -34,9 +34,18 @@ class EnsureSatelliteDistrictAccess
             $request->route()?->setParameter('satellite', $satellite);
         }
 
-        $allowed = $ability === 'manage'
-            ? $user->canManageSatellite($satellite)
-            : $user->canAccessSatellite($satellite);
+        abort_if($satellite->archived_at !== null, 404);
+
+        $allowed = match ($ability) {
+            'seekers-view' => $user->normalizedRole() === 'admin' || $user->canAccessSatellite($satellite),
+            'seeker-status' => $user->canManageSeekers($satellite),
+            'seeker-status-update' => $user->canChangeSeekerStatus($satellite),
+            'manage' => $user->canManageSatellite($satellite),
+            'member-update' => $user->canUpdateSatelliteMembers($satellite),
+            'seeker-leader-assignment' => $user->canAssignSeekerLeader($satellite),
+            'members-view' => $user->canViewSatelliteMembers($satellite),
+            default => $user->canAccessSatellite($satellite),
+        };
 
         abort_unless($allowed, 403);
 

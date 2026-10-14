@@ -95,12 +95,12 @@ Denied consent excludes the feedback from eligible research evaluation. You can 
 
 ### Sentiment research
 1. Open **Sentiment Analysis**.
-2. Set the approved evaluation period.
-3. Click **Import new stored feedback**.
+2. Confirm that documented approved-period metadata is already recorded. Period changes require audited maintenance; there is no Settings tab.
+3. Open **Human Feedback Review** and click **Import new feedback**.
 4. Review consent, scope, record type, language, and human sentiment independently of the prediction.
 5. Save the review.
-6. Click **Predict / Evaluate reviewed feedback**.
-7. Export with **Export Sentiment Evaluation Data**.
+6. Ask the maintainer to run `php artisan sentiment:prepare-evaluation --predict --export`.
+7. Download with **Export evaluation**.
 
 ## 10. Export records
 

@@ -45,7 +45,7 @@
                 <select id="follow-up-target" name="target" @error('target') aria-invalid="true" aria-describedby="follow-up-target-error" @enderror style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                     <option value="">Select a seeker or member...</option>
                     <optgroup label="Seekers">
-                        @foreach ($satellite->seekers()->whereNull('converted_member_id')->get() as $s)
+                        @foreach ($satellite->seekers()->whereNull('converted_member_id')->whereNull('archived_at')->get() as $s)
                             <option value="seeker-{{ $s->id }}" {{ old('target') === 'seeker-'.$s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                         @endforeach
                     </optgroup>

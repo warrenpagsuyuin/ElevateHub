@@ -52,6 +52,14 @@ return [
 
     'channels' => [
 
+        // Sign-in security audit trail (events, user id, email hash, IP). Never contains codes.
+        'otp' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/otp-audit.log'),
+            'level' => 'info',
+            'days' => (int) env('OTP_AUDIT_LOG_DAYS', 90),
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

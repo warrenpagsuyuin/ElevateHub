@@ -41,7 +41,7 @@ class EngagementModelRun extends Model
 
     public function satellite(): BelongsTo
     {
-        return $this->belongsTo(Satellite::class);
+        return $this->belongsTo(Satellite::class)->withoutGlobalScope('active');
     }
 
     public function engagementResults(): HasMany

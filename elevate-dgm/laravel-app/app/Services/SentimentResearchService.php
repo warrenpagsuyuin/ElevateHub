@@ -154,69 +154,6 @@ class SentimentResearchService
         }
     }
 
-    /** Stores the approved researcher set and the separately attested F010/F011 consent metadata correction. */
-    public function applyApprovedReviewSet(User $actor, bool $consentCorrectionAttested, bool $attested, bool $reReviewExisting): array
-    {
-        $this->authorize($actor);
-        if (!$consentCorrectionAttested) throw ValidationException::withMessages(['consent_correction_attested'=>'Confirm that the F010/F011 respondent-submitted consent evidence was verified.']);
-        $set=[
-            'F001'=>['Filipino-English','Positive','Blinded Re-Review','The response directly evaluates system usability, workflows, and the clarity of engagement classifications and explanations.','Independent re-review confirms the existing Positive reference. The response mainly expresses ease of use, approval of the workflows, and clarity of the engagement classification and explanations. No automated prediction was used in making this decision.',true],
-            'F002'=>['English','Positive','Blinded Re-Review','The response directly evaluates system usability, accessibility of information, and the seeker workflow.','Independent re-review confirms the existing Positive reference. The respondent describes the system as good, easy to use, and helpful for accessing information and managing seeker-related functions.',false],
-            'F004'=>['Filipino-English','Positive','Blinded','The response evaluates the ease of using and understanding the developed system.','The response contains a favorable evaluation of ease of use and understanding. The reference was assigned independently of the automated prediction.',false],
-            'F005'=>['English','Positive','Blinded','The response evaluates the usefulness of the developed system for obtaining needed information and placement details.','The response describes the system as very helpful for obtaining needed information and placement details, indicating a mainly favorable system experience.',false],
-            'F006'=>['English','Negative','Blinded','The response identifies areas of the developed system that require improvement or modification.','The response identifies a limitation and requests improvement, removal, or modification of an unwanted system function. Its primary evaluation is therefore Negative.',false],
-            'F007'=>['English','Negative','Blinded','The response evaluates an engagement-related function of the developed system.','The response states that an engagement-related function is not needed, expressing dissatisfaction with or rejection of that system feature.',false],
-            'F008'=>['English','Positive','Blinded','The response directly states the respondent\'s satisfaction with the developed system.','The respondent explicitly states satisfaction with the developed system, supporting a Positive human-reference label.',false],
-            'F009'=>['English','Negative','Blinded','The response evaluates unnecessary elements or functionality in the developed system.','The response recommends removing elements considered unnecessary. The main evaluation expresses dissatisfaction with those system elements and is classified as Negative.',false],
-            'F010'=>['Filipino-English','Positive','Blinded','The response directly evaluates system usability, navigation, button clarity, and the ease of finding or updating needed information.','The response mainly describes the developed system as easy to use, with clear buttons and understandable navigation, and states that it helps the user access or update needed information. The overall evaluation is favorable and is therefore classified as Positive.',false],
-            'F011'=>['Filipino-English','Neutral','Blinded','The response directly evaluates the usability and workflow of the developed system, identifying understandable functions while also indicating that some functions require additional familiarity.','The response provides a balanced evaluation. It identifies positive aspects of the system while also noting that some functions require additional familiarity before they can be used efficiently. The overall human-reference sentiment is therefore Neutral.',false],
-        ];
-        return DB::transaction(function () use ($actor,$attested,$reReviewExisting,$set) {
-            $codes=array_merge(array_keys($set),['F003']);
-            $units=FeedbackAnalysisUnit::with('feedback')->whereIn('feedback_code',$codes)->lockForUpdate()->get()->keyBy('feedback_code');
-            if ($missing=array_values(array_diff($codes,$units->keys()->all()))) throw ValidationException::withMessages(['review_set'=>'Missing approved review records: '.implode(', ',$missing).'. Synchronize the source feedback before applying this set.']);
-            foreach (['F010','F011'] as $code) $this->correctApprovedConsent($units[$code],$actor);
-            foreach ($codes as $code) if ($units[$code]->feedback?->research_consent_status!=='Granted') throw ValidationException::withMessages(['review_set'=>"$code must have documented Granted respondent consent before its review metadata can be applied."]);
-            $changed=[];
-            foreach ($set as $code=>[$language,$label,$independence,$scope,$reason,$quote]) {
-                $unit=$units[$code]; $before=$unit->getAttributes();
-                $preserve=(!$reReviewExisting && in_array($code,['F001','F002'],true) && $this->finalHuman($unit));
-                $changes=['scope_status'=>'System Feedback','scope_reason'=>$scope,'is_test_record'=>false,'scope_reviewed_by'=>$actor->id,'scope_reviewed_at'=>now(),'language_group'=>$language,'language_review_status'=>'Final','language_reviewed_by'=>$actor->id,'language_reviewed_at'=>now(),'human_label_reason'=>$reason,'quote_approved'=>$quote,'review_revision'=>$unit->review_revision+1];
-                if (!$preserve) {
-                    if ($reReviewExisting && in_array($code,['F001','F002'],true) && $this->finalHuman($unit)) $changes += ['original_human_reference_sentiment'=>$unit->human_reference_sentiment,'original_human_reviewed_by'=>$unit->human_reviewed_by,'original_human_reviewed_at'=>$unit->human_reviewed_at];
-                    $changes += ['human_reference_sentiment'=>$label,'human_review_status'=>'Final','human_reviewed_by'=>$actor->id,'human_reviewed_at'=>now(),'reference_source'=>'Manual researcher-approved review set','review_independence'=>$attested ? $independence : null,'independent_attested'=>$attested];
-                }
-                $unit->update($changes); $this->audit('Approved Human Review Set Applied',$actor,$unit,$before,$unit->fresh()->getAttributes()+['source'=>'Manual researcher-approved review set']); $changed[]=$code;
-            }
-            $this->applyApprovedMetadata($units['F003'],$actor,['scope_status'=>'Split','scope_reason'=>'Relevant system feedback split into F004-F009. Child units are evaluated separately to prevent double counting.','is_test_record'=>false,'language_group'=>'Filipino-English','language_review_status'=>'Final','human_review_status'=>'Final','human_reference_sentiment'=>null,'human_label_reason'=>'This feedback is retained as the parent record and excluded from sentiment-performance calculations to prevent double counting.','reference_source'=>'Manual researcher-approved review set']); $changed[]='F003';
-            $this->refreshEligibility();
-            $prediction=$this->predict($actor);
-            return ['applied'=>$changed,'attestation_message'=>$attested ? 'Independent-review attestation recorded; missing predictions generated: '.$prediction['predicted'].'.' : 'Human-review values were saved, but independent-review attestation was not confirmed; affected records remain ineligible until it is recorded.'];
-        });
-    }
-
-    private function applyApprovedMetadata(FeedbackAnalysisUnit $unit, User $actor, array $changes): void
-    {
-        $before=$unit->getAttributes();
-        $changes += ['scope_reviewed_by'=>$actor->id,'scope_reviewed_at'=>now(),'review_revision'=>$unit->review_revision+1];
-        if (($changes['language_review_status'] ?? null)==='Final') $changes += ['language_reviewed_by'=>$actor->id,'language_reviewed_at'=>now()];
-        if (($changes['human_review_status'] ?? null)==='Final' && array_key_exists('human_reference_sentiment',$changes) && $changes['human_reference_sentiment'] !== null) $changes += ['human_reviewed_by'=>$actor->id,'human_reviewed_at'=>now()];
-        $unit->update($changes);
-        $this->audit('Approved Human Review Set Applied',$actor,$unit,$before,$unit->fresh()->getAttributes()+['source'=>'Manual researcher-approved review set']);
-    }
-
-    private function correctApprovedConsent(FeedbackAnalysisUnit $unit, User $actor): void
-    {
-        $feedback=$unit->feedback;
-        if ($feedback->research_consent_status==='Granted') return;
-        if ($feedback->research_consent_status!=='Denied') throw ValidationException::withMessages(['review_set'=>"{$unit->feedback_code} requires a documented consent decision before it can be corrected."]);
-        $before=$feedback->only(['research_consent_status','research_consented_at','research_consent_recorded_by','research_consent_evidence','research_consent_source','consent_corrected_by','consent_corrected_at']);
-        $evidence="The respondent's original system-feedback submission documents that the respondent granted permission for the feedback to be used for the approved research evaluation.";
-        $note='Consent metadata corrected from Denied to Granted after verification of the respondent\'s actual documented consent decision. This correction reflects the respondent\'s original decision and was not granted on behalf of the respondent by the researcher.';
-        $feedback->update(['research_consent_status'=>'Granted','research_consent_source'=>'System Feedback Form – respondent-submitted consent','research_consent_evidence'=>$evidence,'research_consented_at'=>$feedback->research_consented_at ?? now(),'research_consent_recorded_by'=>$feedback->research_consent_recorded_by ?? $actor->id,'consent_corrected_by'=>$actor->id,'consent_corrected_at'=>now()]);
-        $this->audit('feedback.consent_metadata_corrected',$actor,$unit,$before,['feedback_id'=>$feedback->id,'status'=>'Granted','source'=>'System Feedback Form – respondent-submitted consent','evidence'=>$evidence,'reason'=>$note,'consent_corrected_by'=>$actor->id,'consent_corrected_at'=>now()->toIso8601String()]);
-    }
-
     public function finalHuman(FeedbackAnalysisUnit $unit): bool
     {
         // Label provenance, language eligibility, and blinding are separate facts.

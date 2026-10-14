@@ -1,6 +1,24 @@
 # Release Notes
 
+## 2026-10-09 - Live dashboard directories
+
+- Made all four card totals and MAIN/NCP/ICP breakdowns accessible links to searchable, sortable, paginated admin lists.
+- Adopted Member-role counts, actual leaders, linked-member DGroups and normalized distinct campuses.
+- Added nullable leader links, exact approved reconciliation and same-district leader selection with name synchronization.
+- See docs/dashboard-directory.md for definitions, verification, unresolved links and performance notes.
+
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.12.1...12.x)
+
+- Added the Seekers Archive: configurable final statuses, atomic status/archive changes, admin/assigned-leader authorization, session Undo, explicit final-status restore confirmation, manual reasons, bulk actions, filters and archive/historical CSV exports. Preserved existing archive timestamps and all seeker/follow-up/placement history.
+- Added archive actor/reason metadata, an append-only application audit log and a dry-run-first backfill command. Analytics now include archived seekers and show the active/archive split; assignment and new follow-up queues exclude archives. Google Sheet sync preserves archived records and explicit stay-active restores.
+
+- Restored the movement overview with per-metric Auto/reported/live sources, current member counts, partial totals and coverage, like-for-like comparisons, separate live chart bars, source-aware pivot/CSV, grouped quality issues and forecast readiness. Added admin-audited conflict resolution and opt-in local sample previews with no writes or exports. Strict checkpoint-close evidence and existing records remain intact.
+- Completed the movement dashboard quality pass: private aggregate caching with write/commit invalidation and transaction bypass, bounded request timeout, locked checkpoint controls during saves, compiled-asset browser checks, whole-page accessibility scans, tablet/loading/keyboard verification and reproducible local performance benchmarks. No membership, sentiment, consent or metric definitions were changed.
+- Added checkpoint review, assigned-leader confirmations, admin finalization and append-only correction versions. Closing checks complete as-of evidence, reconciliation, explicit confirmation and stale-review tokens; original snapshots remain immutable. September 2026 remains open because verified counts and leader confirmations are missing.
+- Rebuilt `/admin/analytics` as a single black/red/white movement dashboard with URL filters, KPIs, grouped comparisons, ranked units, evidence drawers, attention items, current seeker/engagement/follow-up summaries, guarded forecasts and matching pivot/CSV export. Removed hardcoded movement arrays and the external chart dependency; added browser and data-contract checks. Quarter close remains a separate approval phase.
+- Added movement analytics Phase 2: one read-only service and admin-only JSON endpoint for dated live counts, saved checkpoint evidence, strict roll-ups, comparisons, ratios and data-quality diagnostics. Preserved imported parent assertions separately from incomplete child totals; Stable initially means exactly 0% change as confirmed by the owner.
+- Added movement analytics Phase 1: configurable hierarchy/checkpoints, satellite mappings, nullable snapshots with explicit metric states, append-only import/status history, and dated supporting registries. Existing member/seeker data is preserved.
+- Added `analytics:setup` and `analytics:import`, including SELECT-only dry runs, idempotency, reconciliation diagnostics and explicit preservation of the unresolved Visayas baseline conflict. Documented confirmed metric definitions and remaining phase gates.
 
 - Removed the paper-only Thesis Research Evidence page, sidebar entry and HTTP exports. Existing page bookmarks permanently redirect to Sentiment Analytics.
 - Added `research:thesis-evidence` for offline Markdown/JSON evidence with SELECT-only database access, pseudonymous record codes, restricted output paths and explicit production opt-in via `--force`.

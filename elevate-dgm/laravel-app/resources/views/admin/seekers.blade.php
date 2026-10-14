@@ -3,6 +3,9 @@
 @section('title', 'Seekers Dashboard | Elevate DGM')
 
 @push('styles')
+        @include('seekers.archive-styles')
+        @include('seekers.details-modal-styles')
+        @include('seekers.leader-assignment-modal-styles')
         @include('partials.table-pagination-styles')
         @include('partials.data-table-styles')
 
@@ -152,22 +155,22 @@
         }
 
         .seekers-table th:nth-child(1),
-        .seekers-table td:nth-child(1) { width: 18%; }
+        .seekers-table td:nth-child(1) { width: calc((100% - 88px) * .18); }
 
         .seekers-table th:nth-child(2),
-        .seekers-table td:nth-child(2) { width: 22%; }
+        .seekers-table td:nth-child(2) { width: calc((100% - 88px) * .22); }
 
         .seekers-table th:nth-child(3),
-        .seekers-table td:nth-child(3) { width: 24%; }
+        .seekers-table td:nth-child(3) { width: calc((100% - 88px) * .24); }
 
         .seekers-table th:nth-child(4),
-        .seekers-table td:nth-child(4) { width: 21%; }
+        .seekers-table td:nth-child(4) { width: calc((100% - 88px) * .21); }
 
         .seekers-table th:nth-child(5),
-        .seekers-table td:nth-child(5) { width: 14%; }
+        .seekers-table td:nth-child(5) { width: calc((100% - 88px) * .15); }
 
         .seekers-table th:nth-child(6),
-        .seekers-table td:nth-child(6) { width: 52px; }
+        .seekers-table td:nth-child(6) { width: 88px; padding-inline: 20px; }
 
         .seekers-table tbody tr:last-child td { border-bottom: none; }
         .seekers-table tbody tr:hover { background: #fffaf8; }
@@ -175,174 +178,6 @@
         .seeker-name {
             color: var(--text-primary);
             font-weight: 800;
-        }
-
-        .seeker-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .seeker-detail-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            padding: 0;
-            border: none;
-            background: transparent;
-            color: #9aa4b2;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
-            flex-shrink: 0;
-        }
-
-        .seeker-detail-button:hover,
-        .seeker-detail-button:focus-visible {
-            color: var(--brand-red);
-            background: rgba(227, 60, 36, 0.08);
-            outline: none;
-            transform: translateY(-1px);
-        }
-
-        .seeker-detail-button svg {
-            width: 15px;
-            height: 15px;
-            display: block;
-        }
-
-        .seeker-detail-name {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .seeker-modal-backdrop {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.46);
-        }
-
-        .seeker-modal-backdrop.open {
-            display: flex;
-        }
-
-        .seeker-modal {
-            position: relative;
-            width: min(100%, 520px);
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.2);
-            border: 1px solid rgba(15, 23, 42, 0.06);
-            padding: 28px 24px 20px;
-        }
-
-        .seeker-modal-close {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            width: 34px;
-            height: 34px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: #98a2b3;
-            font-size: 28px;
-            line-height: 1;
-            cursor: pointer;
-        }
-
-        .seeker-modal-close:hover,
-        .seeker-modal-close:focus-visible {
-            background: rgba(227, 60, 36, 0.08);
-            color: var(--brand-red);
-            outline: none;
-        }
-
-        .seeker-modal-header {
-            margin: 0 0 18px;
-            padding-right: 30px;
-        }
-
-        .seeker-modal-title {
-            margin: 0;
-            color: var(--text-primary);
-            font-size: 26px;
-            font-weight: 800;
-        }
-
-        .seeker-modal-subtitle {
-            margin: 8px 0 0;
-            color: var(--text-muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .seeker-modal-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px 16px;
-        }
-
-        .seeker-detail-card {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding: 14px 12px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #fafbfc;
-        }
-
-        .seeker-detail-label {
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .seeker-detail-value {
-            color: var(--text-primary);
-            font-size: 15px;
-            font-weight: 700;
-            word-break: break-word;
-        }
-
-        .seeker-detail-value a {
-            color: var(--brand-red);
-            text-decoration: none;
-        }
-
-        .seeker-detail-value a:hover,
-        .seeker-detail-value a:focus-visible {
-            text-decoration: underline;
-            outline: none;
-        }
-
-        .seeker-detail-card.full-span {
-            grid-column: 1 / -1;
-        }
-
-        @media (max-width: 640px) {
-            .seeker-modal {
-                padding: 26px 18px 18px;
-            }
-
-            .seeker-modal-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .district-select {
@@ -475,11 +310,17 @@
             ]));
             $sortLabel = fn (string $column) => $sort === $column ? ($direction === 'asc' ? 'Ascending' : 'Descending') : 'Not sorted';
             $sortGlyph = fn (string $column) => $sort === $column ? ($direction === 'asc' ? '&uarr;' : '&darr;') : '&#8597;';
-            $hasActiveFilters = collect($filters)->contains(fn ($value) => $value !== '' && $value !== null);
+            $hasActiveFilters = collect($filters)->except('view')->contains(fn ($value) => $value !== '' && $value !== null);
             $filterChipUrl = fn (string $filterName) => route('admin.seekers', request()->except([$filterName, 'page']));
         @endphp
 
+        <x-status-tabs :current="$filters['view']" :tabs="[
+            ['key' => 'active', 'label' => 'Active', 'count' => $activeCount, 'url' => route('admin.seekers')],
+            ['key' => 'archive', 'label' => 'Archived', 'count' => $archiveCount, 'url' => route('admin.seekers', ['view' => 'archive'])],
+        ]" />
+        @include('seekers.archive-controls', ['hideArchiveBulk' => $filters['view'] !== 'archive'])
         <form method="GET" action="{{ route('admin.seekers') }}" class="data-table-toolbar" data-table-filter-form>
+            <input type="hidden" name="view" value="{{ $filters['view'] }}">
             <input type="hidden" name="sort" value="{{ $sort }}">
             <input type="hidden" name="direction" value="{{ $direction }}">
             <div class="data-table-field search">
@@ -502,7 +343,7 @@
                 <label for="seekers-district">District</label>
                 <select id="seekers-district" name="district" data-auto-submit>
                     <option value="">All districts</option>
-                    @foreach ($districtOptions as $districtOption)
+                    @foreach ($filterDistrictOptions as $districtOption)
                         <option value="{{ $districtOption }}" @selected($filters['district'] === $districtOption)>{{ $districtOption }}</option>
                     @endforeach
                 </select>
@@ -511,9 +352,13 @@
                 <label for="seekers-school">School</label>
                 <input id="seekers-school" name="school" type="search" value="{{ $filters['school'] }}" placeholder="Filter by school" data-debounced-submit>
             </div>
+            @if ($filters['view'] === 'archive')
+            <div class="data-table-field"><label for="archived-from">Archived from</label><input id="archived-from" type="date" name="archived_from" value="{{ $filters['archived_from'] }}" data-auto-submit></div>
+            <div class="data-table-field"><label for="archived-to">Archived to</label><input id="archived-to" type="date" name="archived_to" value="{{ $filters['archived_to'] }}" data-auto-submit></div>
+            @endif
             <div class="data-table-actions">
-                <a class="data-table-link-button" href="{{ route('admin.seekers.export', request()->query()) }}" aria-label="Export all {{ $seekers->total() }} matching seekers to CSV">Export CSV</a>
-                <a class="data-table-link-button tertiary {{ $hasActiveFilters ? '' : 'disabled' }}" href="{{ route('admin.seekers') }}" aria-disabled="{{ $hasActiveFilters ? 'false' : 'true' }}" @unless($hasActiveFilters) tabindex="-1" @endunless>Clear Filters</a>
+                <a class="data-table-link-button" href="{{ route('admin.seekers.export', array_merge(request()->query(), ['view' => $filters['view']])) }}" aria-label="Export all {{ $seekers->total() }} matching seekers to CSV">Export CSV</a><a class="data-table-link-button tertiary" href="{{ route('admin.seekers.export', ['view' => 'all']) }}">Historical CSV (all records)</a>
+                <a class="data-table-link-button tertiary {{ $hasActiveFilters ? '' : 'disabled' }}" href="{{ route('admin.seekers', ['view' => $filters['view']]) }}" aria-disabled="{{ $hasActiveFilters ? 'false' : 'true' }}" @unless($hasActiveFilters) tabindex="-1" @endunless>Clear Filters</a>
             </div>
         </form>
 
@@ -531,11 +376,14 @@
                 @if ($filters['school'] !== '')
                     <a class="data-table-chip" href="{{ $filterChipUrl('school') }}">School: {{ $filters['school'] }} <span aria-hidden="true">&times;</span></a>
                 @endif
-                <a class="data-table-link-button tertiary" href="{{ route('admin.seekers') }}">Clear all</a>
+                <a class="data-table-link-button tertiary" href="{{ route('admin.seekers', ['view' => $filters['view']]) }}">Clear all</a>
             </div>
         @endif
 
         <section class="seekers-card directory-card">
+            @if ($filters['view'] === 'archive')
+                @include('seekers.archive-table')
+            @else
             <div class="seekers-table-wrap data-table-scroll">
                 <table class="seekers-table" id="admin-seekers-table" data-enhanced-table data-table-id="admin-seekers">
                     <thead>
@@ -560,15 +408,20 @@
                     </thead>
                     <tbody>
                         @forelse ($seekers as $seeker)
+                            @php
+                                $seekerLeaderOptions = $leaderOptionsBySatellite[$seeker->assigned_satellite_slug] ?? [];
+                                $seekerLeaderOptionsJson = json_encode($seekerLeaderOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+                                $currentSeekerLeaderId = array_search($seeker->dgroup_leader_name, $seekerLeaderOptions, true);
+                            @endphp
                             <tr
                                 data-seeker-modal-row
                                 data-seeker-name="{{ $seeker->name }}"
-                                data-seeker-contact="{{ $seeker->contact_number ?: 'Not provided' }}"
-                                data-seeker-email="{{ $seeker->email ?: 'Not provided' }}"
-                                data-seeker-facebook="{{ $seeker->facebook_link ?: 'Not provided' }}"
-                                data-seeker-age="{{ $seeker->age ?? 'Not provided' }}"
-                                data-seeker-gender="{{ $seeker->gender ?: 'Not provided' }}"
-                                data-seeker-school="{{ $seeker->school ?: 'Not provided' }}"
+                                data-seeker-contact="{{ $seeker->contact_number }}"
+                                data-seeker-email="{{ $seeker->email }}"
+                                data-seeker-facebook="{{ $seeker->facebook_link }}"
+                                data-seeker-age="{{ $seeker->age }}"
+                                data-seeker-gender="{{ $seeker->gender }}"
+                                data-seeker-school="{{ $seeker->school }}"
                             >
                                 <td class="seeker-name">
                                     <div class="seeker-name-cell">
@@ -609,6 +462,10 @@
                                     <div class="data-table-row-menu">
                                         <button type="button" class="data-table-menu-button" data-menu-button aria-haspopup="menu" aria-expanded="false" aria-label="Actions for {{ $seeker->name }}"><span aria-hidden="true">&#8942;</span></button>
                                         <div class="data-table-menu" role="menu">
+                                            @if ($seeker->satellite && !$seeker->archived_at && $seekerLeaderOptions)
+                                                <button type="button" role="menuitem" data-open-leader-modal data-seeker-name="{{ $seeker->name }}" data-leader-id="{{ $currentSeekerLeaderId ?: '' }}" data-leader-options="{{ $seekerLeaderOptionsJson }}" data-action="{{ route('admin.seekers.assign-leader', $seeker) }}" aria-label="Assign DGroup Leader for {{ $seeker->name }}">Assign DGroup Leader</button>
+                                            @endif
+                                            <button type="button" role="menuitem" data-archive-action="archive" data-action-url="{{ route('seekers.archive', $seeker) }}" data-name="{{ $seeker->name }}">Archive</button>
                                             <button type="button" role="menuitem" aria-label="Update district for {{ $seeker->name }}" data-focus-target="#district-{{ $seeker->id }}">Update District</button>
                                             @foreach ($statuses as $statusOption)
                                                 @if ($statusOption !== $seeker->status)
@@ -617,7 +474,7 @@
                                                         @method('PATCH')
                                                         <input type="hidden" name="status" value="{{ $statusOption }}">
                                                         <input type="hidden" name="return_to" value="{{ request()->fullUrl() }}">
-                                                        <button type="submit" role="menuitem" aria-label="Mark {{ $statusOption }}: {{ $seeker->name }}">Mark {{ $statusOption }}</button>
+                                                        <button type="submit" role="menuitem" aria-label="Mark {{ $statusOption }}: {{ $seeker->name }}" @disabled(!$currentSeekerLeaderId && $statusOption !== \App\Models\Seeker::STATUS_PENDING) @if(!$currentSeekerLeaderId && $statusOption !== \App\Models\Seeker::STATUS_PENDING) title="Assign a DGroup Leader first" @endif>Mark {{ $statusOption }}</button>
                                                     </form>
                                                 @endif
                                             @endforeach
@@ -628,11 +485,11 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="empty-state">
-                                    @if (array_filter($filters))
+                                    @if (collect($filters)->except('view')->filter()->isNotEmpty())
                                         <div class="data-table-empty-card">
                                             <strong>No seekers found.</strong>
                                             <span>Try changing your search or filters.</span>
-                                            <a class="data-table-link-button tertiary" href="{{ route('admin.seekers') }}">Clear Filters</a>
+                                            <a class="data-table-link-button tertiary" href="{{ route('admin.seekers', ['view' => $filters['view']]) }}">Clear Filters</a>
                                         </div>
                                     @else
                                         <div class="data-table-empty-card">
@@ -650,145 +507,14 @@
                     </tbody>
                 </table>
             </div>
+            @endif
             @include('partials.table-pagination', ['paginator' => $seekers, 'pageSizes' => $pageSizes, 'currentPageSize' => $perPage, 'recordLabel' => 'seekers', 'tableId' => 'admin-seekers'])
         </section>
     </div>
 @endsection
 
 @push('scripts')
-<div class="seeker-modal-backdrop" data-seeker-modal-backdrop aria-hidden="true">
-    <section class="seeker-modal" role="dialog" aria-modal="true" aria-labelledby="seeker-modal-title">
-        <button type="button" class="seeker-modal-close" data-close-seeker-modal aria-label="Close seeker details">&times;</button>
-        <header class="seeker-modal-header">
-            <h2 class="seeker-modal-title" id="seeker-modal-title">Seeker Details</h2>
-            <p class="seeker-modal-subtitle">Full profile summary for the selected seeker.</p>
-        </header>
-
-        <div class="seeker-modal-grid">
-            <div class="seeker-detail-card full-span">
-                <span class="seeker-detail-label">Name</span>
-                <span class="seeker-detail-value" data-seeker-detail-name>—</span>
-            </div>
-            <div class="seeker-detail-card">
-                <span class="seeker-detail-label">Contact Number</span>
-                <span class="seeker-detail-value" data-seeker-detail-contact>—</span>
-            </div>
-            <div class="seeker-detail-card">
-                <span class="seeker-detail-label">Email</span>
-                <span class="seeker-detail-value" data-seeker-detail-email>—</span>
-            </div>
-            <div class="seeker-detail-card">
-                <span class="seeker-detail-label">Facebook</span>
-                <span class="seeker-detail-value" data-seeker-detail-facebook>—</span>
-            </div>
-            <div class="seeker-detail-card">
-                <span class="seeker-detail-label">Age</span>
-                <span class="seeker-detail-value" data-seeker-detail-age>—</span>
-            </div>
-            <div class="seeker-detail-card">
-                <span class="seeker-detail-label">Gender</span>
-                <span class="seeker-detail-value" data-seeker-detail-gender>—</span>
-            </div>
-            <div class="seeker-detail-card full-span">
-                <span class="seeker-detail-label">Campus/School</span>
-                <span class="seeker-detail-value" data-seeker-detail-school>—</span>
-            </div>
-        </div>
-    </section>
-</div>
-
-<script>
-(() => {
-    const backdrop = document.querySelector('[data-seeker-modal-backdrop]');
-    const closeButton = document.querySelector('[data-close-seeker-modal]');
-    const modalTitle = document.querySelector('#seeker-modal-title');
-    const detailName = document.querySelector('[data-seeker-detail-name]');
-    const detailContact = document.querySelector('[data-seeker-detail-contact]');
-    const detailEmail = document.querySelector('[data-seeker-detail-email]');
-    const detailFacebook = document.querySelector('[data-seeker-detail-facebook]');
-    const detailAge = document.querySelector('[data-seeker-detail-age]');
-    const detailGender = document.querySelector('[data-seeker-detail-gender]');
-    const detailSchool = document.querySelector('[data-seeker-detail-school]');
-
-    const setText = (node, value) => {
-        const safe = String(value ?? '').trim();
-        node.textContent = safe || '—';
-    };
-
-    const fillModal = (row) => {
-        const name = row.dataset.seekerName || '—';
-        const contact = row.dataset.seekerContact || '—';
-        const email = row.dataset.seekerEmail || '—';
-        const facebook = row.dataset.seekerFacebook || '—';
-        const age = row.dataset.seekerAge || '—';
-        const gender = row.dataset.seekerGender || '—';
-        const school = row.dataset.seekerSchool || '—';
-
-        modalTitle.textContent = `${name} Details`;
-        setText(detailName, name);
-        setText(detailContact, contact);
-        setText(detailEmail, email);
-
-        if (facebook && facebook !== 'Not provided') {
-            detailFacebook.textContent = '';
-            const link = document.createElement('a');
-            link.href = facebook;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.textContent = facebook;
-            detailFacebook.appendChild(link);
-        } else {
-            detailFacebook.textContent = '—';
-        }
-
-        setText(detailAge, age);
-        setText(detailGender, gender);
-        setText(detailSchool, school);
-    };
-
-    const openModal = (button) => {
-        const row = button.closest('[data-seeker-modal-row]');
-        if (!row || !backdrop) {
-            return;
-        }
-
-        fillModal(row);
-        backdrop.classList.add('open');
-        backdrop.setAttribute('aria-hidden', 'false');
-        closeButton.focus();
-    };
-
-    const closeModal = () => {
-        if (!backdrop) {
-            return;
-        }
-
-        backdrop.classList.remove('open');
-        backdrop.setAttribute('aria-hidden', 'true');
-    };
-
-    document.querySelectorAll('[data-open-seeker-modal]').forEach((button) => {
-        button.addEventListener('click', () => openModal(button));
-    });
-
-    if (closeButton) {
-        closeButton.addEventListener('click', closeModal);
-    }
-
-    if (backdrop) {
-        backdrop.addEventListener('click', (event) => {
-            if (event.target === backdrop) {
-                closeModal();
-            }
-        });
-    }
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && backdrop && backdrop.classList.contains('open')) {
-            closeModal();
-        }
-    });
-})();
-</script>
+@include('seekers.leader-assignment-modal')
+@include('seekers.details-modal')
 @include('partials.data-table-scripts')
 @endpush

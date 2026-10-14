@@ -27,6 +27,7 @@ class Satellite extends Model
     protected function casts(): array
     {
         return [
+            'archived_at' => 'datetime',
             'leaders_count' => 'integer',
             'members_count' => 'integer',
             'seekers_count' => 'integer',
@@ -36,18 +37,71 @@ class Satellite extends Model
 
     protected static function booted(): void
     {
-        static::created(function (Satellite $satellite): void {
-            if ($satellite->assigned_user_id === null) {
-                return;
-            }
-
-            User::whereKey($satellite->assigned_user_id)
-                ->where(function ($query): void {
-                    $query->whereNull('district')
-                        ->orWhere('district', '');
-                })
-                ->update(['district' => $satellite->name]);
+        static::addGlobalScope('active', fn ($query) => $query->active());
+        static::deleting(function (Satellite $satellite) {
+            $satellite->archive(auth()->user());
+            return false;
         });
+        static::created(function (Satellite $satellite): void {
+            static::syncAssignedUserDistrict($satellite);
+        });
+
+        static::updated(function (Satellite $satellite): void {
+            if ($satellite->wasChanged('assigned_user_id')) {
+                static::syncAssignedUserDistrict($satellite);
+            }
+        });
+    }
+
+    public function newEloquentBuilder($query): \App\Models\Builders\SatelliteBuilder
+    {
+        return new \App\Models\Builders\SatelliteBuilder($query);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('satellites.archived_at');
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->withoutGlobalScope('active')->whereNotNull('satellites.archived_at');
+    }
+
+    public static function dashboardCounts(): array
+    {
+        $satellites = static::active()->get();
+        return [
+            'totalSatellites' => $satellites->count(),
+            'activeLeaders' => $satellites->sum('leaders_count'),
+            'activeMembers' => $satellites->sum('members_count'),
+            'newMembers' => $satellites->sum('new_members_count'),
+            'openReports' => FollowUp::whereIn('satellite_id', static::active()->select('id'))->where('status', FollowUp::STATUS_PENDING)->count(),
+        ];
+    }
+
+    public function archive(?User $actor = null): void
+    {
+        if ($this->archived_at === null) {
+            $this->forceFill(['archived_at' => now(), 'archived_by' => $actor?->id])->save();
+            app(\App\Services\MovementAnalyticsCache::class)->invalidate($this->getConnection());
+        }
+    }
+
+    public function restore(): void
+    {
+        $this->forceFill(['archived_at' => null, 'archived_by' => null])->save();
+        app(\App\Services\MovementAnalyticsCache::class)->invalidate($this->getConnection());
+    }
+
+    private static function syncAssignedUserDistrict(Satellite $satellite): void
+    {
+        if ($satellite->assigned_user_id === null) {
+            return;
+        }
+
+        User::whereKey($satellite->assigned_user_id)
+            ->update(['district' => $satellite->name]);
     }
 
     public function getRouteKeyName(): string
@@ -84,6 +138,16 @@ class Satellite extends Model
     }
 
     public function members(): HasMany
+    {
+        return $this->hasMany(Member::class)->active();
+    }
+
+    public function archivedMembers(): HasMany
+    {
+        return $this->hasMany(Member::class)->archived();
+    }
+
+    public function allMembers(): HasMany
     {
         return $this->hasMany(Member::class);
     }

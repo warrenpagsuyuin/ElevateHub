@@ -18,7 +18,7 @@
         'district',
         'area',
         'campus_school',
-        'dgroup_leader_name',
+        'leader_member_id',
         'active_disciples',
         'year_joined',
         'ministry_involvement',
@@ -41,10 +41,16 @@
     $sortMark = fn (string $key) => $sort === $key ? ($direction === 'asc' ? 'up' : 'down') : 'neutral';
     $clearFiltersUrl = route('satellites.members', [
         'satellite' => $satellite,
+        'view' => $archivedView ? 'archived' : null,
         'sort' => $sort,
         'direction' => $direction,
         'per_page' => $perPage,
     ]);
+    $viewUrl = fn (string $view) => route('satellites.members', array_merge(
+        ['satellite' => $satellite],
+        request()->except(['page', 'view']),
+        $view === 'archived' ? ['view' => 'archived'] : []
+    ));
     $oldMemberData = [];
 
     foreach ($memberFieldNames as $fieldName) {
@@ -58,6 +64,8 @@
 :root { --brand-red: #ef3b24; --brand-red-dark: #c92f1b; --brand-red-soft: #fff1ee; --ink: #111; --muted: #667085; --line: #e8edf3; --surface: #fff; --page: #f3f4f6; --green-bg: #dcfce7; --green-text: #07843f; --blue-bg: #dbeafe; --blue-text: #1d4ed8; --gray-bg: #e5e7eb; --gray-text: #4b5563; }
         .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
         .page-title { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+        .member-back-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-size: 13px; font-weight: 800; text-decoration: none; }
+        .member-back-link:hover, .member-back-link:focus-visible { color: var(--brand-red); outline: none; }
         .page-title h1 { margin: 0; color: var(--ink); font-size: 34px; line-height: 1.08; font-weight: 900; }
         .page-kicker { color: var(--muted); font-size: 14px; font-weight: 800; }
         .header-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
@@ -95,6 +103,8 @@
         .members-table { width: 100%; min-width: 1040px; border-collapse: collapse; color: #374151; font-size: 14px; font-weight: 650; }
         .members-table th, .members-table td { padding: 17px 20px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
         .members-table th { color: #667085; background: #fff7f5; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+        .members-table tr.archiving { opacity: 0; transform: translateX(8px); transition: opacity .2s ease, transform .2s ease; }
+        .member-archive-date { color: #667085; white-space: nowrap; }
         .members-table tbody tr:last-child td { border-bottom: none; }
         .members-table tbody tr:hover { background: #fffafa; }
         .sortable-link { display: inline-flex; align-items: center; gap: 7px; color: inherit; text-decoration: none; }
@@ -140,13 +150,18 @@
         .modal { position: relative; width: min(100%, 760px); max-height: min(820px, calc(100vh - 44px)); overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 26px 80px rgba(15, 23, 42, 0.28); }
         .modal-wide { width: min(100%, 980px); }
         .modal-small { width: min(100%, 480px); }
+        .member-form-modal { display: flex; flex-direction: column; height: min(820px, calc(100vh - 44px)); }
+        .member-form-modal > form[data-member-form] { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
         .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 24px 28px 18px; border-bottom: 1px solid var(--line); }
         .modal-kicker { display: block; margin-bottom: 5px; color: var(--brand-red); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
         .modal h2 { margin: 0; color: var(--ink); font-size: 24px; line-height: 1.15; font-weight: 900; }
         .modal-close { position: absolute; top: 17px; right: 19px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 7px; background: transparent; color: #98a2b3; cursor: pointer; font-size: 26px; line-height: 1; }
         .modal-close:hover, .modal-close:focus-visible { background: var(--brand-red-soft); color: var(--brand-red); outline: none; }
         .modal-body { max-height: min(600px, calc(100vh - 186px)); overflow-y: auto; padding: 22px 28px 28px; }
+        .member-form-modal > form .modal-body { flex: 1 1 auto; min-height: 0; max-height: none; }
+        .member-form-modal .modal-header, .member-form-modal .modal-footer { flex: 0 0 auto; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 28px 24px; border-top: 1px solid var(--line); }
+        .member-form-modal [data-member-form-submit], .member-form-modal [data-member-form-submit]:hover, .member-form-modal [data-member-form-submit]:focus-visible { color: #fff !important; }
         .details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
         .member-detail { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fafafa; }
         .member-detail-label { display: block; margin-bottom: 6px; color: #98a2b3; font-size: 11px; font-weight: 900; text-transform: uppercase; }
@@ -208,9 +223,17 @@
 @section('content')
 <header class="page-header">
             <div class="page-title">
-                <h1>Members</h1>
-                <span class="page-kicker">{{ $membersShown }} of {{ $membersTotal }} members - {{ $satellite->display_name }} Satellite</span>
+                @if (auth()->user()->normalizedRole() === 'admin')
+                    <a class="member-back-link" href="{{ route('admin.members') }}">Back to Members Dashboard</a>
+                @endif
+                <h1>{{ $satellite->display_name }} Members</h1>
+                @if ($archivedView)
+                    <span class="page-kicker" data-member-page-kicker>{{ $membersShown }} of {{ $membersTotal }} archived members - {{ $satellite->display_name }} Satellite</span>
+                @else
+                    <span class="page-kicker" data-member-page-kicker>{{ $membersShown }} of {{ $activeMembersTotal }} members - {{ $satellite->display_name }} Satellite</span>
+                @endif
             </div>
+            @if ($canManageSatellite)
             <div class="header-actions">
                 <button type="button" class="btn btn-secondary" data-open-modal="member-import">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -228,17 +251,25 @@
                     Add Member
                 </button>
             </div>
+            @endif
         </header>
+
+        <x-status-tabs :current="$archivedView ? 'archived' : 'active'" :tabs="[
+            ['key' => 'active', 'label' => 'Active', 'count' => $activeMembersTotal, 'url' => $viewUrl('active')],
+            ['key' => 'archived', 'label' => 'Archived', 'count' => $archivedMembersTotal, 'url' => $viewUrl('archived')],
+        ]" />
 
         @if (session('status'))
             <div class="flash flash-success">{{ session('status') }}</div>
         @endif
+        <div class="flash flash-success" data-member-toast role="status" aria-live="polite" hidden></div>
 
         @if (session('error'))
             <div class="flash flash-error">{{ session('error') }}</div>
         @endif
 
         <form class="filters-card" method="GET" action="{{ route('satellites.members', $satellite) }}">
+            @if ($archivedView)<input type="hidden" name="view" value="archived">@endif
             <input type="hidden" name="sort" value="{{ $sort }}">
             <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="hidden" name="per_page" value="{{ $perPage }}">
@@ -366,6 +397,7 @@
                                     <span class="sort-mark {{ $sortMark('status') }}" aria-hidden="true">{{ $sortMark('status') === 'up' ? '^' : ($sortMark('status') === 'down' ? 'v' : '-') }}</span>
                                 </a>
                             </th>
+                            @if ($archivedView)<th><a class="sortable-link" href="{{ $sortUrl('archived_at') }}">Archived on</a></th>@endif
                             <th class="actions-cell">Actions</th>
                         </tr>
                     </thead>
@@ -377,7 +409,7 @@
                                 $updateUrl = route('satellites.members.update', [$satellite, $member]);
                                 $deleteUrl = route('satellites.members.destroy', [$satellite, $member]);
                             @endphp
-                            <tr>
+                            <tr data-member-row data-member-id="{{ $member->id }}">
                                 <td>
                                     <div class="member-name-cell">
                                         <button type="button" class="member-details-button" data-member-details='{!! $memberDetailsJson !!}' data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="View details for {{ $member->display_name }}">
@@ -392,13 +424,18 @@
                                 <td>{{ $member->display_role }}</td>
                                 <td>{{ $member->campus_school ?: '-' }}</td>
                                 <td>
-                                    @if ($member->dgroup_leader_name)
+                                    @if ($member->leader?->archived_at)
+                                        {{ $member->leader->display_name }} (archived)
+                                    @elseif ($member->dgroup_leader_name && in_array($member->dgroup_leader_name, $archivedLeaderNames, true))
+                                        {{ $member->dgroup_leader_name }} (archived)
+                                    @elseif ($member->dgroup_leader_name)
                                         {{ $member->dgroup_leader_name }}
                                     @else
                                         <span class="leader-empty">-</span>
                                     @endif
                                 </td>
                                 <td><span class="status-pill status-{{ $member->status_class }}">{{ $member->status ?: 'Active' }}</span></td>
+                                @if ($archivedView)<td class="member-archive-date">{{ $member->archived_at?->format('M d, Y') }}</td>@endif
                                 <td class="actions-cell">
                                     <div class="action-menu" data-action-menu>
                                         <button type="button" class="row-action-button" data-action-menu-trigger aria-controls="member-actions-{{ $member->id }}" aria-expanded="false" aria-label="Actions for {{ $member->display_name }}">
@@ -416,6 +453,7 @@
                                                 </svg>
                                                 View Details
                                             </button>
+                                            @if ($canUpdateMembers)
                                             <button type="button" data-open-member-edit data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="Edit member {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M12 20h9" />
@@ -423,6 +461,14 @@
                                                 </svg>
                                                 Edit Member
                                             </button>
+                                            @endif
+                                            @if ($archivedView && $canUpdateMembers)
+                                                <form method="POST" action="{{ route('satellites.members.restore', [$satellite, $member]) }}" data-confirm-message="Restore {{ $member->display_name }} to the active members list?">
+                                                    @csrf
+                                                    <button type="submit" aria-label="Restore member {{ $member->display_name }}">Restore</button>
+                                                </form>
+                                            @endif
+                                            @if (!$archivedView && $canManageSatellite)
                                             <button type="button" class="danger-action" data-open-member-delete data-member-delete-url="{{ $deleteUrl }}" data-member-name="{{ $member->display_name }}" aria-label="Delete member {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <path d="M3 6h18" />
@@ -431,21 +477,24 @@
                                                 </svg>
                                                 Delete Member
                                             </button>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7">
+                                <td colspan="{{ $archivedView ? 8 : 7 }}">
                                     <div class="empty-state">
                                         @if ($membersTotal === 0)
-                                            <h3>No members yet</h3>
+                                            <h3>{{ $archivedView ? 'No archived members in this satellite.' : 'No members in this satellite yet.' }}</h3>
+                                            @if ($canManageSatellite)
                                             <p>Add the first {{ $satellite->display_name }} member manually or upload a CSV/XLSX sheet to start the directory.</p>
                                             <div class="empty-actions">
                                                 <button type="button" class="btn btn-primary" data-open-member-create>Add Member</button>
                                                 <button type="button" class="btn btn-secondary" data-open-modal="member-import">Upload Sheet</button>
                                             </div>
+                                            @endif
                                         @else
                                             <h3>No members found</h3>
                                             <p>Try changing your search or filters to see more {{ $satellite->display_name }} members.</p>
@@ -501,13 +550,15 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-modal-close>Close</button>
+            @if ($canUpdateMembers)
             <button type="button" class="btn btn-primary" data-edit-from-details>Edit Member</button>
+            @endif
         </div>
     </section>
 </div>
 
 <div class="modal-backdrop" data-modal="member-form" aria-hidden="true">
-    <section class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="member-form-title">
+    <section class="modal modal-wide member-form-modal" role="dialog" aria-modal="true" aria-labelledby="member-form-title">
         <div class="modal-header">
             <div>
                 <span class="modal-kicker" data-member-form-kicker>Member record</span>
@@ -515,7 +566,7 @@
             </div>
         </div>
         <button type="button" class="modal-close" data-modal-close aria-label="Close member form">&times;</button>
-        <form method="POST" action="{{ route('satellites.members.store', $satellite) }}" data-member-form data-store-url="{{ route('satellites.members.store', $satellite) }}" data-default-district="{{ $satellite->display_name }}" data-prevent-double-submit>
+        <form method="POST" action="{{ route('satellites.members.store', $satellite) }}" data-member-form data-store-url="{{ route('satellites.members.store', $satellite) }}" data-default-district="{{ $satellite->display_name }}">
             @csrf
             <input type="hidden" name="_method" value="" data-member-form-method disabled>
             <div class="modal-body">
@@ -615,13 +666,14 @@
                     <div class="member-form-grid">
                         <div class="field">
                             <label for="member-leader">Name of Dgroup Leader</label>
-                            <input id="member-leader" name="dgroup_leader_name" list="member-leader-options" value="{{ old('dgroup_leader_name') }}" @class(['is-invalid' => $memberFormErrorBag->has('dgroup_leader_name')]) @if ($memberFormErrorBag->has('dgroup_leader_name')) aria-invalid="true" aria-describedby="member-leader-error" @endif>
-                            <datalist id="member-leader-options">
+                            <select id="member-leader" name="leader_member_id" @if ($memberFormErrorBag->has('leader_member_id')) aria-invalid="true" aria-describedby="member-leader-error" @endif>
+                                <option value="">Unassigned / unresolved</option>
                                 @foreach ($leaderOptions as $leaderOption)
-                                    <option value="{{ $leaderOption }}"></option>
+                                    <option value="{{ $leaderOption->id }}" @selected((string) old('leader_member_id') === (string) $leaderOption->id)>{{ $leaderOption->display_name }} (#{{ $leaderOption->id }})</option>
                                 @endforeach
-                            </datalist>
-                            @if ($memberFormErrorBag->has('dgroup_leader_name'))<span id="member-leader-error" class="field-error">{{ $memberFormErrorBag->first('dgroup_leader_name') }}</span>@endif
+                            </select>
+                            <small>Leaders in this district only. Unresolved historical names stay unchanged until assigned.</small>
+                            @if ($memberFormErrorBag->has('leader_member_id'))<span id="member-leader-error" class="field-error">{{ $memberFormErrorBag->first('leader_member_id') }}</span>@endif
                         </div>
                         <div class="field">
                             <label for="member-active-disciples">No. of Active Disciples</label>
@@ -821,6 +873,24 @@
     </section>
 </div>
 
+<div class="modal-backdrop" data-modal="member-inactive-confirm" aria-hidden="true">
+    <section class="modal modal-small" role="dialog" aria-modal="true" aria-labelledby="member-inactive-confirm-title">
+        <div class="modal-header">
+            <div>
+                <span class="modal-kicker">Confirm status change</span>
+                <h2 id="member-inactive-confirm-title">Mark Inactive?</h2>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p class="delete-copy" id="member-inactive-confirm-text"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-inactive-confirm-cancel>Cancel</button>
+            <button type="button" class="btn btn-primary" data-inactive-confirm-accept>Confirm</button>
+        </div>
+    </section>
+</div>
+
 <script>
     (() => {
         const modalBackdrops = Array.from(document.querySelectorAll('[data-modal]'));
@@ -828,6 +898,14 @@
         const memberDetailsModal = document.querySelector('[data-modal="member-details"]');
         const memberImportModal = document.querySelector('[data-modal="member-import"]');
         const memberDeleteModal = document.querySelector('[data-modal="member-delete"]');
+        const inactiveConfirmModal = document.querySelector('[data-modal="member-inactive-confirm"]');
+        const inactiveConfirmText = document.querySelector('#member-inactive-confirm-text');
+        const inactiveConfirmCancel = document.querySelector('[data-inactive-confirm-cancel]');
+        const inactiveConfirmAccept = document.querySelector('[data-inactive-confirm-accept]');
+        const memberToast = document.querySelector('[data-member-toast]');
+        const pageKicker = document.querySelector('[data-member-page-kicker]');
+        const isArchivedView = {{ $archivedView ? 'true' : 'false' }};
+        const satelliteName = @json($satellite->display_name);
         const memberForm = document.querySelector('[data-member-form]');
         const methodInput = document.querySelector('[data-member-form-method]');
         const formTitle = document.querySelector('[data-member-form-title]');
@@ -843,6 +921,9 @@
         let activeDetailsEditData = null;
         let activeDetailsEditUrl = null;
         let fullNameTouched = false;
+        let currentEditMemberId = null;
+        let currentEditMemberName = '';
+        let currentEditInitialStatus = 'Active';
 
         const readJson = (value) => {
             try {
@@ -924,7 +1005,7 @@
         const updateLeaderFieldState = () => {
             if (!memberForm) return;
             const role = memberForm.elements.dgroup_role?.value;
-            const leader = memberForm.elements.dgroup_leader_name;
+            const leader = memberForm.elements.leader_member_id;
 
             if (!leader) return;
 
@@ -959,8 +1040,100 @@
             updateLeaderFieldState();
         };
 
+        const confirmInactive = (name) => new Promise((resolve) => {
+            if (!inactiveConfirmModal) {
+                resolve(window.confirm(`Mark ${name} as inactive? They will be moved to Archived and won't count toward the active members.`));
+                return;
+            }
+            if (inactiveConfirmText) {
+                inactiveConfirmText.textContent = `Mark ${name} as inactive? They will be moved to Archived and won't count toward the active members.`;
+            }
+
+            let resolved = false;
+            const cleanup = (answer) => {
+                if (resolved) return;
+                resolved = true;
+                inactiveConfirmCancel?.removeEventListener('click', onCancel);
+                inactiveConfirmAccept?.removeEventListener('click', onAccept);
+                closeModal(inactiveConfirmModal);
+                resolve(answer);
+            };
+            const onCancel = () => cleanup(false);
+            const onAccept = () => cleanup(true);
+
+            inactiveConfirmCancel?.addEventListener('click', onCancel);
+            inactiveConfirmAccept?.addEventListener('click', onAccept);
+            openModal(inactiveConfirmModal);
+        });
+
+        const showToast = (message) => {
+            if (!memberToast) return;
+            memberToast.textContent = message;
+            memberToast.hidden = false;
+            memberToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => {
+                memberToast.hidden = true;
+            }, 5000);
+        };
+
+        const updatePageCounts = (counts) => {
+            const remainingRows = document.querySelectorAll('tbody tr[data-member-row]').length;
+            if (pageKicker) {
+                if (isArchivedView) {
+                    pageKicker.textContent = `${remainingRows} of ${counts.archived} archived members - ${satelliteName} Satellite`;
+                } else {
+                    pageKicker.textContent = `${remainingRows} of ${counts.active} members - ${satelliteName} Satellite`;
+                }
+            }
+        };
+
+        const clearValidationErrors = () => {
+            const summary = memberForm?.querySelector('[data-validation-summary]');
+            if (summary) summary.remove();
+            memberForm?.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            memberForm?.querySelectorAll('.field-error').forEach((el) => el.remove());
+        };
+
+        const renderValidationErrors = (errors, fallbackMessage = 'Please check the highlighted member fields.') => {
+            clearValidationErrors();
+            const modalBody = memberForm?.querySelector('.modal-body');
+            if (!modalBody) return;
+            const summary = document.createElement('div');
+            summary.className = 'form-errors';
+            summary.setAttribute('role', 'alert');
+            summary.setAttribute('tabindex', '-1');
+            summary.dataset.validationSummary = 'true';
+
+            const messages = [];
+            Object.entries(errors || {}).forEach(([field, fieldErrors]) => {
+                const input = memberForm?.elements[field];
+                const errorText = Array.isArray(fieldErrors) ? fieldErrors[0] : fieldErrors;
+                if (input instanceof HTMLElement) {
+                    input.classList.add('is-invalid');
+                    const errorSpan = document.createElement('span');
+                    errorSpan.className = 'field-error';
+                    errorSpan.id = `member-${field}-error`;
+                    errorSpan.textContent = errorText;
+                    input.insertAdjacentElement('afterend', errorSpan);
+                }
+                (Array.isArray(fieldErrors) ? fieldErrors : [fieldErrors]).forEach((msg) => {
+                    messages.push(msg);
+                });
+            });
+
+            if (messages.length === 0 && fallbackMessage) {
+                messages.push(fallbackMessage);
+            }
+
+            summary.innerHTML = `${fallbackMessage}<ul>${messages.map((m) => `<li>${m}</li>`).join('')}</ul>`;
+            modalBody.insertBefore(summary, modalBody.firstChild);
+            modalBody.scrollTop = 0;
+            summary.focus();
+        };
+
         const openCreateForm = (trigger = null) => {
             resetMemberForm();
+            clearValidationErrors();
             openModal(memberFormModal, trigger);
         };
 
@@ -972,6 +1145,10 @@
             formTitle.textContent = 'Edit Member';
             formKicker.textContent = displayValue(data.full_name);
             formSubmit.textContent = 'Update Member';
+            currentEditMemberId = data.id || trigger?.closest('[data-member-row]')?.dataset.memberId || null;
+            currentEditMemberName = displayValue(data.full_name || data.display_name || data.name);
+            currentEditInitialStatus = data.status || 'Active';
+            clearValidationErrors();
             Object.entries(data).forEach(([name, value]) => setInputValue(name, value));
             fullNameTouched = true;
             updateLeaderFieldState();
@@ -1069,6 +1246,100 @@
 
         document.querySelectorAll('[data-auto-submit]').forEach((select) => {
             select.addEventListener('change', () => select.form?.submit());
+        });
+
+        memberForm?.addEventListener('submit', async (event) => {
+            if (methodInput.value === 'PATCH') {
+                event.preventDefault();
+                const newStatus = memberForm.elements.status?.value;
+
+                if (newStatus === 'Inactive' && currentEditInitialStatus !== 'Inactive') {
+                    const confirmed = await confirmInactive(currentEditMemberName);
+                    if (!confirmed) {
+                        setInputValue('status', currentEditInitialStatus);
+                        return;
+                    }
+                }
+
+                formSubmit.disabled = true;
+                const originalText = formSubmit.textContent;
+                formSubmit.textContent = formSubmit.dataset.loadingText || 'Saving...';
+                clearValidationErrors();
+
+                try {
+                    const formData = new FormData(memberForm);
+                    formData.set('_method', 'PATCH');
+                    if (isArchivedView) {
+                        formData.set('view', 'archived');
+                    }
+
+                    const response = await fetch(memberForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        closeModal(memberFormModal);
+
+                        if (result.archived) {
+                            const row = document.querySelector(`[data-member-row][data-member-id="${currentEditMemberId}"]`);
+                            if (row) {
+                                row.style.transition = 'opacity 300ms ease, transform 300ms ease';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateX(10px)';
+                                setTimeout(() => {
+                                    row.remove();
+                                    if (result.counts) {
+                                        updatePageCounts(result.counts);
+                                    }
+                                }, 300);
+                            } else if (result.counts) {
+                                updatePageCounts(result.counts);
+                            }
+                            showToast('Member archived');
+                        } else if (isArchivedView && newStatus !== 'Inactive') {
+                            const row = document.querySelector(`[data-member-row][data-member-id="${currentEditMemberId}"]`);
+                            if (row) {
+                                row.style.transition = 'opacity 300ms ease, transform 300ms ease';
+                                row.style.opacity = '0';
+                                setTimeout(() => {
+                                    row.remove();
+                                    if (result.counts) {
+                                        updatePageCounts(result.counts);
+                                    }
+                                }, 300);
+                            } else if (result.counts) {
+                                updatePageCounts(result.counts);
+                            }
+                            showToast('Member restored to the active list.');
+                        } else {
+                            window.location.reload();
+                        }
+                    } else if (response.status === 422) {
+                        const data = await response.json();
+                        renderValidationErrors(data.errors || {}, data.message || 'Please check the highlighted member fields.');
+                    } else if (response.status === 403) {
+                        renderValidationErrors({ permission: 'You do not have permission to update this member.' }, 'Permission denied.');
+                    } else {
+                        renderValidationErrors({ error: 'An unexpected server error occurred. Please try again.' }, 'Save failed.');
+                    }
+                } catch (error) {
+                    renderValidationErrors({ network: 'A network error occurred. Please try again.' }, 'Connection error.');
+                } finally {
+                    formSubmit.disabled = false;
+                    formSubmit.textContent = originalText;
+                }
+            } else {
+                formSubmit.disabled = true;
+                if (formSubmit.dataset.loadingText) {
+                    formSubmit.textContent = formSubmit.dataset.loadingText;
+                }
+            }
         });
 
         document.querySelectorAll('form[data-prevent-double-submit]').forEach((form) => {

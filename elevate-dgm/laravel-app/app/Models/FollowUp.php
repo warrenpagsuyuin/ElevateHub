@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 
 class FollowUp extends Model
 {
+    public const ORIGIN_LEADER_ASSIGNMENT = 'leader_assignment';
+
     public const STATUS_PENDING = 'Pending';
     public const STATUS_COMPLETED = 'Completed';
     public const STATUS_CANCELLED = 'Cancelled';
@@ -44,6 +46,8 @@ class FollowUp extends Model
         'seeker_id',
         'member_id',
         'satellite_id',
+        'leader_member_id',
+        'origin',
         'created_by_id',
         'follow_up_date',
         'method',
@@ -79,9 +83,14 @@ class FollowUp extends Model
         return $this->belongsTo(Member::class);
     }
 
+    public function leader(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'leader_member_id');
+    }
+
     public function satellite(): BelongsTo
     {
-        return $this->belongsTo(Satellite::class);
+        return $this->belongsTo(Satellite::class)->withoutGlobalScope('active');
     }
 
     public function creator(): BelongsTo

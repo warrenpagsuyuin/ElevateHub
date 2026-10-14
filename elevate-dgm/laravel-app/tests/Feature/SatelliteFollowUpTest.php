@@ -29,7 +29,46 @@ class SatelliteFollowUpTest extends TestCase
             ->get(route('satellites.follow-ups.index', $satellite))
             ->assertOk()
             ->assertSee('Follow-Up History')
-            ->assertSee('New Follow-Up');
+            ->assertSee('New Follow-Up')
+            ->assertDontSee('Actions')
+            ->assertDontSee('View only')
+            ->assertSee('colspan="6"', false);
+    }
+
+    public function test_assignment_follow_up_with_null_fields_renders_as_unanalyzed(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $satelliteUser = User::factory()->create(['role' => 'satellite']);
+        $satellite = Satellite::create([
+            'name' => 'Pasig', 'slug' => 'pasig',
+            'assigned_user_id' => $satelliteUser->id, 'created_by_id' => $admin->id,
+        ]);
+        $seeker = Seeker::create([
+            'name' => 'Pending Seeker', 'email' => 'pending@example.test',
+            'assigned_satellite_slug' => 'pasig', 'status' => 'Pending',
+        ]);
+        FollowUp::create([
+            'seeker_id' => $seeker->id,
+            'satellite_id' => $satellite->id,
+            'leader_member_id' => Member::create([
+                'satellite_id' => $satellite->id, 'name' => 'Pasig Leader',
+                'full_name' => 'Pasig Leader', 'dgroup_role' => Member::ROLE_LEADER,
+            ])->id,
+            'origin' => FollowUp::ORIGIN_LEADER_ASSIGNMENT,
+            'follow_up_date' => now()->toDateString(),
+            'method' => null,
+            'notes' => null,
+            'status' => FollowUp::STATUS_PENDING,
+        ]);
+
+        $this->actingAs($satelliteUser)
+            ->get(route('satellites.follow-ups.index', $satellite))
+            ->assertOk()
+            ->assertSee('Pending Seeker')
+            ->assertSee('Unanalyzed')
+            ->assertDontSee('% confidence')
+            ->assertDontSee('Why this sentiment?')
+            ->assertSee('—');
     }
 
     public function test_satellite_user_can_create_follow_up_for_seeker(): void

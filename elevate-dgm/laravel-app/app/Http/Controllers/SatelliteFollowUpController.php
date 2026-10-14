@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\FollowUp;
+use App\Models\Member;
 use App\Models\Satellite;
 use App\Models\Seeker;
-use App\Models\Member;
 use App\Models\User;
 use App\Services\SentimentAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -18,16 +19,16 @@ use Illuminate\View\View;
 class SatelliteFollowUpController extends Controller
 {
     private const PAGE_SIZE = 10;
+
     private const PAGE_SIZES = [10, 25, 50, 100];
+
     private const SORT_OPTIONS = [
         'date' => 'follow_up_date',
         'created' => 'created_at',
         'name' => 'followable_name',
     ];
 
-    public function __construct(private SentimentAnalysisService $sentimentService)
-    {
-    }
+    public function __construct(private SentimentAnalysisService $sentimentService) {}
 
     public function index(Request $request, Satellite $satellite): View
     {
@@ -62,7 +63,7 @@ class SatelliteFollowUpController extends Controller
             ->withQueryString();
 
         $sentimentSummary = $this->sentimentService->summarize(
-            FollowUp::where('satellite_id', $satellite->id)->get()
+            FollowUp::where('satellite_id', $satellite->id)->get(['sentiment_label'])
         );
 
         return view('satellites.follow-ups.index', [
@@ -88,6 +89,7 @@ class SatelliteFollowUpController extends Controller
 
         if ($seeker) {
             abort_unless($seeker->assigned_satellite_slug === $satellite->slug, 404);
+            abort_if($seeker->archived_at, 422, 'Restore this seeker before adding a follow-up.');
         }
 
         if ($member) {
@@ -117,18 +119,22 @@ class SatelliteFollowUpController extends Controller
             'status' => ['required', Rule::in(FollowUp::STATUSES)],
         ]);
 
-        [$seekerId, $memberId] = $this->resolveTarget($validated, $satellite);
+        $followUp = DB::transaction(function () use ($validated, $satellite, $user) {
+            [$seekerId, $memberId] = $this->resolveTarget($validated, $satellite);
 
-        $followUp = FollowUp::create([
-            'satellite_id' => $satellite->id,
-            'seeker_id' => $seekerId,
-            'member_id' => $memberId,
-            'created_by_id' => $user->id,
-            'follow_up_date' => $validated['follow_up_date'] ?? null,
-            'method' => $validated['method'],
-            'notes' => $validated['notes'] ?? null,
-            'status' => FollowUp::normalizeStatus($validated['status']),
-        ]);
+            $followUp = FollowUp::create([
+                'satellite_id' => $satellite->id,
+                'seeker_id' => $seekerId,
+                'member_id' => $memberId,
+                'created_by_id' => $user->id,
+                'follow_up_date' => $validated['follow_up_date'] ?? null,
+                'method' => $validated['method'],
+                'notes' => $validated['notes'] ?? null,
+                'status' => FollowUp::normalizeStatus($validated['status']),
+            ]);
+
+            return $followUp;
+        }, 3);
 
         $this->sentimentService->analyzeFollowUp($followUp);
 
@@ -220,7 +226,7 @@ class SatelliteFollowUpController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $validated
+     * @param  array<string, mixed>  $validated
      * @return array{0: int|null, 1: int|null}
      */
     private function resolveTarget(array $validated, Satellite $satellite): array
@@ -228,7 +234,7 @@ class SatelliteFollowUpController extends Controller
         $seekerId = $validated['seeker_id'] ?? null;
         $memberId = $validated['member_id'] ?? null;
 
-        if (!empty($validated['target'])) {
+        if (! empty($validated['target'])) {
             [$type, $id] = explode('-', (string) $validated['target'], 2);
 
             if ($type === 'seeker') {
@@ -247,7 +253,8 @@ class SatelliteFollowUpController extends Controller
         }
 
         if ($seekerId !== null) {
-            $seeker = Seeker::findOrFail($seekerId);
+            $seeker = Seeker::whereKey($seekerId)->lockForUpdate()->firstOrFail();
+            abort_if($seeker->archived_at, 422, 'Restore this seeker before adding a follow-up.');
             abort_unless($seeker->assigned_satellite_slug === $satellite->slug, 404);
         }
 

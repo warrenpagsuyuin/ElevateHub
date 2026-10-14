@@ -22,7 +22,7 @@ class AdminMemberController extends Controller
         $filters = $this->filters($request);
         [$sort, $direction] = $this->sort($request);
         $perPage = $this->perPage($request);
-        $allSatellites = Satellite::all();
+        $counts = Satellite::dashboardCounts();
         $satellites = $this->filteredSatellitesQuery($filters)
             ->orderBy(self::SORTS[$sort], $direction)
             ->orderBy('id')
@@ -36,10 +36,10 @@ class AdminMemberController extends Controller
             'direction' => $direction,
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
-            'totalMembers' => $allSatellites->sum('members_count'),
-            'totalSatellites' => $allSatellites->count(),
-            'totalLeaders' => $allSatellites->sum('leaders_count'),
-            'newMembers' => $allSatellites->sum('new_members_count'),
+            'totalMembers' => $counts['activeMembers'],
+            'totalSatellites' => $counts['totalSatellites'],
+            'totalLeaders' => $counts['activeLeaders'],
+            'newMembers' => $counts['newMembers'],
         ]);
     }
 

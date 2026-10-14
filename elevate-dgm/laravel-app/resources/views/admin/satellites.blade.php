@@ -9,6 +9,7 @@
         .new-button:hover { background: #c92f1b; }
         .new-button span { font-size: 22px; line-height: 0; }
         .notice { margin-bottom: 18px; border: 1px solid rgba(227, 60, 36, 0.18); border-radius: 10px; background: #fff; color: #111; padding: 12px 16px; font-weight: 700; }
+        .notice.error { color: #b42318; }
         .stats { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
         .card { border-radius: 14px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 105px; color: #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10); }
         .card.red { background: #e33c24; }
@@ -46,7 +47,15 @@
         @if (session('status'))
             <div class="notice">{{ session('status') }}</div>
         @endif
+        @if (session('error'))
+            <div class="notice error" role="alert">{{ session('error') }}</div>
+        @endif
 
+        <x-status-tabs :current="$archivedView ? 'archived' : 'active'" :tabs="[
+            ['key' => 'active', 'label' => 'Active', 'count' => $statusTabCounts['active'], 'url' => route('admin.satellites')],
+            ['key' => 'archived', 'label' => 'Archived', 'count' => $statusTabCounts['archived'], 'url' => route('admin.satellites', ['view' => 'archived'])],
+        ]" />
+        <div id="satellite-toast" class="notice" role="status" hidden></div>
         <div class="stats">
             <div class="card red"><div class="info"><span class="label">Total Satellites</span><span class="value">{{ $totalSatellites }}</span></div></div>
             <div class="card black"><div class="info"><span class="label">Active Leaders</span><span class="value">{{ $activeLeaders }}</span></div></div>
@@ -65,8 +74,12 @@
         @endphp
 
         <form method="GET" action="{{ route('admin.satellites') }}" class="data-table-toolbar" data-table-filter-form>
+            <input type="hidden" name="view" value="{{ $archivedView ? 'archived' : 'active' }}">
             <input type="hidden" name="sort" value="{{ $sort }}">
             <input type="hidden" name="direction" value="{{ $direction }}">
+            @if ($filters['satellite'] !== '')
+                <input type="hidden" name="satellite" value="{{ $filters['satellite'] }}">
+            @endif
             <div class="data-table-field search">
                 <label for="satellites-search">Search</label>
                 <div class="data-table-search">
@@ -92,13 +105,15 @@
                 </select>
             </div>
             <div class="data-table-actions">
+                @unless ($archivedView)
                 <a class="data-table-link-button" href="{{ route('admin.satellites.export', request()->query()) }}" aria-label="Export all {{ $satellites->total() }} matching satellites to CSV">Export CSV</a>
+                @endunless
                 <a class="data-table-link-button {{ $hasActiveFilters ? '' : 'disabled' }}" href="{{ route('admin.satellites') }}" aria-disabled="{{ $hasActiveFilters ? 'false' : 'true' }}" @unless($hasActiveFilters) tabindex="-1" @endunless>Clear</a>
             </div>
         </form>
 
         <section class="table-card">
-            <h2>Satellite Summary</h2>
+            <h2>{{ $archivedView ? 'Archived Satellites' : 'Satellite Summary' }}</h2>
             <div class="data-table-scroll">
             <table id="admin-satellites-table" data-enhanced-table data-table-id="admin-satellites">
                 <thead>
@@ -123,6 +138,7 @@
                         <tr>
                             <td>
                                 <span class="satellite-name">{{ $satellite->display_name }}</span>
+                                @if ($archivedView)<div>Archived on {{ $satellite->archived_at->timezone('Asia/Manila')->format('M d, Y H:i').' PHT' }}</div>@endif
                                 <div class="muted">{{ $satellite->assignedUsers->count() }} assigned {{ \Illuminate\Support\Str::plural('user', $satellite->assignedUsers->count()) }}</div>
                             </td>
                             <td>{{ $satellite->hub ?: 'Unassigned' }}</td>
@@ -132,10 +148,23 @@
                                 <div class="data-table-row-menu">
                                     <button type="button" class="data-table-menu-button" data-menu-button aria-haspopup="menu" aria-expanded="false" aria-label="Actions for {{ $satellite->display_name }}"><span aria-hidden="true">&#8942;</span></button>
                                     <div class="data-table-menu" role="menu">
+                                        @if ($archivedView)
+                                        <a href="{{ route('admin.satellites.archived-details', $satellite->slug) }}" role="menuitem">View details</a>
+                                        <form method="POST" action="{{ route('admin.satellites.restore', $satellite->slug) }}" data-satellite-action data-confirm-message="Restore {{ $satellite->display_name }}? Its pages and counts will return to the dashboard.">
+                                            @csrf
+                                            <button type="submit" role="menuitem">Restore</button>
+                                        </form>
+                                        @else
                                         <a href="{{ route('admin.members', ['search' => $satellite->display_name]) }}" role="menuitem">View members</a>
                                         <a href="{{ route('admin.seekers', ['district' => $satellite->display_name]) }}" role="menuitem">View seekers</a>
                                         <a href="{{ route('admin.users', ['district' => $satellite->display_name]) }}" role="menuitem">View assigned users</a>
                                         <a href="{{ route('admin.satellites.export', ['search' => $satellite->display_name]) }}" role="menuitem">Export satellite row</a>
+                                        <form method="POST" action="{{ route('admin.satellites.destroy', $satellite) }}" data-satellite-action data-confirm-message="Archive {{ $satellite->display_name }}? It will be hidden from the dashboard and its history will be kept. @if ($satellite->warning_members_count || $satellite->warning_seekers_count || $satellite->assignedUsers->count() || $satellite->assigned_user_id) This satellite still has {{ $satellite->warning_members_count }} members, {{ $satellite->warning_seekers_count }} seekers, and {{ $satellite->assignedUsers->pluck('id')->push($satellite->assigned_user_id)->filter()->unique()->count() }} assigned users. Their satellite access will be locked. @endif">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="danger" role="menuitem">Archive satellite</button>
+                                        </form>
+                                        @endif
                                     </div>
                                 </div>
                             </td>

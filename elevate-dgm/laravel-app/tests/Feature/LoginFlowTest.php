@@ -37,14 +37,17 @@ class LoginFlowTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_unknown_email_shows_requested_error(): void
+    public function test_unknown_email_gets_the_same_generic_response(): void
     {
+        Mail::fake();
+
         $this->from('/')
             ->post(route('login.email'), ['email' => 'missing@example.com'])
-            ->assertRedirect('/')
-            ->assertSessionHasErrors([
-                'email' => 'We could not find an account with that email.',
-            ]);
+            ->assertRedirect(route('login'))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', 'We sent a one-time password to your email.');
+
+        Mail::assertNothingSent();
     }
 
     public function test_admin_seeder_creates_the_default_admin_login(): void
@@ -204,24 +207,33 @@ class LoginFlowTest extends TestCase
 
     public function test_invalid_or_expired_otp_is_rejected(): void
     {
+        Mail::fake();
+        $member = User::factory()->create(['role' => 'member']);
+
+        $this->post(route('login.email'), ['email' => $member->email]);
+        $this->travel(301)->seconds();
+
+        $this->post(route('login.otp'), ['otp' => '123456'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['otp' => 'Code expired. Request a new code.']);
+
+        $this->assertGuest();
+    }
+
+    public function test_legacy_otp_session_without_a_challenge_restarts_at_email(): void
+    {
         $member = User::factory()->create([
             'role' => 'member',
             'otp_code' => Hash::make('123456'),
-            'otp_expires_at' => now()->subMinute(),
+            'otp_expires_at' => now()->addMinute(),
         ]);
 
-        $this->withSession([
-            'login.email' => $member->email,
-            'login.step' => 'otp',
-        ])->post(route('login.otp'), ['otp' => '123456'])
-            ->assertRedirect()
-            ->assertSessionHasErrors([
-                'otp' => 'The code is invalid or has expired.',
-            ]);
+        $this->withSession(['login.email' => $member->email, 'login.step' => 'otp'])
+            ->post(route('login.otp'), ['otp' => '123456'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
 
         $this->assertGuest();
-        $this->assertNull($member->refresh()->otp_code);
-        $this->assertNull($member->otp_expires_at);
     }
 
     public function test_roles_cannot_use_the_wrong_login_method(): void

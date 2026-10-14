@@ -36,6 +36,89 @@ class SentimentResearchTest extends TestCase
         return ['is_test_record'=>0,'review_independence'=>'Blinded','review_revision'=>1,'scope_status'=>'System Feedback','human_review_status'=>'Final','human_reference_sentiment'=>$label,'language_group'=>$language,'independent_attested'=>1,'quote_approved'=>1];
     }
 
+    public function test_workspace_shows_only_overview_and_review_tabs(): void
+    {
+        [$admin] = $this->setupResearch();
+        $this->actingAs($admin)->get(route('admin.analytics.sentiment'))->assertOk()
+            ->assertSee('Sentiment at a glance')->assertDontSee('Your next steps')
+            ->assertSee('distribution-panel', false)->assertSee('Distribution reflects eligible human references, not automated predictions.')
+            ->assertSee('quality-grid', false)->assertDontSee('review-progress', false)
+            ->assertSee('Human Feedback Review')->assertDontSee('Settings')
+            ->assertDontSee('Evaluation Results')->assertDontSee('Explore results')
+            ->assertDontSee('Approval evidence')->assertDontSee('Confusion Matrix');
+    }
+
+    public function test_settings_and_unknown_views_redirect_to_overview_without_changing_data(): void
+    {
+        [$admin, $service] = $this->setupResearch();
+        $unit = $this->unit($service);
+        $service->review($unit, $admin, $this->reviewData());
+        $service->predict($admin);
+        $before = $service->report();
+        $this->assertSame(1, $before['table19']['n']);
+        foreach (['settings', 'unknown', '', ['settings']] as $view) {
+            foreach (['admin.analytics.sentiment', 'admin.sentiment-research.review'] as $route) {
+                $this->actingAs($admin)->get(route($route, ['view' => $view]))
+                    ->assertRedirect(route('admin.analytics.sentiment'));
+            }
+        }
+        $this->get(route('admin.analytics.sentiment', ['view' => 'overview']))->assertOk();
+        $this->get(route('admin.sentiment-research.review'))->assertOk()
+            ->assertSee('Human Feedback Review')->assertDontSee('Settings');
+        $this->get(route('admin.sentiment-research.export'))->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $this->assertEquals($before, $service->report());
+        $this->assertDatabaseHas('sentiment_research_settings', ['period_start' => '2026-09-01', 'period_end' => '2026-09-30']);
+    }
+
+    public function test_missing_approved_period_keeps_safe_defaults_and_export_available(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $service = app(SentimentResearchService::class);
+        $unit = $this->unit($service);
+        $this->assertContains('Approved evaluation period missing', $service->eligibility()[$unit->id]['reasons']);
+        $this->assertNull($service->report()['table19']['accuracy']);
+        $this->actingAs($admin)->get(route('admin.analytics.sentiment'))->assertOk()->assertSee('UNTESTED');
+        $this->get(route('admin.sentiment-research.review'))->assertOk();
+        $this->get(route('admin.sentiment-research.export'))->assertOk();
+        $this->assertDatabaseCount('sentiment_research_settings', 0);
+    }
+
+    public function test_settings_only_save_endpoints_are_removed(): void
+    {
+        [$admin] = $this->setupResearch();
+        foreach (['period', 'apply-approved-review-set'] as $path) {
+            $this->actingAs($admin)->post('/admin/analytics/sentiment/research/'.$path)->assertNotFound();
+        }
+    }
+
+    public function test_legacy_sentiment_dataset_url_redirects_to_overview(): void
+    {
+        [$admin] = $this->setupResearch();
+
+        $this->actingAs($admin)
+            ->get('/admin/analytics/sentiment/research/dataset')
+            ->assertRedirect(route('admin.analytics.sentiment'));
+    }
+
+    public function test_feedback_cards_filter_search_and_status_without_revealing_unreviewed_predictions(): void
+    {
+        [$admin, $service] = $this->setupResearch();
+        $pending = $this->unit($service, 'A uniquely searchable pending response.');
+        $pending->update(['system_prediction'=>'Negative']);
+        $reviewed = $this->unit($service, 'A uniquely searchable completed response.');
+        $service->review($reviewed, $admin, $this->reviewData());
+        $this->actingAs($admin)->get(route('admin.sentiment-research.review', ['search'=>'uniquely', 'status'=>'pending']))
+            ->assertOk()->assertSee('A uniquely searchable pending response.')
+            ->assertDontSee('A uniquely searchable completed response.')
+            ->assertSee('Hidden until independent review');
+        $this->get(route('admin.sentiment-research.review', ['search'=>$reviewed->feedback_code, 'status'=>'reviewed']))
+            ->assertOk()->assertSee('A uniquely searchable completed response.')
+            ->assertDontSee('A uniquely searchable pending response.');
+        $this->get(route('admin.sentiment-research.review', ['search'=>'no-such-feedback']))
+            ->assertOk()->assertSee('No matching feedback');
+    }
+
     public function test_legacy_labels_consent_and_predictions_are_not_assumed_independent(): void
     {
         [$admin,$service]=$this->setupResearch();
@@ -69,7 +152,7 @@ class SentimentResearchTest extends TestCase
         $this->actingAs($admin)->patch($url,$this->reviewData())->assertRedirect();
         $this->assertSame('Positive',$unit->fresh()->human_reference_sentiment);
         $this->assertNull($unit->fresh()->system_prediction);
-        $this->actingAs($admin)->post(route('admin.sentiment-research.evaluate'))->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.sentiment-research.evaluate'))->assertRedirect(route('admin.analytics.sentiment'));
         $this->assertSame('Positive',$unit->fresh()->system_prediction);
         $this->assertSame(1,DB::table('sentiment_evaluation_runs')->count());
         $this->actingAs($admin)->patch($url,$this->reviewData())->assertSessionHasErrors('review');
@@ -154,7 +237,8 @@ class SentimentResearchTest extends TestCase
         [$admin,$service]=$this->setupResearch();
         $unit=$this->unit($service);
         $member=User::factory()->create(['role'=>'member']);
-        foreach (['review','dataset','export'] as $route) $this->actingAs($member)->get(route('admin.sentiment-research.'.$route))->assertForbidden();
+        foreach (['review','export'] as $route) $this->actingAs($member)->get(route('admin.sentiment-research.'.$route))->assertForbidden();
+        $this->actingAs($member)->get('/admin/analytics/sentiment/research/dataset')->assertForbidden();
         $this->actingAs($member)->get(route('admin.sentiment-research.show',$unit))->assertForbidden();
         $this->actingAs($member)->patch(route('admin.sentiment-research.save',$unit),$this->reviewData())->assertForbidden();
         $this->actingAs($member)->post(route('admin.sentiment-research.evaluate'))->assertForbidden();
@@ -278,24 +362,4 @@ class SentimentResearchTest extends TestCase
         $this->assertFalse($service->eligibility()[$child->id]['included']);
     }
 
-    public function test_approved_set_corrects_verified_f010_f011_consent_and_builds_the_ten_record_cohort(): void
-    {
-        [$admin,$service]=$this->setupResearch();
-        foreach (range(1,11) as $number) {
-            $feedback=Feedback::create(['evaluator_user_id'=>User::factory()->create(['role'=>'member'])->id,'message'=>"Approved system evaluation feedback $number",'research_consent_status'=>$number >= 10 ? 'Denied' : 'Granted','created_at'=>'2026-09-05 12:00:00']);
-            FeedbackAnalysisUnit::create(['feedback_id'=>$feedback->id,'source_key'=>"approved-set:$number",'feedback_code'=>sprintf('F%03d',$number),'feedback_text'=>"Approved system evaluation feedback $number",'text_hash'=>$service->hash("Approved system evaluation feedback $number")]);
-        }
-
-        $result=$service->applyApprovedReviewSet($admin,true,true,false);
-        $this->assertCount(11,$result['applied']);
-        foreach (['F010','F011'] as $code) {
-            $unit=FeedbackAnalysisUnit::where('feedback_code',$code)->firstOrFail();
-            $this->assertSame('Granted',$unit->feedback->research_consent_status);
-            $this->assertSame('System Feedback Form – respondent-submitted consent',$unit->feedback->research_consent_source);
-            $this->assertSame($admin->id,$unit->feedback->consent_corrected_by);
-            $this->assertTrue($unit->independent_attested);
-        }
-        $this->assertSame(10,$service->report()['counts']['included']);
-        $this->assertDatabaseHas('sentiment_research_audits',['event'=>'feedback.consent_metadata_corrected']);
-    }
 }

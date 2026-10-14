@@ -37,7 +37,7 @@ The application uses the `role` value on the user account and the user's distric
 | Administrator (`admin`) | Manage system-wide data, users, satellites, analytics, research review, and recommendation catalogue | Admin Dashboard, Satellites, Members, Seekers, Users, Reports, Analytics, Sentiment Analysis, Feedback | Admin pages are restricted by `role:admin`. The user form does not create another admin account. |
 | Satellite management user (`district`, `district_user`, `satellite`, `satellite_user`, `leader`, `staff`) | Manage records for the assigned satellite/district | Satellite Dashboard, Members, Seekers, Follow-Ups, Engagement, Recommendations, Feedback | Can only access the satellite whose slug matches the account's district assignment. Manage actions require one of the management roles listed above. |
 | Satellite view-only account or other authenticated role | View permitted pages and submit feedback | Access depends on the account's district and role | View-only users cannot create/update/delete satellite records, generate classifications, or assign recommendations. |
-| Volunteer/member/normal account | Use the general authenticated area and submit feedback | `/home` and Feedback; a satellite shell may appear if a district is assigned | No admin access. No satellite management unless the account also has an approved management role. |
+| Volunteer/member/normal account | Use the general authenticated area and submit feedback | `/home` and Feedback; a satellite shell may appear if a district is assigned | Volunteers with a district assignment may update members only within that satellite. No admin access or other satellite management unless the account also has an approved management role. |
 
 A user must have both an authenticated session and the correct role/district relationship. A failed authorization check returns an unauthorized page.
 
@@ -559,27 +559,25 @@ Open **My Feedback** to see:
 
 The administrator can view feedback counts, engine/version information, consent and inclusion warnings, eligible sentiment totals by language, and the research review list. The page provides:
 
-- **Import new stored feedback**;
-- **Predict / Evaluate reviewed feedback**;
-- **Export Sentiment Evaluation Data**; and
-- links to **Human Feedback Review** and **Evaluation Dataset**.
+- **Import new feedback** on Human Feedback Review;
+- **Export evaluation**; and
+- tabs for **Overview** and **Human Feedback Review**.
+
+Evaluation tables are available through **Export evaluation**; the legacy dataset URL redirects to the Sentiment Analytics Overview.
 
 Predictions do not replace human labels. The current system deliberately hides the system prediction from a reviewer until the independent human review is saved.
 
 ## 15. SENTIMENT RESEARCH REVIEW
 
 **Review route:** `/admin/analytics/sentiment/research/review`  
-**Dataset route:** `/admin/analytics/sentiment/research/dataset`
+**Legacy dataset URL:** `/admin/analytics/sentiment/research/dataset` (redirects to the Sentiment Analytics Overview)
+**Evaluation tables:** Use **Export evaluation** to download the workbook.
 
-### 15.1 Configure the approved evaluation period
-1. Open **Sentiment Analysis**.
-2. Enter Period Start and Period End in `YYYY-MM-DD` format.
-3. Enter the Approval Evidence/reason.
-4. Confirm the attestation that the dates are approved.
-5. Click **Save approved period**.
+### 15.1 Approved evaluation period
+The stored approved period remains in use. The Settings tab and period-editing form have been removed. Documented corrections require maintenance code using the audited `SentimentResearchService::configure` service. Without valid approval, records remain ineligible and metrics show UNTESTED; no dates are inferred.
 
 ### 15.2 Synchronize feedback
-Click **Import new stored feedback**. This imports existing feedback analysis units for eligibility review. It does not invent human labels.
+Click **Import new feedback**. This imports existing feedback analysis units for eligibility review. It does not invent human labels.
 
 ### 15.3 Review one analysis unit
 Open **Review** for a feedback unit and inspect:
@@ -610,9 +608,9 @@ Use **Create analysis units** only when the original response contains genuinely
 
 ### 15.5 Evaluate and export
 1. Complete the required eligibility and human review fields.
-2. Click **Predict / Evaluate reviewed feedback**.
+2. Ask the maintainer to run `php artisan sentiment:prepare-evaluation --predict --export` for eligible reviewed feedback.
 3. Review the tables for counts, language, reference labels, predictions, and evaluation metrics.
-4. Click **Export Sentiment Evaluation Data** to download the XLSX research export.
+4. Click **Export evaluation** to download the XLSX research export.
 
 ## 16. ENGAGEMENT RESEARCH REVIEW AND SYSTEM EVALUATION
 
@@ -667,7 +665,7 @@ The overview includes chart/report surfaces for MAIN, NCP, and ICP. The current 
 The Engagement Research **Evaluation Dataset** page provides tables, model metrics, confusion matrix, per-class performance, training/held-out split, and an XLSX export.
 
 ### Sentiment evaluation report
-The Sentiment Research **Evaluation Dataset** page provides consent/inclusion counts, language tables, human reference and system prediction evaluation, missing-data/exclusion details, and an XLSX export.
+The Sentiment Research Overview shows the eligible human-label distribution and evaluation snapshot. **Export evaluation** downloads the workbook containing the language distribution, feedback samples, confusion matrix, overall metrics, and language metrics. Human Feedback Review provides the review controls. Existing approved-period metadata remains in use; there is no Settings tab.
 
 ## 18. EXPORTING DATA
 
@@ -680,7 +678,7 @@ The Sentiment Research **Evaluation Dataset** page provides consent/inclusion co
 | Reports | **Export CSV** | CSV, currently no-report rows |
 | Recommendation Catalogue | **Export CSV** | CSV |
 | Engagement Research | **Export Engagement Evaluation Data** | XLSX |
-| Sentiment Research | **Export Sentiment Evaluation Data** | XLSX |
+| Sentiment Research | **Export evaluation** | XLSX |
 | Table 9 engagement distribution | **Print Table 9 / Save PDF** | Browser print/PDF |
 
 General export steps:
@@ -881,7 +879,7 @@ The current system does not expose a standard seeker-create form. Use the config
 | Review sentiment | Sentiment Analysis | **Human Feedback Review** |
 | Train CART evaluation | Engagement Research | **Train / Evaluate CART** |
 | Export engagement evaluation | Engagement Research | **Export Engagement Evaluation Data** |
-| Export sentiment evaluation | Sentiment Research | **Export Sentiment Evaluation Data** |
+| Export sentiment evaluation | Sentiment Research | **Export evaluation** |
 | Export table/data | Administrator tables | **Export CSV** or print/PDF |
 | Leave system | Sidebar | **Sign Out** |
 

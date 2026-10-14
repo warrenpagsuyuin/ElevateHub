@@ -1,46 +1,78 @@
 @extends('layouts.app')
-@section('title','System Feedback Sentiment Research')
+@section('title','Sentiment Analytics | Elevate DGM')
 @push('styles')
 @include('admin.engagement-research._styles')
-.check-green,.check-yellow,.check-red{display:inline-block;padding:3px 7px;border-radius:4px;font-weight:800;font-size:12px}.check-green{color:#166534;background:#dcfce7}.check-yellow{color:#92400e;background:#fef3c7}.check-red{color:#991b1b;background:#fee2e2}
+@include('admin.sentiment-research._styles')
 @endpush
 @section('content')
-<div class="research">
-<header class="research-head"><div><p>Admin / Analytics / Sentiment Analysis</p><h1>Sentiment Analytics</h1><p>System feedback only. Stored human references and fixed-engine evaluation.</p></div><a class="button primary" href="{{ route('admin.sentiment-research.export') }}">Export Sentiment Evaluation Data</a></header>
-<nav class="research-nav"><a href="{{ route('admin.sentiment-research.review') }}">Human Feedback Review</a><a href="{{ route('admin.sentiment-research.dataset') }}">Evaluation Dataset</a></nav>
-@if(session('status'))<div class="notice">{{ session('status') }}</div>@endif
-@if($errors->any())<div class="notice" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
-<div class="notice"><strong>Current sentiment engine is lexicon/rule-based.</strong><p>{{ $report['engine']['name'] }} · {{ $report['engine']['version'] }}</p><p>{{ $report['engine']['partition_method'] }}</p>@foreach($report['warnings'] as $warning)<p>{{ $warning }}</p>@endforeach</div>
-<section class="cards">@foreach($report['counts'] as $label=>$value)<article class="card"><span>{{ ucwords(str_replace('_',' ',$label)) }}</span><strong>{{ is_bool($value) ? ($value ? 'Yes' : 'No') : $value }}</strong></article>@endforeach
-@foreach(\App\Services\SentimentResearchMetrics::LABELS as $label)<article class="card"><span>Eligible {{ $label }}</span><strong>{{ array_sum(array_column($report['table11'],$label)) }}</strong></article>@endforeach
-@foreach($report['table11'] as $language=>$counts)<article class="card"><span>{{ $language }}</span><strong>{{ array_sum($counts) }}</strong></article>@endforeach</section>
-<section class="panel"><h2>Eligibility checklist</h2><p>Green items are complete. Yellow items need human review. Red items are excluded. Consent, scope, and non-test status may be inherited from the original System Evaluation Form when the source provenance proves it; language, human sentiment, and independence are never invented.</p><div class="table-wrap"><table><thead><tr><th>Code</th><th>Consent</th><th>System Feedback</th><th>Actual / Non-Test</th><th>Evaluation Period</th><th>Language</th><th>Human Sentiment</th><th>Independent Review</th><th>Eligible</th><th>Missing requirement</th></tr></thead><tbody>
-@foreach($report['eligibility_checklist'] as $audit)
+<p class="muted">Historical research includes feedback from archived satellites. Archive status does not change research eligibility or results.</p>
 @php
-	$reasons = $audit['reasons'] ?? [];
-	$has = fn (string $needle) => !collect($reasons)->contains(fn ($reason) => str_contains(strtolower($reason), strtolower($needle)));
-	$excluded = in_array('Research consent is not granted', $reasons, true) || ($audit['scope_status'] ?? '') === 'Split' && !empty($audit['child_unit_ids']);
-	$state = fn (bool $complete, bool $red = false) => $red ? 'check-red' : ($complete ? 'check-green' : 'check-yellow');
+    $labels = \App\Services\SentimentResearchMetrics::LABELS;
+    $distribution = collect($labels)->mapWithKeys(fn($label) => [$label => array_sum(array_column($report['table11'], $label))]);
+    $total = $distribution->sum();
+    $positive = $total ? $distribution['Positive'] / $total * 100 : 0;
+    $neutral = $total ? $distribution['Neutral'] / $total * 100 : 0;
+    $metric = fn($value) => $value === null ? '—' : number_format($value * 100, 1).'%';
 @endphp
-<tr><td>{{ $audit['feedback_code'] }}</td>
-<td><span class="{{ $state(($audit['effective_consent'] ?? $audit['consent_status'] ?? null) === 'Granted', ($audit['effective_consent'] ?? $audit['consent_status'] ?? null) === 'Denied') }}">{{ $audit['effective_consent'] ?? $audit['consent_status'] ?? 'Needs review' }}</span></td>
-<td><span class="{{ $state(($audit['scope_status'] ?? null) === 'System Feedback' && empty($audit['is_split_parent']), !empty($audit['is_split_parent'])) }}">{{ !empty($audit['is_split_parent']) ? 'Excluded parent' : (($audit['scope_status'] ?? null) === 'System Feedback' ? 'Complete' : 'Needs review') }}</span></td>
-<td><span class="{{ $state(($audit['is_test_record'] ?? null) === false, ($audit['is_test_record'] ?? null) === true) }}">{{ ($audit['is_test_record'] ?? null) === false ? 'Actual' : (($audit['is_test_record'] ?? null) === true ? 'Test / Excluded' : 'Needs review') }}</span></td>
-<td><span class="{{ $state(!in_array('Documented approved evaluation period is missing', $reasons, true)) }}">{{ in_array('Documented approved evaluation period is missing', $reasons, true) ? 'Needs review' : 'Complete' }}</span></td>
-<td><span class="{{ $state(($audit['language_review_status'] ?? null) === 'Final' && !empty($audit['language_group'])) }}">{{ ($audit['language_review_status'] ?? null) === 'Final' ? $audit['language_group'] : 'Needs review' }}</span></td>
-<td><span class="{{ $state(($audit['human_review_status'] ?? null) === 'Final' && !empty($audit['human_reference_sentiment'])) }}">{{ ($audit['human_review_status'] ?? null) === 'Final' ? $audit['human_reference_sentiment'] : 'Needs review' }}</span></td>
-<td><span class="{{ $state(($audit['independent_attested'] ?? false) === true && in_array($audit['review_independence'] ?? null, ['Blinded', 'Blinded Re-Review'], true)) }}">{{ ($audit['independent_attested'] ?? false) ? ($audit['review_independence'] ?? 'Attested') : 'Needs review' }}</span></td>
-<td><strong class="{{ ($audit['included'] ?? false) ? 'check-green' : 'check-yellow' }}">{{ ($audit['included'] ?? false) ? 'YES' : 'NO' }}</strong></td>
-<td>{{ $reasons ? implode('; ', $reasons) : 'Ready for prediction/evaluation' }}</td></tr>
-@endforeach
-</tbody></table></div></section>
-<section class="panel"><h2>Approved evaluation period</h2><p>Record the actual approved dates and their basis. Existing submission dates do not establish approval.</p><p>Current approver: {{ $report['period']['approved_by'] ?? 'Not recorded' }} · Approved at: {{ $report['period']['approved_at'] ?? 'Not recorded' }}</p><form method="POST" action="{{ route('admin.sentiment-research.period') }}">@csrf<div class="filters"><label>Start<input type="date" name="period_start" value="{{ $report['period']['period_start'] ?? '' }}" required></label><label>End<input type="date" name="period_end" value="{{ $report['period']['period_end'] ?? '' }}" required></label></div><label>Approval evidence<textarea name="approval_reason" required>{{ $report['period']['approval_reason'] ?? '' }}</textarea></label><p><label><input type="checkbox" name="attested" value="1" required> These dates are approved for system evaluation.</label></p><button type="submit">Approve Evaluation Period</button></form></section>
-<section class="panel"><div class="research-actions"><form method="POST" action="{{ route('admin.sentiment-research.sync') }}">@csrf<button>Import new stored feedback</button></form><form method="POST" action="{{ route('admin.sentiment-research.evaluate') }}">@csrf<button class="primary">Predict / Evaluate reviewed feedback</button></form></div><p>Import preserves original feedback and never generates human labels. Missing or failed predictions prevent a completed evaluation run.</p></section>
-<section class="panel"><h2>Approved Human Review Set</h2><p>This action applies the researcher-approved review metadata for F001-F011 and corrects F010/F011 from incorrectly stored Denied consent to their verified original Granted decision. Existing automated predictions are retained.</p><form method="POST" action="{{ route('admin.sentiment-research.apply-approved-review-set') }}" onsubmit="return confirm('Apply the approved human review set and the verified F010/F011 consent metadata correction? Existing automated predictions will not be changed.');">@csrf<p><label><input type="checkbox" name="consent_correction_attested" value="1" required> I confirm that the documented respondent-submitted consent evidence for F010 and F011 was verified.</label></p><p><label><input type="checkbox" name="independent_attested" value="1"> I confirm that these human-reference decisions were finalized independently of the automated system prediction.</label></p><p><label><input type="checkbox" name="re_review_f001_f002" value="1"> Re-review F001 and F002. This records the current admin and time while preserving prior provenance.</label></p><p><label><input type="checkbox" name="confirm_apply" value="1" required> I have reviewed the effect of this action.</label></p><button class="primary" type="submit">Confirm and Apply</button></form><p>Without the independence attestation, values are saved but records that require it remain ineligible. F001 and F002 preserve their existing reference label and review date unless re-review is selected.</p></section>
-<section class="panel"><h2>Human Feedback Review</h2><p>Initial reviews hide system predictions. Existing attributed human labels are official references. Blinding is reported separately.</p><div class="table-wrap"><table><thead><tr><th>Code</th><th>Original feedback</th><th>Consent</th><th>Scope</th><th>Language</th><th>Human Reference Label</th><th>Review status</th><th>Reviewer / date</th><th>System prediction</th><th>Inclusion</th><th>Action</th></tr></thead><tbody>
-@foreach($units as $unit)<tr><td>{{ $unit->feedback_code }}</td><td>{{ \Illuminate\Support\Str::limit($unit->feedback_text,180) }}</td><td>{{ $unit->feedback->research_consent_status }}</td><td>{{ $unit->scope_status }}{{ $unit->is_test_record === null ? '' : ($unit->is_test_record ? ' / Test' : ' / Actual') }}</td><td>{{ $unit->language_group ?? 'Unreviewed' }}</td><td>{{ $unit->human_reference_sentiment ?? 'Unlabeled' }}</td><td>{{ $unit->human_review_status }}{{ $unit->review_independence ? ' / '.$unit->review_independence : '' }}</td><td>{{ $unit->reference_source ?? 'Not stored' }} / {{ $unit->human_reviewed_by ?? 'Not stored' }} / {{ $unit->human_reviewed_at ?? 'Not stored' }}</td><td>{{ $service->finalHuman($unit) ? ($unit->system_prediction ?? 'Not predicted') : 'Hidden until independent review' }}</td><td>{{ $unit->is_included ? 'Eligible' : 'Excluded / Pending' }}</td><td><a href="{{ route('admin.sentiment-research.show',$unit) }}">Review</a></td></tr>@endforeach
-</tbody></table></div><nav class="research-actions">@if($units->previousPageUrl())<a class="button" href="{{ $units->previousPageUrl() }}">Previous</a>@endif<span>Page {{ $units->currentPage() }} of {{ $units->lastPage() }}</span>@if($units->nextPageUrl())<a class="button" href="{{ $units->nextPageUrl() }}">Next</a>@endif</nav></section>
-@include('admin.sentiment-research.tables',['report'=>$report])
-<section class="panel"><h2>Missing data / exclusions</h2>@foreach($report['missing_data'] as $row)<p><strong>{{ $row['feedback_code'] }}</strong>: {{ implode('; ',$row['reasons']) }}</p>@endforeach<p>Excluded units remain stored. Consent is never inferred from submission. English, Filipino and Filipino-English grouping must be reviewed by a human.</p></section>
+<div class="research sentiment-workspace">
+    <header class="research-head">
+        <div><a class="sentiment-back" href="{{ route('admin.analytics') }}">Analytics / Sentiment</a><h1>Sentiment Analytics</h1><p class="subtitle">Understand feedback. Review with confidence. Turn responses into insight.</p></div>
+        <a class="button" href="{{ route('admin.sentiment-research.export') }}">Export evaluation <span aria-hidden="true">↗</span></a>
+    </header>
+    <nav class="sentiment-tabs" aria-label="Sentiment workspace">
+        @foreach(['overview'=>['Overview',route('admin.analytics.sentiment')], 'review'=>['Human Feedback Review',route('admin.sentiment-research.review')]] as $key=>$tab)
+            <a href="{{ $tab[1] }}" @if($section === $key) aria-current="page" @endif>{{ $tab[0] }}</a>
+        @endforeach
+    </nav>
+    @if(session('status'))<div class="notice success" role="status">{{ session('status') }}</div>@endif
+    @if($errors->any())<div class="notice" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
+
+    @if($section === 'overview')
+    <section class="panel distribution-panel"><div class="section-heading distribution-heading"><div><h2>Sentiment at a glance</h2><p>Human Reference Label · eligible feedback</p></div><span class="soft-badge">{{ $total }} labeled</span></div>
+            <div class="distribution-body">
+                <div class="sentiment-donut" style="--positive:{{ $positive }}%;--neutral:{{ $positive + $neutral }}%;{{ !$total ? 'background:#e9edf2;' : '' }}" role="img" aria-label="Human sentiment distribution: {{ $distribution['Positive'] }} positive, {{ $distribution['Neutral'] }} neutral, {{ $distribution['Negative'] }} negative">
+                    <div><strong>{{ $total }}</strong><span>eligible labels</span></div>
+                </div>
+                <div class="sentiment-legend">@foreach($distribution as $label=>$value)<div><span><i class="sentiment-dot {{ strtolower($label) }}"></i>{{ $label }}</span><strong>{{ $value }} <small>{{ $total ? round($value / $total * 100) : 0 }}%</small></strong></div>@endforeach</div>
+            </div>
+            <p class="muted distribution-footnote">Distribution reflects eligible human references, not automated predictions.</p>
+    </section>
+    <section class="panel evaluation-snapshot"><div class="section-heading quality-heading"><div><h2>Evaluation snapshot</h2><p>Quality against eligible human references · {{ $report['table19']['n'] }} observations</p></div></div>
+        <div class="quality-grid">@foreach(['Accuracy'=>$report['table19']['accuracy'],'Precision'=>$report['table19']['macro']['precision'],'Recall'=>$report['table19']['macro']['recall'],'F1 Score'=>$report['table19']['macro']['f1']] as $label=>$value)<div><span>{{ $label }}</span><strong>{{ $metric($value) }}</strong></div>@endforeach</div>
+        @if(!$report['table19']['n'])<p class="muted">UNTESTED · No eligible observations with current predictions yet.</p>@endif
+    </section>
+    @endif
+
+    @if($section === 'review')
+    <div class="section-heading workspace-heading"><div><h2>Human Feedback Review</h2><p>Read the response, check eligibility, and record an independent reference.</p></div><form method="POST" action="{{ route('admin.sentiment-research.sync') }}">@csrf<button type="submit">Import new feedback</button></form></div>
+    <form class="feedback-filters" method="GET" action="{{ route('admin.sentiment-research.review') }}"><label>Search feedback<input type="search" name="search" value="{{ $search }}" placeholder="Search by code or feedback text"></label><label>Review status<select name="status"><option value="">All statuses</option><option value="pending" @selected($status === 'pending')>Needs review</option><option value="reviewed" @selected($status === 'reviewed')>Reviewed</option></select></label><button type="submit" class="primary">Filter feedback</button><a href="{{ route('admin.sentiment-research.review') }}">Reset</a></form>
+    <p class="muted">{{ $units->total() }} matching feedback units · Predictions stay hidden until the human reference is finalized.</p>
+    <div class="feedback-cards">
+    @forelse($units as $unit)
+        <article class="panel feedback-card"><div class="section-heading"><strong class="feedback-code">{{ $unit->feedback_code }}</strong>@if ($unit->feedback?->archived_satellite)<span class="soft-badge">{{ $unit->feedback->archived_satellite->display_name }} (archived)</span>@endif<span class="soft-badge">{{ $unit->human_review_status ?? 'Needs review' }}</span></div><p class="feedback-excerpt">{{ \Illuminate\Support\Str::limit($unit->feedback_text,320) }}</p><dl class="feedback-meta"><div><dt>Language</dt><dd>{{ $unit->language_group ?? 'Unreviewed' }}</dd></div><div><dt>Human Reference Label</dt><dd>{{ $unit->human_reference_sentiment ?? 'Unlabeled' }}</dd></div><div><dt>System prediction</dt><dd>{{ $service->finalHuman($unit) ? ($unit->system_prediction ?? 'Not predicted') : 'Hidden until independent review' }}</dd></div></dl><div class="feedback-footer"><span class="muted">{{ $unit->reviewer?->name ?? 'No reviewer assigned' }}</span><a class="button" href="{{ route('admin.sentiment-research.show',$unit) }}">Open review →</a></div></article>
+    @empty
+        <div class="panel empty-state"><h2>{{ $search || $status ? 'No matching feedback' : 'Your review queue is empty' }}</h2><p>{{ $search || $status ? 'Try a different search or reset the filters.' : 'Import stored feedback to start reviewing responses.' }}</p></div>
+    @endforelse
+    </div>
+    <nav class="research-actions" aria-label="Feedback pages">@if($units->previousPageUrl())<a class="button" href="{{ $units->previousPageUrl() }}">Previous</a>@endif<span>Page {{ $units->currentPage() }} of {{ $units->lastPage() }}</span>@if($units->nextPageUrl())<a class="button" href="{{ $units->nextPageUrl() }}">Next</a>@endif</nav>
+    <details class="panel"><summary>Eligibility checklist and missing requirements</summary>@include('admin.sentiment-research._eligibility')</details>
+    @endif
+
+    <details class="panel engine-details"><summary>Engine information & evaluation notes <span class="soft-badge">{{ count($report['warnings']) }} notes</span></summary><p><strong>Current sentiment engine is lexicon/rule-based.</strong> {{ $report['engine']['name'] }} · {{ $report['engine']['version'] }}</p><p>{{ $report['engine']['partition_method'] }}</p>@foreach($report['warnings'] as $warning)<p class="muted">{{ $warning }}</p>@endforeach</details>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+    const tabs = document.querySelector('.sentiment-tabs');
+    const activeTab = tabs?.querySelector('[aria-current="page"]');
+    if (!tabs || !activeTab) return;
+
+    const tabBounds = activeTab.getBoundingClientRect();
+    const tabsBounds = tabs.getBoundingClientRect();
+    if (tabBounds.left < tabsBounds.left) tabs.scrollLeft -= tabsBounds.left - tabBounds.left;
+    if (tabBounds.right > tabsBounds.right) tabs.scrollLeft += tabBounds.right - tabsBounds.right;
+})();
+</script>
+@endpush

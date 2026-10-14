@@ -12,7 +12,9 @@ class Seeker extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'Pending';
+
     public const STATUS_SUCCESSFUL = 'Successful';
+
     public const STATUS_UNSUCCESSFUL = 'Unsuccessful';
 
     public const STATUSES = [
@@ -46,7 +48,10 @@ class Seeker extends Model
         'assigned_satellite_slug',
         'dgroup_leader_name',
         'converted_member_id',
+        'converted_at',
         'archived_at',
+        'archived_by',
+        'archive_reason',
         'status',
     ];
 
@@ -56,14 +61,25 @@ class Seeker extends Model
             'birthdate' => 'date',
             'refresh_date' => 'date',
             'archived_at' => 'datetime',
+            'converted_at' => 'datetime',
             'age' => 'integer',
             'year' => 'integer',
         ];
     }
 
+    public function archivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function latestArchiveLog()
+    {
+        return $this->hasOne(SeekerArchiveLog::class)->latestOfMany();
+    }
+
     public function satellite(): BelongsTo
     {
-        return $this->belongsTo(Satellite::class, 'assigned_satellite_slug', 'slug');
+        return $this->belongsTo(Satellite::class, 'assigned_satellite_slug', 'slug')->withoutGlobalScope('active');
     }
 
     public function followUps()

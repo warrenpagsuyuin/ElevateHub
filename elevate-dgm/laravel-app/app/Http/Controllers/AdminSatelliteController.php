@@ -9,12 +9,15 @@ use App\Models\Satellite;
 use App\Models\Seeker;
 use App\Models\User;
 use App\Services\EngagementClassificationService;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -24,8 +27,11 @@ use RuntimeException;
 class AdminSatelliteController extends Controller
 {
     private const HUBS = ['NCP', 'ICP', 'MAIN'];
+
     private const TABLE_PAGE_SIZE = 10;
+
     private const PAGE_SIZES = [10, 25, 50, 100];
+
     private const DASHBOARD_MONTHS = [
         'January',
         'February',
@@ -40,6 +46,7 @@ class AdminSatelliteController extends Controller
         'November',
         'December',
     ];
+
     private const SORTS = [
         'created' => 'created_at',
         'name' => 'name',
@@ -47,12 +54,15 @@ class AdminSatelliteController extends Controller
         'leaders' => 'leaders_count',
         'members' => 'members_count',
     ];
+
     private const MEMBER_SORTS = [
         'name' => 'full_name',
         'status' => 'status',
         'role' => 'dgroup_role',
         'school' => 'campus_school',
+        'archived_at' => 'archived_at',
     ];
+
     private const MEMBER_IMPORT_HEADERS = [
         'Status',
         'Dgroup Role',
@@ -84,8 +94,12 @@ class AdminSatelliteController extends Controller
         $filters = $this->filters($request);
         [$sort, $direction] = $this->sort($request);
         $perPage = $this->perPage($request);
-        $allSatellites = Satellite::all();
-        $satellites = $this->filteredSatellitesQuery($filters)
+        $counts = Satellite::dashboardCounts();
+        $tabCounts = Satellite::withoutGlobalScope('active')
+            ->selectRaw('SUM(CASE WHEN archived_at IS NULL THEN 1 ELSE 0 END) as active_count')
+            ->selectRaw('SUM(CASE WHEN archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived_count')
+            ->first();
+        $satellites = $this->filteredSatellitesQuery($filters, $request->query('view') === 'archived')
             ->orderBy(self::SORTS[$sort], $direction)
             ->orderBy('id')
             ->paginate($perPage)
@@ -95,6 +109,11 @@ class AdminSatelliteController extends Controller
             ->get();
 
         return view('admin.satellites', [
+            'archivedView' => $request->query('view') === 'archived',
+            'statusTabCounts' => [
+                'active' => (int) ($tabCounts->active_count ?? 0),
+                'archived' => (int) ($tabCounts->archived_count ?? 0),
+            ],
             'satellites' => $satellites,
             'hubs' => self::HUBS,
             'assignableUsers' => $assignableUsers,
@@ -103,10 +122,10 @@ class AdminSatelliteController extends Controller
             'direction' => $direction,
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
-            'totalSatellites' => $allSatellites->count(),
-            'activeLeaders' => $allSatellites->sum('leaders_count'),
-            'activeMembers' => $allSatellites->sum('members_count'),
-            'openReports' => 12,
+            'totalSatellites' => $counts['totalSatellites'],
+            'activeLeaders' => $counts['activeLeaders'],
+            'activeMembers' => $counts['activeMembers'],
+            'openReports' => $counts['openReports'],
         ]);
     }
 
@@ -133,6 +152,31 @@ class AdminSatelliteController extends Controller
         return redirect()
             ->route('admin.satellites')
             ->with('status', "{$satellite->name} satellite page created.");
+    }
+
+    public function destroy(Request $request, Satellite $satellite): RedirectResponse|JsonResponse
+    {
+        \Illuminate\Support\Facades\Gate::authorize('archive', $satellite);
+        $satellite->archive($request->user());
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Satellite archived', 'restore_url' => route('admin.satellites.restore', $satellite->slug)])
+            : redirect()->route('admin.satellites')->with('status', 'Satellite archived');
+    }
+
+    public function restore(Request $request, string $archivedSatellite): RedirectResponse|JsonResponse
+    {
+        $satellite = Satellite::archived()->where('slug', $archivedSatellite)->firstOrFail();
+        \Illuminate\Support\Facades\Gate::authorize('restore', $satellite);
+        $satellite->restore();
+        return $request->expectsJson() ? response()->json(['message' => 'Satellite restored'])
+            : redirect()->route('admin.satellites')->with('status', 'Satellite restored');
+    }
+
+    public function archivedDetails(string $archivedSatellite): View
+    {
+        $satellite = Satellite::archived()->where('slug', $archivedSatellite)->firstOrFail();
+        \Illuminate\Support\Facades\Gate::authorize('restore', $satellite);
+        return view('admin.satellite-archive-details', ['satellite' => $satellite]);
     }
 
     public function export(Request $request)
@@ -165,16 +209,43 @@ class AdminSatelliteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    public function exportMembers(Satellite $satellite)
+    {
+        $members = $satellite->members()->orderBy('id');
+        $filename = $satellite->slug.'-members-'.now()->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($members): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Member', 'Dgroup Role', 'Status', 'Gender', 'Email', 'Contact Number', 'Campus/School', 'District', 'Area']);
+
+            $members->chunk(500, function ($rows) use ($handle): void {
+                foreach ($rows as $member) {
+                    fputcsv($handle, [
+                        $member->display_name,
+                        $member->display_role,
+                        $member->status,
+                        $member->gender,
+                        $member->display_email,
+                        $member->display_contact,
+                        $member->campus_school,
+                        $member->district,
+                        $member->area,
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
     public function dashboard(Satellite $satellite): View
     {
         $user = Auth::user();
 
         abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
-        $satellite->load('assignedUsers');
 
         return view('satellites.dashboard', [
             'satellite' => $satellite,
-            'satelliteUsers' => $satellite->assignedUsers,
             'canManageSatellite' => $user->canManageSatellite($satellite),
             'dashboardMonths' => self::DASHBOARD_MONTHS,
             'selectedDashboardMonth' => now()->format('F'),
@@ -189,26 +260,34 @@ class AdminSatelliteController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canViewSatelliteMembers($satellite), 403);
 
         $satellite->load('assignedUsers');
         $filters = $this->memberFilters($request);
+        $archivedView = $filters['view'] === 'archived';
         [$sort, $direction] = $this->memberSort($request);
         $perPage = $this->perPage($request);
-        $allMembersQuery = $satellite->members();
-        $members = $this->filteredSatelliteMembersQuery($satellite, $filters)
-            ->with('engagementResult')
+        $allMembersQuery = $archivedView ? $satellite->archivedMembers() : $satellite->members();
+        $memberTabCounts = $satellite->allMembers()
+            ->selectRaw('SUM(CASE WHEN members.archived_at IS NULL AND (members.status IS NULL OR members.status != ?) THEN 1 ELSE 0 END) as active_count', [Member::STATUS_INACTIVE])
+            ->selectRaw('SUM(CASE WHEN members.archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived_count')
+            ->first();
+        $members = $this->filteredSatelliteMembersQuery($satellite, $filters, $archivedView)
+            ->with(['engagementResult', 'leader'])
             ->orderBy(self::MEMBER_SORTS[$sort], $direction)
             ->orderBy('id')
             ->paginate($perPage)
             ->withQueryString();
-        $filterOptions = $this->memberFilterOptions($satellite);
+        $filterOptions = $this->memberFilterOptions($satellite, $archivedView);
         $leaderOptions = $satellite->members()
-            ->where('status', Member::STATUS_ACTIVE)
             ->where('dgroup_role', Member::ROLE_LEADER)
             ->orderBy('full_name')
-            ->pluck('full_name')
-            ->filter()
+            ->get(['id', 'full_name', 'name']);
+        $archivedLeaderNames = $satellite->archivedMembers()
+            ->where('dgroup_role', Member::ROLE_LEADER)
+            ->get()
+            ->flatMap(fn (Member $leader): array => [$leader->display_name, $leader->name])
+            ->unique()
             ->values()
             ->all();
 
@@ -217,6 +296,9 @@ class AdminSatelliteController extends Controller
             'members' => $members,
             'membersShown' => $members->total(),
             'membersTotal' => (clone $allMembersQuery)->count(),
+            'activeMembersTotal' => (int) ($memberTabCounts->active_count ?? 0),
+            'archivedMembersTotal' => (int) ($memberTabCounts->archived_count ?? 0),
+            'archivedView' => $archivedView,
             'filters' => $filters,
             'sort' => $sort,
             'direction' => $direction,
@@ -226,10 +308,12 @@ class AdminSatelliteController extends Controller
             'dgroupRoles' => Member::DGROUP_ROLES,
             'genders' => Member::GENDERS,
             'leaderOptions' => $leaderOptions,
+            'archivedLeaderNames' => $archivedLeaderNames,
             'filterOptions' => $filterOptions,
             'hasActiveFilters' => $this->hasActiveMemberFilters($filters),
             'importPreview' => session('memberImportPreview'),
             'canManageSatellite' => $user->canManageSatellite($satellite),
+            'canUpdateMembers' => $user->canUpdateSatelliteMembers($satellite),
         ]);
     }
 
@@ -238,23 +322,74 @@ class AdminSatelliteController extends Controller
         $this->authorizeSatelliteMemberManagement($satellite);
 
         $member = Member::create($this->validatedMemberPayload($request, $satellite));
-        $this->refreshSatelliteMemberCounts($satellite);
-
         return redirect()
             ->route('satellites.members', $satellite)
             ->with('status', "{$member->display_name} was added successfully.");
     }
 
-    public function updateMember(Request $request, Satellite $satellite, Member $member): RedirectResponse
+    public function updateMember(Request $request, Satellite $satellite, Member $member): RedirectResponse|JsonResponse
     {
-        $this->authorizeSatelliteMemberManagement($satellite, $member);
+        $this->authorizeSatelliteMemberUpdate($satellite, $member);
 
         $member->update($this->validatedMemberPayload($request, $satellite, $member));
-        $this->refreshSatelliteMemberCounts($satellite);
+        $member->refresh();
+        $archived = $member->archived_at !== null;
+        $message = $archived
+            ? 'Member archived.'
+            : ($request->input('view') === 'archived' ? 'Member restored to the active list.' : "{$member->display_name} was updated successfully.");
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'archived' => $archived,
+                'counts' => [
+                    'active' => $satellite->members()->count(),
+                    'archived' => $satellite->archivedMembers()->count(),
+                ],
+                'member' => $member->formPayload(),
+            ]);
+        }
+
+        return redirect()
+            ->route('satellites.members', $archived ? [$satellite, 'view' => 'archived'] : $satellite)
+            ->with('status', $message);
+    }
+
+    public function showMember(Request $request, Satellite $satellite, Member $member): RedirectResponse|JsonResponse
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User && $user->canViewSatelliteMembers($satellite), 403);
+        abort_unless((int) $member->satellite_id === (int) $satellite->id, 404);
+
+        if ($member->archived_at !== null && $request->query('view') !== 'archived') {
+            abort(404);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'member' => $member->detailPayload(),
+                'form' => $member->formPayload(),
+                'archived' => $member->archived_at !== null,
+            ]);
+        }
+
+        return redirect()->route('satellites.members', array_filter([
+            'satellite' => $satellite,
+            'view' => $member->archived_at !== null ? 'archived' : null,
+            'search' => $member->display_name,
+        ]));
+    }
+
+    public function restoreMember(Satellite $satellite, Member $member): RedirectResponse
+    {
+        $this->authorizeSatelliteMemberUpdate($satellite, $member);
+        abort_unless($member->archived_at !== null, 404);
+
+        $member->update(['status' => Member::STATUS_ACTIVE]);
 
         return redirect()
             ->route('satellites.members', $satellite)
-            ->with('status', "{$member->display_name} was updated successfully.");
+            ->with('status', "{$member->display_name} restored to the active list.");
     }
 
     public function destroyMember(Satellite $satellite, Member $member): RedirectResponse
@@ -263,7 +398,6 @@ class AdminSatelliteController extends Controller
 
         $name = $member->display_name;
         $member->delete();
-        $this->refreshSatelliteMemberCounts($satellite);
 
         return redirect()
             ->route('satellites.members', $satellite)
@@ -334,6 +468,7 @@ class AdminSatelliteController extends Controller
             foreach ($rows as $row) {
                 if ($this->memberDuplicateExists($satellite, $row)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -343,8 +478,6 @@ class AdminSatelliteController extends Controller
         });
 
         session()->forget($this->memberImportSessionKey($satellite));
-        $this->refreshSatelliteMemberCounts($satellite);
-
         $message = $skipped > 0
             ? "{$imported} imported, {$skipped} skipped."
             : "{$imported} members imported successfully.";
@@ -403,6 +536,14 @@ class AdminSatelliteController extends Controller
         }
     }
 
+    private function authorizeSatelliteMemberUpdate(Satellite $satellite, Member $member): void
+    {
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && $user->canUpdateSatelliteMembers($satellite), 403);
+        abort_unless((int) $member->satellite_id === (int) $satellite->id, 403);
+    }
+
     private function validatedMemberPayload(Request $request, Satellite $satellite, ?Member $member = null): array
     {
         $validator = Validator::make($request->all(), $this->memberValidationRules($satellite, $member), [
@@ -417,6 +558,13 @@ class AdminSatelliteController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                throw new HttpResponseException(response()->json([
+                    'message' => 'Please check the highlighted member fields.',
+                    'errors' => $validator->errors(),
+                ], 422));
+            }
+
             throw new HttpResponseException(
                 back()
                     ->withErrors($validator, 'memberForm')
@@ -430,6 +578,9 @@ class AdminSatelliteController extends Controller
         }
 
         $validated = $validator->validated();
+        if (array_key_exists('leader_member_id', $validated)) {
+            $validated['dgroup_leader_name'] = empty($validated['leader_member_id']) && $member && ! $member->leader_member_id ? $member->dgroup_leader_name : null;
+        }
 
         return $this->memberPayloadFromValidated($satellite, $validated);
     }
@@ -458,6 +609,7 @@ class AdminSatelliteController extends Controller
             'district' => ['required', 'string', 'max:120'],
             'area' => ['nullable', 'string', 'max:120'],
             'campus_school' => ['required', 'string', 'max:180'],
+            'leader_member_id' => ['nullable', 'integer', Rule::exists('members', 'id')->where(fn ($q) => $q->where('satellite_id', $satellite->id)->where('dgroup_role', Member::ROLE_LEADER)->whereNull('archived_at')), Rule::notIn([$member?->id])],
             'dgroup_leader_name' => ['nullable', 'string', 'max:180'],
             'active_disciples' => ['nullable', 'integer', 'min:0', 'max:10000'],
             'year_joined' => ['nullable', 'integer', 'min:1900', 'max:'.(now()->year + 1)],
@@ -490,6 +642,7 @@ class AdminSatelliteController extends Controller
             'satellite_id' => $satellite->id,
             'status' => $status,
             'dgroup_role' => $dgroupRole,
+            ...($dgroupRole === Member::ROLE_LEADER ? ['leader_member_id' => null] : (array_key_exists('leader_member_id', $validated) ? ['leader_member_id' => $validated['leader_member_id']] : [])),
             'last_name' => $lastName,
             'first_name' => $firstName,
             'full_name' => $fullName,
@@ -521,6 +674,7 @@ class AdminSatelliteController extends Controller
     private function memberFilters(Request $request): array
     {
         return [
+            'view' => $request->query('view') === 'archived' ? 'archived' : 'active',
             'search' => trim((string) $request->query('search', '')),
             'status' => (string) $request->query('status', ''),
             'dgroup_role' => (string) $request->query('dgroup_role', ''),
@@ -532,7 +686,11 @@ class AdminSatelliteController extends Controller
 
     private function hasActiveMemberFilters(array $filters): bool
     {
-        foreach ($filters as $value) {
+        foreach ($filters as $key => $value) {
+            if ($key === 'view') {
+                continue;
+            }
+
             if ((string) $value !== '') {
                 return true;
             }
@@ -541,9 +699,9 @@ class AdminSatelliteController extends Controller
         return false;
     }
 
-    private function filteredSatelliteMembersQuery(Satellite $satellite, array $filters)
+    private function filteredSatelliteMembersQuery(Satellite $satellite, array $filters, bool $archivedView = false)
     {
-        return $satellite->members()
+        return ($archivedView ? $satellite->allMembers()->archived() : $satellite->members())
             ->when($filters['search'] !== '', function ($query) use ($filters): void {
                 $search = $filters['search'];
                 $query->where(function ($query) use ($search): void {
@@ -566,18 +724,18 @@ class AdminSatelliteController extends Controller
             ->when($filters['area'] !== '', fn ($query) => $query->where('area', $filters['area']));
     }
 
-    private function memberFilterOptions(Satellite $satellite): array
+    private function memberFilterOptions(Satellite $satellite, bool $archivedView = false): array
     {
         return [
-            'campuses' => $this->distinctMemberValues($satellite, 'campus_school'),
-            'districts' => $this->distinctMemberValues($satellite, 'district'),
-            'areas' => $this->distinctMemberValues($satellite, 'area'),
+            'campuses' => $this->distinctMemberValues($satellite, 'campus_school', $archivedView),
+            'districts' => $this->distinctMemberValues($satellite, 'district', $archivedView),
+            'areas' => $this->distinctMemberValues($satellite, 'area', $archivedView),
         ];
     }
 
-    private function distinctMemberValues(Satellite $satellite, string $column): array
+    private function distinctMemberValues(Satellite $satellite, string $column, bool $archivedView = false): array
     {
-        return $satellite->members()
+        return ($archivedView ? $satellite->archivedMembers() : $satellite->members())
             ->whereNotNull($column)
             ->where($column, '!=', '')
             ->orderBy($column)
@@ -596,15 +754,6 @@ class AdminSatelliteController extends Controller
             array_key_exists($sort, self::MEMBER_SORTS) ? $sort : 'name',
             $direction === 'desc' ? 'desc' : 'asc',
         ];
-    }
-
-    private function refreshSatelliteMemberCounts(Satellite $satellite): void
-    {
-        $satellite->update([
-            'members_count' => $satellite->members()->count(),
-            'new_members_count' => $satellite->members()->where('status', Member::STATUS_NEW)->count(),
-            'leaders_count' => $satellite->members()->where('dgroup_role', Member::ROLE_LEADER)->count(),
-        ]);
     }
 
     private function nullableString(mixed $value): ?string
@@ -636,7 +785,7 @@ class AdminSatelliteController extends Controller
     private function ageFromBirthdate(string $birthdate): ?int
     {
         try {
-            return (int) \Carbon\Carbon::parse($birthdate)->age;
+            return (int) Carbon::parse($birthdate)->age;
         } catch (\Throwable) {
             return null;
         }
@@ -702,7 +851,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<int, array<int, string|null>> $values
+     * @param  array<int, array<int, string|null>>  $values
      * @return array<int, array<string, string|null>>
      */
     private function memberRowsFromValues(array $values): array
@@ -743,8 +892,8 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<int, string> $headers
-     * @param array<int, string|null> $columns
+     * @param  array<int, string>  $headers
+     * @param  array<int, string|null>  $columns
      * @return array<string, string|null>
      */
     private function rowFromImportColumns(array $headers, array $columns): array
@@ -765,7 +914,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<int, string|null> $columns
+     * @param  array<int, string|null>  $columns
      */
     private function importColumnsAreEmpty(array $columns): bool
     {
@@ -821,7 +970,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<int, array<string, string|null>> $rows
+     * @param  array<int, array<string, string|null>>  $rows
      * @return array<string, mixed>
      */
     private function memberImportPreview(Satellite $satellite, array $rows): array
@@ -873,7 +1022,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      * @return array<int, string>
      */
     private function validateImportRow(array $row): array
@@ -932,7 +1081,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function memberPayloadFromImportRow(Satellite $satellite, array $row): array
     {
@@ -967,7 +1116,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function memberDuplicateExists(Satellite $satellite, array $row): bool
     {
@@ -1003,7 +1152,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<string, string|null> $row
+     * @param  array<string, string|null>  $row
      */
     private function fullNameFromImportRow(array $row): string
     {
@@ -1115,12 +1264,12 @@ class AdminSatelliteController extends Controller
             $serial = (int) $date;
 
             if ($serial > 0 && $serial < 100000) {
-                return \Carbon\Carbon::create(1899, 12, 30)->addDays($serial)->toDateString();
+                return Carbon::create(1899, 12, 30)->addDays($serial)->toDateString();
             }
         }
 
         try {
-            return \Carbon\Carbon::parse($date)->toDateString();
+            return Carbon::parse($date)->toDateString();
         } catch (\Throwable) {
             return null;
         }
@@ -1177,7 +1326,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<string, string> $entries
+     * @param  array<string, string>  $entries
      */
     private function firstWorksheetPath(array $entries): string
     {
@@ -1236,7 +1385,7 @@ class AdminSatelliteController extends Controller
     }
 
     /**
-     * @param array<int, string> $sharedStrings
+     * @param  array<int, string>  $sharedStrings
      */
     private function cellValue(\SimpleXMLElement $cell, array $sharedStrings): ?string
     {
@@ -1499,15 +1648,16 @@ class AdminSatelliteController extends Controller
     {
         return [
             'search' => trim((string) $request->query('search', '')),
+            'satellite' => trim((string) $request->query('satellite', '')),
             'hub' => (string) $request->query('hub', ''),
             'assignment' => (string) $request->query('assignment', ''),
         ];
     }
 
-    private function filteredSatellitesQuery(array $filters)
+    private function filteredSatellitesQuery(array $filters, bool $archived = false)
     {
-        return Satellite::query()
-            ->with('assignedUsers')
+        return ($archived ? Satellite::archived() : Satellite::active())
+            ->with('assignedUsers')->withCount(['members as warning_members_count', 'seekers as warning_seekers_count' => fn ($q) => $q->whereNull('archived_at')->whereNull('converted_member_id')])
             ->when($filters['search'] !== '', function ($query) use ($filters): void {
                 $query->where(function ($query) use ($filters): void {
                     $query->where('name', 'like', '%'.$filters['search'].'%')
@@ -1519,6 +1669,7 @@ class AdminSatelliteController extends Controller
                 });
             })
             ->when($filters['hub'] !== '', fn ($query) => $query->where('hub', $filters['hub']))
+            ->when($filters['satellite'] !== '', fn ($query) => $query->where('slug', $filters['satellite']))
             ->when($filters['assignment'] === 'assigned', fn ($query) => $query->whereHas('assignedUsers'))
             ->when($filters['assignment'] === 'unassigned', fn ($query) => $query->doesntHave('assignedUsers'));
     }
@@ -1549,12 +1700,11 @@ class AdminSatelliteController extends Controller
         $slug = $baseSlug;
         $counter = 2;
 
-        while (Satellite::where('slug', $slug)->exists()) {
+        while (Satellite::withoutGlobalScope('active')->where('slug', $slug)->exists()) {
             $slug = "{$baseSlug}-{$counter}";
             $counter++;
         }
 
         return $slug;
     }
-
 }

@@ -87,16 +87,57 @@ class User extends Authenticatable
             ->first();
     }
 
+    public function hasArchivedSatellite(): bool
+    {
+        return $this->normalizedRole() !== 'admin' && Satellite::archived()
+            ->where(fn ($q) => $q->where('name', $this->district)->orWhere('slug', Str::slug((string) $this->district))->orWhere('assigned_user_id', $this->id))->exists();
+    }
+
     public function canAccessSatellite(Satellite $satellite): bool
     {
-        return trim((string) $this->district) !== ''
+        return $satellite->archived_at === null && trim((string) $this->district) !== ''
             && Str::slug((string) $this->district) === $satellite->slug;
+    }
+
+    public function canViewSatelliteMembers(Satellite $satellite): bool
+    {
+        return $this->normalizedRole() === 'admin'
+            || $this->canAccessSatellite($satellite);
     }
 
     public function canManageSatellite(Satellite $satellite): bool
     {
         return $this->canAccessSatellite($satellite)
             && in_array($this->normalizedRole(), self::SATELLITE_MANAGEMENT_ROLES, true);
+    }
+
+    public function canManageSeekers(Satellite $satellite): bool
+    {
+        return $this->normalizedRole() === 'admin' || $this->canManageSatellite($satellite);
+    }
+
+    public function canChangeSeekerStatus(Satellite $satellite): bool
+    {
+        return $this->normalizedRole() === 'admin'
+            || ($this->canAccessSatellite($satellite)
+                && ($this->canManageSatellite($satellite) || $this->normalizedRole() === 'volunteer'));
+    }
+
+    public function canAssignSeekerLeader(Satellite $satellite): bool
+    {
+        return $this->normalizedRole() === 'admin'
+            || ($this->canAccessSatellite($satellite)
+                && ($this->canManageSatellite($satellite) || $this->normalizedRole() === 'volunteer'));
+    }
+
+    public function canUpdateSatelliteMembers(Satellite $satellite): bool
+    {
+        if ($this->normalizedRole() === 'admin') {
+            return true;
+        }
+
+        return $this->canAccessSatellite($satellite)
+            && ($this->canManageSatellite($satellite) || $this->normalizedRole() === 'volunteer');
     }
 
     public function normalizedRole(): string

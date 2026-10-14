@@ -17,26 +17,18 @@
 
     <div class="stats-grid admin-summary-grid">
         @foreach ($movementSummaryCards as $card)
-            <article class="stat-card admin-summary-card">
-                <div class="info">
-                    <span class="stat-value">{{ number_format($card['total']) }}</span>
-                    <span class="stat-label">{{ $card['label'] }}</span>
-                </div>
-                <div class="summary-breakdown">
-                    @foreach ($card['segments'] as $segment)
-                        <div class="summary-segment">
-                            <strong>{{ $segment['value'] === null ? '-' : number_format($segment['value']) }}</strong>
-                            <span>{{ $segment['label'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </article>
+            @include('admin.dashboard-directory.card', ['card' => $card])
         @endforeach
     </div>
 </div>
 @endsection
 
 @push('styles')
+        .admin-summary-card a { text-decoration:none; cursor:pointer; width:fit-content; border-radius:4px; }
+        .admin-summary-card a:hover { text-decoration:underline; text-underline-offset:5px; }
+        .admin-summary-card a:focus-visible { outline:3px solid #2459d3; outline-offset:6px; }
+        .admin-summary-card .stat-value, .admin-summary-card .summary-segment strong { color:#b3200f; }
+
         .admin-dashboard-page {
             min-height: 0;
         }
@@ -75,7 +67,7 @@
             gap: 18px;
             min-height: 220px;
             padding: 20px 24px 18px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #fff;
             border: 1px solid rgba(17, 24, 39, 0.08);
             border-radius: 14px;
             box-shadow: none;
@@ -89,7 +81,7 @@
         }
 
         .admin-summary-card .stat-value {
-            color: var(--brand-red);
+            color: #b3200f;
             font-size: clamp(2.2rem, 3.4vw, 4rem);
             line-height: 1;
             letter-spacing: 0;
@@ -121,7 +113,7 @@
         }
 
         .summary-segment strong {
-            color: var(--brand-red);
+            color: #b3200f;
             font-size: clamp(1.35rem, 2vw, 2.1rem);
             line-height: 1;
             font-weight: 900;

@@ -6,14 +6,28 @@ use App\Models\Member;
 use App\Models\Satellite;
 use App\Models\Seeker;
 use App\Models\User;
+use App\Services\MovementAnalyticsSetup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminDashboardRoutesTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function createPasigDGroupLeader(): Member
+    {
+        $satellite = Satellite::firstOrCreate(['slug' => 'pasig'], ['name' => 'Pasig']);
+
+        return Member::create([
+            'satellite_id' => $satellite->id,
+            'name' => 'Test DGroup Leader',
+            'full_name' => 'Test DGroup Leader',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_LEADER,
+        ]);
+    }
 
     public function test_admin_dashboard_views_render_from_laravel_routes(): void
     {
@@ -25,7 +39,6 @@ class AdminDashboardRoutesTest extends TestCase
             '/admin/members' => 'Members Dashboard',
             '/admin/seekers' => 'Seekers Dashboard',
             '/admin/users' => 'Users Dashboard',
-            '/admin/reports' => 'Reports Dashboard',
             '/admin/analytics' => 'Analytics Dashboard',
         ];
 
@@ -47,7 +60,7 @@ class AdminDashboardRoutesTest extends TestCase
             '/admin/MembersDashboard.php' => '/admin/members',
             '/admin/SeekersDashboard.php' => '/admin/seekers',
             '/admin/UsersDashboard.php' => '/admin/users',
-            '/admin/ReportsDashboard.php' => '/admin/reports',
+            '/admin/ReportsDashboard.php' => '/admin/satellites',
             '/admin/AnalyticsDashboard.php' => '/admin/analytics',
         ];
 
@@ -127,55 +140,23 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertDontSee('Biringan');
     }
 
-    public function test_admin_analytics_page_uses_plotly_api_backed_shell(): void
+    public function test_admin_analytics_page_uses_shared_service_dashboard_shell(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-
-        $this->actingAs($admin)
-            ->get(route('admin.analytics'))
-            ->assertOk()
-            ->assertSee('Analytics Dashboard')
-            ->assertSee(route('admin.analytics.data'), false)
-            ->assertSee('plotly-2.35.2.min.js')
-            ->assertSee('analytics-sections')
-            ->assertDontSee('Site Growth')
-            ->assertDontSee('Attendance')
-            ->assertDontSee('Membership Growth')
-            ->assertSee('Engagement Classification')
-            ->assertSee(route('admin.engagement.index'), false)
-            ->assertDontSee('Top Performing Satellites');
+        $this->actingAs($admin)->get(route('admin.analytics'))->assertOk()
+            ->assertSee('Analytics Dashboard')->assertSee(route('admin.analytics.movement-data'), false)
+            ->assertSee('Group comparison')->assertSee('Needs attention')->assertSee('Unit performance')
+            ->assertSee('Engagement Classification')->assertSee('mv-full-data')
+            ->assertDontSee('plotly-2.35.2.min.js')->assertDontSee('Top Performing Satellites');
     }
 
-    public function test_admin_analytics_data_endpoint_returns_metric_payload(): void
+    public function test_admin_analytics_data_endpoint_uses_shared_movement_contract(): void
     {
+        app(MovementAnalyticsSetup::class)->run();
         $admin = User::factory()->create(['role' => 'admin']);
-
-        $response = $this->actingAs($admin)
-            ->getJson(route('admin.analytics.data'))
-            ->assertOk()
-            ->assertJsonStructure([
-                'MAIN' => [
-                    'DLEADERS' => ['labels', '2024', '2025'],
-                    'DGROUPS' => ['labels', '2024', '2025'],
-                    'DMEMBERS' => ['labels', '2024', '2025'],
-                ],
-                'NCP' => [
-                    'DLEADERS' => ['labels', '2024', '2025'],
-                    'DGROUPS' => ['labels', '2024', '2025'],
-                    'DMEMBERS' => ['labels', '2024', '2025'],
-                ],
-                'ICP' => [
-                    'DLEADERS' => ['labels', '2024', '2025'],
-                    'DGROUPS' => ['labels', '2024', '2025'],
-                    'DMEMBERS' => ['labels', '2024', '2025'],
-                ],
-            ]);
-
-        $analyticsData = $response->json();
-
-        $this->assertSame('The Hub', $analyticsData['MAIN']['DLEADERS']['labels'][0]);
-        $this->assertSame(77, $analyticsData['MAIN']['DLEADERS']['2024'][0]);
-        $this->assertSame(67, $analyticsData['MAIN']['DLEADERS']['2025'][0]);
+        $this->actingAs($admin)->getJson(route('admin.analytics.data', ['checkpoint' => '2026-06']))
+            ->assertOk()->assertJsonStructure(['units', 'periods', 'issues', 'activity', 'forecasts', 'pivot'])
+            ->assertJsonPath('units.main.metrics.dmembers.value', null);
     }
 
     public function test_admin_dashboard_shows_movement_wide_summary_cards(): void
@@ -226,7 +207,7 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee('DGROUPS')
             ->assertSee('3')
             ->assertSee('DGROUP MEMBERS')
-            ->assertSee('24')
+            ->assertViewHas('movementSummaryCards', fn ($cards) => array_column($cards, 'total') === [4, 0, 3, 0])
             ->assertSee('CAMPUSES')
             ->assertSee('3')
             ->assertSee('MAIN')
@@ -239,7 +220,7 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertDontSee('Satellite Summary');
     }
 
-    public function test_admin_dashboard_counts_active_dgroups_from_leader_records(): void
+    public function test_admin_dashboard_dgroups_require_assigned_members(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $satellite = Satellite::create([
@@ -354,7 +335,7 @@ class AdminDashboardRoutesTest extends TestCase
             'status' => Seeker::STATUS_PENDING,
         ]);
 
-        foreach ([route('admin.satellites'), route('admin.members'), route('admin.seekers'), route('admin.users'), route('admin.reports')] as $route) {
+        foreach ([route('admin.satellites'), route('admin.members'), route('admin.seekers'), route('admin.users')] as $route) {
             $this->actingAs($admin)
                 ->get($route)
                 ->assertOk()
@@ -370,7 +351,7 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_members_dashboard_removed_member_range_filters(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        Satellite::create([
+        $satellite = Satellite::create([
             'name' => 'Pasig',
             'slug' => 'pasig',
             'members_count' => 7,
@@ -384,8 +365,175 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee('Search satellites...')
             ->assertSee('View members')
             ->assertSee('Export satellite members')
+            ->assertSee(route('satellites.members', $satellite), false)
+            ->assertSee(route('admin.satellites', ['satellite' => $satellite->slug]), false)
+            ->assertSee(route('admin.satellites.members.export', $satellite), false)
             ->assertDontSee('Min members')
             ->assertDontSee('Max members');
+    }
+
+    public function test_admin_can_view_only_members_in_the_selected_satellite_with_scoped_controls(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $mainOrtigas = Satellite::create([
+            'name' => 'Main Ortigas',
+            'slug' => 'main-ortigas',
+            'members_count' => 11,
+            'created_by_id' => $admin->id,
+        ]);
+        $anonas = Satellite::create([
+            'name' => 'Anonas',
+            'slug' => 'anonas',
+            'created_by_id' => $admin->id,
+        ]);
+
+        for ($memberNumber = 1; $memberNumber <= 11; $memberNumber++) {
+            $name = 'Main Ortigas Member '.$memberNumber;
+            Member::create([
+                'satellite_id' => $mainOrtigas->id,
+                'name' => $name,
+                'full_name' => $name,
+                'first_name' => 'Main Ortigas',
+                'last_name' => 'Member '.$memberNumber,
+                'status' => Member::STATUS_ACTIVE,
+                'dgroup_role' => Member::ROLE_MEMBER,
+                'campus_school' => 'Main Ortigas School',
+                'district' => 'Main Ortigas',
+            ]);
+        }
+
+        Member::create([
+            'satellite_id' => $anonas->id,
+            'name' => 'Anonas Only Member',
+            'full_name' => 'Anonas Only Member',
+            'first_name' => 'Anonas',
+            'last_name' => 'Member',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'campus_school' => 'Anonas School',
+            'district' => 'Anonas',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('satellites.members', $mainOrtigas))
+            ->assertOk()
+            ->assertSee('Main Ortigas Members')
+            ->assertSee('11 of 11 members')
+            ->assertSee('Main Ortigas Member 1')
+            ->assertDontSee('Anonas Only Member')
+            ->assertSee(route('admin.members'), false)
+            ->assertSee('Edit Member')
+            ->assertDontSee('class="btn btn-primary" data-open-member-create', false)
+            ->assertDontSee('data-open-member-delete data-member-delete-url', false);
+
+        $this->get(route('satellites.members', [
+            'satellite' => $mainOrtigas,
+            'search' => 'Member 11',
+            'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertViewHas('members', fn ($members) => $members->total() === 1)
+            ->assertSee('Main Ortigas Member 11')
+            ->assertDontSee('Anonas Only Member');
+
+        $this->get(route('satellites.members', [
+            'satellite' => $mainOrtigas,
+            'page' => 2,
+            'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertSee('Main Ortigas Member 9')
+            ->assertDontSee('Anonas Only Member');
+    }
+
+    public function test_admin_sees_satellite_specific_empty_members_state(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $eastwood = Satellite::create([
+            'name' => 'Eastwood',
+            'slug' => 'eastwood',
+            'created_by_id' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('satellites.members', $eastwood))
+            ->assertOk()
+            ->assertSee('Eastwood Members')
+            ->assertSee('No members in this satellite yet.')
+            ->assertSee(route('admin.members'), false);
+    }
+
+    public function test_satellite_member_directory_returns_404_for_unknown_slug(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get('/satellites/not-a-satellite/members')
+            ->assertNotFound();
+    }
+
+    public function test_satellite_user_cannot_open_another_satellites_member_directory(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pasigUser = User::factory()->create(['role' => 'satellite', 'district' => 'Pasig']);
+        $eastwood = Satellite::create([
+            'name' => 'Eastwood',
+            'slug' => 'eastwood',
+            'created_by_id' => $admin->id,
+        ]);
+
+        $this->actingAs($pasigUser)
+            ->get(route('satellites.members', $eastwood))
+            ->assertForbidden();
+    }
+
+    public function test_satellite_breakdown_detail_filter_and_member_export_use_satellite_slug(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $mainOrtigas = Satellite::create([
+            'name' => 'Main Ortigas',
+            'slug' => 'main-ortigas',
+            'created_by_id' => $admin->id,
+        ]);
+        $anonas = Satellite::create([
+            'name' => 'Anonas',
+            'slug' => 'anonas',
+            'created_by_id' => $admin->id,
+        ]);
+        Member::create([
+            'satellite_id' => $mainOrtigas->id,
+            'name' => 'Exported Main Member',
+            'full_name' => 'Exported Main Member',
+            'first_name' => 'Exported Main',
+            'last_name' => 'Member',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'campus_school' => 'Main Ortigas School',
+            'district' => 'Main Ortigas',
+        ]);
+        Member::create([
+            'satellite_id' => $anonas->id,
+            'name' => 'Excluded Anonas Member',
+            'full_name' => 'Excluded Anonas Member',
+            'first_name' => 'Excluded Anonas',
+            'last_name' => 'Member',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'campus_school' => 'Anonas School',
+            'district' => 'Anonas',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.satellites', ['satellite' => $mainOrtigas->slug]))
+            ->assertOk()
+            ->assertViewHas('satellites', fn ($satellites) => $satellites->total() === 1 && $satellites->first()->is($mainOrtigas));
+
+        $csv = $this->get(route('admin.satellites.members.export', $mainOrtigas))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('Exported Main Member', $csv);
+        $this->assertStringNotContainsString('Excluded Anonas Member', $csv);
     }
 
     public function test_admin_satellite_pages_use_created_satellites_not_examples(): void
@@ -424,7 +572,7 @@ class AdminDashboardRoutesTest extends TestCase
             'status' => 'Successful',
         ]);
 
-        foreach ([route('admin.seekers'), route('admin.reports')] as $route) {
+        foreach ([route('admin.seekers')] as $route) {
             $this->actingAs($admin)
                 ->get($route)
                 ->assertOk()
@@ -497,7 +645,7 @@ class AdminDashboardRoutesTest extends TestCase
             'created_by_id' => $admin->id,
         ]);
 
-        $this->actingAs($assignedUser)
+        $dashboard = $this->actingAs($assignedUser)
             ->get(route('satellites.dashboard', $satellite))
             ->assertOk()
             ->assertSee('Santolan Dashboard')
@@ -516,6 +664,14 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee('December')
             ->assertDontSee('DGROUP TOTAL')
             ->assertDontSee('summary-breakdown', false);
+
+        $dashboard
+            ->assertDontSee('Quick Actions')
+            ->assertDontSee('Assigned Accounts')
+            ->assertSee(route('satellites.members', $satellite), false)
+            ->assertSee(route('satellites.seekers', $satellite), false)
+            ->assertSee(route('satellites.follow-ups.index', $satellite), false)
+            ->assertSee(route('satellites.engagement.index', $satellite), false);
 
         $this->actingAs($otherUser)
             ->get(route('satellites.dashboard', $satellite))
@@ -543,6 +699,10 @@ class AdminDashboardRoutesTest extends TestCase
         Seeker::create([
             'name' => 'Liza Fernandez',
             'email' => 'liza.f@gmail.com',
+            'contact_number' => '09171234567',
+            'facebook_link' => 'https://facebook.com/liza',
+            'age' => 16,
+            'gender' => 'Female',
             'school' => 'Pasig City Science HS',
             'assigned_district' => 'Pasig',
             'assigned_satellite_slug' => 'pasig',
@@ -555,6 +715,14 @@ class AdminDashboardRoutesTest extends TestCase
             'assigned_satellite_slug' => null,
             'status' => 'Pending',
         ]);
+        Seeker::create([
+            'name' => 'Anonas Seeker',
+            'email' => 'anonas@example.com',
+            'school' => 'Anonas School',
+            'assigned_district' => 'Anonas',
+            'assigned_satellite_slug' => 'anonas',
+            'status' => 'Pending',
+        ]);
 
         $this->actingAs($assignedUser)
             ->get(route('satellites.seekers', $satellite))
@@ -564,8 +732,18 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee('Liza Fernandez')
             ->assertSee('liza.f@gmail.com')
             ->assertSee('Pending')
+            ->assertSee('aria-label="View seeker details"', false)
+            ->assertSee('data-seeker-modal-row', false)
+            ->assertSee('data-seeker-contact="09171234567"', false)
+            ->assertSee('data-seeker-facebook="https://facebook.com/liza"', false)
+            ->assertSee('data-seeker-age="16"', false)
+            ->assertSee('data-seeker-gender="Female"', false)
+            ->assertSee('data-seeker-school="Pasig City Science HS"', false)
+            ->assertSee('Full profile summary for the selected seeker.')
             ->assertDontSee('Sync Google Sheet')
-            ->assertDontSee('Unassigned Seeker');
+            ->assertDontSee('Unassigned Seeker')
+            ->assertDontSee('Anonas Seeker')
+            ->assertDontSee('data-seeker-name="Anonas Seeker"', false);
     }
 
     public function test_assigned_satellite_user_can_open_members_page_for_their_satellite(): void
@@ -741,6 +919,77 @@ class AdminDashboardRoutesTest extends TestCase
         $this->assertSame(0, $satellite->refresh()->members_count);
     }
 
+    public function test_satellite_volunteer_can_only_update_own_satellite_members_and_admin_can_update_any(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $pasigUser = User::factory()->create(['role' => 'volunteer', 'district' => 'Pasig']);
+        $pasig = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'assigned_user_id' => $pasigUser->id,
+            'created_by_id' => $admin->id,
+        ]);
+        $anonas = Satellite::create([
+            'name' => 'Anonas',
+            'slug' => 'anonas',
+            'created_by_id' => $admin->id,
+        ]);
+        $pasigMember = Member::create([
+            'satellite_id' => $pasig->id,
+            'name' => 'Pasig Member',
+            'full_name' => 'Pasig Member',
+            'first_name' => 'Pasig',
+            'last_name' => 'Member',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'campus_school' => 'Old Pasig School',
+            'district' => 'Pasig',
+        ]);
+        $anonasMember = Member::create([
+            'satellite_id' => $anonas->id,
+            'name' => 'Anonas Member',
+            'full_name' => 'Anonas Member',
+            'first_name' => 'Anonas',
+            'last_name' => 'Member',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'campus_school' => 'Old Anonas School',
+            'district' => 'Anonas',
+        ]);
+        $pasigPayload = [
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_MEMBER,
+            'first_name' => 'Pasig',
+            'last_name' => 'Member',
+            'district' => 'Pasig',
+            'campus_school' => 'Updated Pasig School',
+        ];
+
+        $this->actingAs($pasigUser)
+            ->patch(route('satellites.members.update', [$pasig, $pasigMember]), $pasigPayload)
+            ->assertRedirect(route('satellites.members', $pasig))
+            ->assertSessionHas('status', 'Pasig Member was updated successfully.');
+
+        $this->assertSame('Updated Pasig School', $pasigMember->fresh()->campus_school);
+        $this->get(route('satellites.members', $pasig))
+            ->assertOk()
+            ->assertSee('Updated Pasig School');
+
+        $this->patch(route('satellites.members.update', [$pasig, $anonasMember]), $pasigPayload)
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->patch(route('satellites.members.update', [$anonas, $anonasMember]), array_merge($pasigPayload, [
+                'first_name' => 'Anonas',
+                'last_name' => 'Member',
+                'district' => 'Anonas',
+                'campus_school' => 'Updated Anonas School',
+            ]))
+            ->assertRedirect(route('satellites.members', $anonas));
+
+        $this->assertSame('Updated Anonas School', $anonasMember->fresh()->campus_school);
+    }
+
     public function test_satellite_member_management_is_scoped_to_the_assigned_satellite(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -790,13 +1039,32 @@ class AdminDashboardRoutesTest extends TestCase
                 'district' => 'Pasig',
                 'campus_school' => 'Pasig Campus',
             ])
-            ->assertNotFound();
+            ->assertForbidden();
 
         $this->assertDatabaseMissing('members', [
             'first_name' => 'User',
             'last_name' => 'Blocked',
             'satellite_id' => $satellite->id,
         ]);
+    }
+
+    public function test_updating_satellite_assignment_syncs_user_district_for_access_checks(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $assignedUser = User::factory()->create(['role' => 'satellite', 'district' => null]);
+        $satellite = Satellite::create([
+            'name' => 'Pasig',
+            'slug' => 'pasig',
+            'assigned_user_id' => null,
+            'created_by_id' => $admin->id,
+            'hub' => 'Metro Manila',
+        ]);
+
+        $satellite->update(['assigned_user_id' => $assignedUser->id]);
+
+        $this->assertSame('Pasig', $assignedUser->fresh()->district);
+        $this->assertTrue($assignedUser->fresh()->canAccessSatellite($satellite));
+        $this->assertTrue($assignedUser->fresh()->canManageSatellite($satellite));
     }
 
     public function test_assigned_satellite_user_can_preview_and_import_member_sheet(): void
@@ -867,7 +1135,6 @@ class AdminDashboardRoutesTest extends TestCase
                 'member_sheet' => UploadedFile::fake()->createWithContent('pasig-members.xlsx', $xlsx),
             ]);
 
-
         $response
             ->assertRedirect(route('satellites.members', $satellite))
             ->assertSessionHas('memberImportPreview', function (array $preview): bool {
@@ -896,11 +1163,12 @@ class AdminDashboardRoutesTest extends TestCase
             'slug' => 'pasig',
             'created_by_id' => $admin->id,
         ]);
+        $this->createPasigDGroupLeader();
 
         config(['services.google_sheets.seekers_csv_url' => 'https://example.test/seekers.csv']);
         Http::fake([
             'https://example.test/seekers.csv' => Http::response(
-                "Name,Email,School,Assigned District,Status\nRonnie Aquino,ronnie.a@gmail.com,Kapitolyo National HS,Pasig,Successful\n",
+                "Name,Email,School,Assigned District,DGroup Leader,Status\nRonnie Aquino,ronnie.a@gmail.com,Kapitolyo National HS,Pasig,Test DGroup Leader,Successful\n",
                 200
             ),
         ]);
@@ -923,11 +1191,12 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_accepts_first_last_name_and_email_address_columns(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config(['services.google_sheets.seekers_csv_url' => 'https://example.test/placement.csv']);
         Http::fake([
             'https://example.test/placement.csv' => Http::response(
-                "First Name,Last Name,Email address,School,DM Status\nFirst1,Last1,user1@example.com,PLP,Successful\n",
+                "First Name,Last Name,Email address,School,Assigned District,DGroup Leader,DM Status\nFirst1,Last1,user1@example.com,PLP,Pasig,Test DGroup Leader,Successful\n",
                 200
             ),
         ]);
@@ -947,11 +1216,12 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_keeps_duplicate_email_rows_separate_by_sheet_row(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config(['services.google_sheets.seekers_csv_url' => 'https://example.test/placement.csv']);
         Http::fake([
             'https://example.test/placement.csv' => Http::response(
-                "Name,Email,School,Status\nFirst10 Last10,user10@example.com,PLP,Successful\nPapa J,user10@example.com,PLP,Successful\n",
+                "Name,Email,School,Assigned District,DGroup Leader,Status\nFirst10 Last10,user10@example.com,PLP,Pasig,Test DGroup Leader,Successful\nPapa J,user10@example.com,PLP,Pasig,Test DGroup Leader,Successful\n",
                 200
             ),
         ]);
@@ -976,11 +1246,12 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_uses_column_before_last_name_when_first_name_header_is_corrupt(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config(['services.google_sheets.seekers_csv_url' => 'https://example.test/placement.csv']);
         Http::fake([
             'https://example.test/placement.csv' => Http::response(
-                "Miguel Santos Andrea Reyes Joshua Cruz,Last Name,Email address,School,Status\nFirst1,Last1,user1@example.com,PLP,Successful\n",
+                "Miguel Santos Andrea Reyes Joshua Cruz,Last Name,Email address,School,Assigned District,DGroup Leader,Status\nFirst1,Last1,user1@example.com,PLP,Pasig,Test DGroup Leader,Successful\n",
                 200
             ),
         ]);
@@ -998,6 +1269,7 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_reads_office_file_through_authenticated_csv_export(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config([
             'services.google_sheets.seekers_csv_url' => null,
@@ -1012,7 +1284,7 @@ class AdminDashboardRoutesTest extends TestCase
                 'error' => ['message' => 'This operation is not supported for this document. The document must not be an Office file.'],
             ], 400),
             'https://docs.google.com/spreadsheets/d/office-file-id/export*' => Http::response(
-                "First Name,Last Name,Email address,School,DM Remarks for Closed Status,Landmark/Area\nUpdated,Name,user1@example.com,PLP,Successfully placed,Pasig\n",
+                "First Name,Last Name,Email address,School,DM Remarks for Closed Status,Landmark/Area,DGroup Leader\nUpdated,Name,user1@example.com,PLP,Successfully placed,Pasig,Test DGroup Leader\n",
                 200
             ),
         ]);
@@ -1034,6 +1306,7 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_reads_uploaded_xlsx_office_file_without_conversion(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config([
             'services.google_sheets.seekers_csv_url' => null,
@@ -1049,8 +1322,8 @@ class AdminDashboardRoutesTest extends TestCase
             ], 400),
             'https://docs.google.com/spreadsheets/d/office-file-id/export*' => Http::response('<html>Export unavailable</html>', 500),
             'https://www.googleapis.com/drive/v3/files/office-file-id?alt=media*' => Http::response($this->xlsxFixture([
-                ['First Name', 'Middle Name', 'Last Name', 'Email address', 'School', 'Final Placement Status', 'DM Remarks for Closed Status', 'Landmark/Area'],
-                ['First2', null, 'Last2', 'user2@example.com', 'PLP', 'Pending', 'Successfully placed', 'Pasig'],
+                ['First Name', 'Middle Name', 'Last Name', 'Email address', 'School', 'Final Placement Status', 'DM Remarks for Closed Status', 'Landmark/Area', 'DGroup Leader'],
+                ['First2', null, 'Last2', 'user2@example.com', 'PLP', 'Pending', 'Successfully placed', 'Pasig', 'Test DGroup Leader'],
             ]), 200),
         ]);
 
@@ -1071,6 +1344,7 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_google_sheet_sync_converts_office_file_before_importing(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $this->createPasigDGroupLeader();
 
         config([
             'services.google_sheets.seekers_csv_url' => null,
@@ -1096,8 +1370,8 @@ class AdminDashboardRoutesTest extends TestCase
             ], 200),
             'https://sheets.googleapis.com/v4/spreadsheets/converted-sheet-id/values/%27Sheet1%27%21A%3AZZ*' => Http::response([
                 'values' => [
-                    ['First Name', 'Last Name', 'Email address', 'School', 'DM Status'],
-                    ['First2', 'Last2', 'user2@example.com', 'PLP', 'Successful'],
+                    ['First Name', 'Last Name', 'Email address', 'School', 'Assigned District', 'DGroup Leader', 'DM Status'],
+                    ['First2', 'Last2', 'user2@example.com', 'PLP', 'Pasig', 'Test DGroup Leader', 'Successful'],
                 ],
             ], 200),
             'https://www.googleapis.com/drive/v3/files/converted-sheet-id' => Http::response(null, 204),
@@ -1177,18 +1451,26 @@ class AdminDashboardRoutesTest extends TestCase
     public function test_satellite_status_update_reflects_on_admin_seekers_page(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        $assignedUser = User::factory()->create(['role' => 'satellite']);
+        $assignedUser = User::factory()->create(['role' => 'leader', 'district' => 'Pasig']);
         $satellite = Satellite::create([
             'name' => 'Pasig',
             'slug' => 'pasig',
             'assigned_user_id' => $assignedUser->id,
             'created_by_id' => $admin->id,
         ]);
+        $dgroupLeader = Member::create([
+            'satellite_id' => $satellite->id,
+            'name' => 'Warren Pagsuyuin',
+            'full_name' => 'Warren Pagsuyuin',
+            'status' => Member::STATUS_ACTIVE,
+            'dgroup_role' => Member::ROLE_LEADER,
+        ]);
         $seeker = Seeker::create([
             'name' => 'Ronnie Aquino',
             'email' => 'ronnie.a@gmail.com',
             'assigned_district' => 'Pasig',
             'assigned_satellite_slug' => 'pasig',
+            'dgroup_leader_name' => $dgroupLeader->display_name,
             'status' => 'Pending',
         ]);
 
@@ -1201,7 +1483,7 @@ class AdminDashboardRoutesTest extends TestCase
         $this->assertSame('Successful', $seeker->refresh()->status);
 
         $this->actingAs($admin)
-            ->get(route('admin.seekers'))
+            ->get(route('admin.seekers', ['view' => 'archive']))
             ->assertOk()
             ->assertSee('Ronnie Aquino')
             ->assertSee('Successful');
@@ -1365,24 +1647,26 @@ class AdminDashboardRoutesTest extends TestCase
                 ->get(route('satellites.dashboard', $pasig))
                 ->assertOk()
                 ->assertSee('Pasig Dashboard')
-                ->assertSee('Pasig Member')
-                ->assertSee('Pasig Volunteer')
-                ->assertSee('Pasig Leader');
+                ->assertDontSee('Pasig Member')
+                ->assertDontSee('Pasig Volunteer')
+                ->assertDontSee('Pasig Leader');
         }
 
         $this->actingAs($member)
             ->get(route('satellites.dashboard', $pasig))
             ->assertOk()
-            ->assertSee('View Members')
-            ->assertSee('View Follow-Ups')
+            ->assertDontSee('Quick Actions')
+            ->assertDontSee('Assigned Accounts')
             ->assertDontSee('Add Member')
             ->assertDontSee('Add Follow-Up');
 
         $this->actingAs($leader)
             ->get(route('satellites.dashboard', $pasig))
             ->assertOk()
-            ->assertSee('Add Member')
-            ->assertSee('Add Follow-Up');
+            ->assertDontSee('Quick Actions')
+            ->assertDontSee('Assigned Accounts')
+            ->assertDontSee('Add Member')
+            ->assertDontSee('Add Follow-Up');
 
         $this->actingAs($otherDistrictUser)
             ->get(route('satellites.dashboard', $pasig))
@@ -1460,7 +1744,7 @@ class AdminDashboardRoutesTest extends TestCase
     }
 
     /**
-     * @param array<int, array<int, string|null>> $rows
+     * @param  array<int, array<int, string|null>>  $rows
      */
     private function xlsxFixture(array $rows): string
     {
@@ -1494,7 +1778,7 @@ class AdminDashboardRoutesTest extends TestCase
     }
 
     /**
-     * @param array<int, array<int, string|null>> $rows
+     * @param  array<int, array<int, string|null>>  $rows
      */
     private function namespacedXlsxFixture(array $rows): string
     {
@@ -1540,7 +1824,7 @@ class AdminDashboardRoutesTest extends TestCase
     }
 
     /**
-     * @param array<string, string> $entries
+     * @param  array<string, string>  $entries
      */
     private function zipFixture(array $entries): string
     {
@@ -1553,8 +1837,8 @@ class AdminDashboardRoutesTest extends TestCase
             $size = strlen($contents);
             $nameLength = strlen($name);
 
-            $localHeader = pack('VvvvvvVVVvv', 0x04034b50, 20, 0, 0, 0, 0, $crc, $size, $size, $nameLength, 0).$name;
-            $centralDirectory .= pack('VvvvvvvVVVvvvvvVV', 0x02014b50, 20, 20, 0, 0, 0, 0, $crc, $size, $size, $nameLength, 0, 0, 0, 0, 0, $offset).$name;
+            $localHeader = pack('VvvvvvVVVvv', 0x04034B50, 20, 0, 0, 0, 0, $crc, $size, $size, $nameLength, 0).$name;
+            $centralDirectory .= pack('VvvvvvvVVVvvvvvVV', 0x02014B50, 20, 20, 0, 0, 0, 0, $crc, $size, $size, $nameLength, 0, 0, 0, 0, 0, $offset).$name;
             $localFiles .= $localHeader.$contents;
             $offset += strlen($localHeader) + $size;
         }
@@ -1562,7 +1846,7 @@ class AdminDashboardRoutesTest extends TestCase
         $centralDirectoryOffset = strlen($localFiles);
         $centralDirectorySize = strlen($centralDirectory);
 
-        return $localFiles.$centralDirectory.pack('VvvvvVVv', 0x06054b50, 0, 0, count($entries), count($entries), $centralDirectorySize, $centralDirectoryOffset, 0);
+        return $localFiles.$centralDirectory.pack('VvvvvVVv', 0x06054B50, 0, 0, count($entries), count($entries), $centralDirectorySize, $centralDirectoryOffset, 0);
     }
 
     private function xlsxColumnName(int $number): string
@@ -1577,5 +1861,4 @@ class AdminDashboardRoutesTest extends TestCase
 
         return $name;
     }
-
 }

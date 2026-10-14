@@ -19,11 +19,9 @@
         <a href="{{ route('admin.members') }}" class="{{ $sidebarLinkClass('admin.members*') }}" @if($sidebarCurrentPage('admin.members*')) aria-current="page" @endif>Members</a>
         <a href="{{ route('admin.seekers') }}" class="{{ $sidebarLinkClass('admin.seekers*') }}" @if($sidebarCurrentPage('admin.seekers*')) aria-current="page" @endif>Seekers</a>
         <a href="{{ route('admin.users') }}" class="{{ $sidebarLinkClass('admin.users*') }}" @if($sidebarCurrentPage('admin.users*')) aria-current="page" @endif>Users</a>
-        <a href="{{ route('admin.reports') }}" class="{{ $sidebarLinkClass('admin.reports*') }}" @if($sidebarCurrentPage('admin.reports*')) aria-current="page" @endif>Reports</a>
         <span class="sidebar-section-label">Analytics</span>
         <a href="{{ route('admin.analytics') }}" class="{{ $sidebarLinkClass('admin.analytics') }}" @if($sidebarCurrentPage('admin.analytics')) aria-current="page" @endif>Overview</a>
         <a href="{{ route('admin.analytics.sentiment') }}" class="{{ $sidebarLinkClass('admin.analytics.sentiment*') }}" @if($sidebarCurrentPage('admin.analytics.sentiment*')) aria-current="page" @endif>Sentiment Analysis</a>
-        <a href="{{ route('feedback.create') }}" class="{{ $sidebarLinkClass('feedback*') }}" @if($sidebarCurrentPage('feedback*')) aria-current="page" @endif>Feedback</a>
     @elseif ($sidebarHasSatelliteShell)
         <a href="{{ route('satellites.dashboard', $sidebarActiveSatellite) }}" class="{{ $sidebarLinkClass('satellites.dashboard') }}" @if($sidebarCurrentPage('satellites.dashboard')) aria-current="page" @endif>Dashboard</a>
         <a href="{{ route('satellites.members', $sidebarActiveSatellite) }}" class="{{ $sidebarLinkClass('satellites.members*') }}" @if($sidebarCurrentPage('satellites.members*')) aria-current="page" @endif>Members</a>
@@ -34,6 +32,9 @@
     @else
         <a href="{{ route($sidebarRole === 'district' || $sidebarRole === 'district_user' ? 'district.dashboard' : 'home') }}" class="{{ $sidebarLinkClass(['home', 'district.dashboard']) }}" @if($sidebarCurrentPage(['home', 'district.dashboard'])) aria-current="page" @endif>Dashboard</a>
         <a href="{{ route('feedback.create') }}" class="{{ $sidebarLinkClass('feedback*') }}" @if($sidebarCurrentPage('feedback*')) aria-current="page" @endif>Feedback</a>
+    @endif
+    @if ($sidebarRole === 'leader')
+        <a href="{{ route('analytics.checkpoints.index') }}" class="{{ $sidebarLinkClass('analytics.checkpoints.*') }}">Checkpoint review</a>
     @endif
 </nav>
 

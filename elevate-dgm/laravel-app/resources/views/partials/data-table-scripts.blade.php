@@ -290,6 +290,8 @@
                 top = buttonRect.top - panelRect.height - gap;
             }
 
+            panel.style.maxHeight = `${window.innerHeight - gap * 2}px`;
+            panel.style.overflowY = 'auto';
             panel.style.left = `${left}px`;
             panel.style.top = `${Math.max(gap, top)}px`;
         };
@@ -302,6 +304,7 @@
             button?.setAttribute('aria-expanded', 'false');
 
             if (panel) {
+                if (panel.matches(':popover-open')) panel.hidePopover();
                 panel.style.left = '';
                 panel.style.top = '';
             }
@@ -326,6 +329,13 @@
             menu.classList.add('open');
             button?.setAttribute('aria-expanded', 'true');
             activeMenu = menu;
+            const panel = menu.querySelector('.data-table-menu');
+            if (panel.showPopover) {
+                panel.setAttribute('popover', 'manual');
+                panel.style.margin = '0';
+                panel.style.inset = 'auto';
+                panel.showPopover();
+            }
             positionMenu(menu);
         };
 
@@ -469,6 +479,29 @@
     };
 
     const initConfirmingControls = () => {
+        const toast = document.getElementById('satellite-toast');
+        const saved = sessionStorage.getItem('satellite-toast');
+        if (toast && saved) {
+            sessionStorage.removeItem('satellite-toast');
+            const result = JSON.parse(saved);
+            toast.hidden = false;
+            toast.textContent = result.message + ' ';
+            if (result.restore_url) {
+                const undo = document.createElement('a');
+                undo.href = '#'; undo.textContent = 'Undo';
+                undo.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    undo.hidden = true;
+                    try {
+                        const response = await fetch(result.restore_url, {method: 'POST', headers: {Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content}});
+                        if (!response.ok) throw new Error('Unable to restore satellite. Refresh and try again.');
+                        sessionStorage.setItem('satellite-toast', JSON.stringify(await response.json()));
+                        window.location.reload();
+                    } catch (error) { toast.textContent = error.message; }
+                });
+                toast.append(undo);
+            }
+        }
         document.querySelectorAll('form[data-confirm-message]').forEach((form) => {
             form.addEventListener('submit', async (event) => {
                 if (form.dataset.confirmed === 'true') {
@@ -477,7 +510,34 @@
                 }
 
                 event.preventDefault();
+                const menu = form.closest('.data-table-row-menu');
+                const panel = menu?.querySelector('.data-table-menu');
+                if (panel?.matches(':popover-open')) panel.hidePopover();
+                menu?.classList.remove('open');
+                menu?.querySelector('[data-menu-button]')?.setAttribute('aria-expanded', 'false');
                 const ok = await confirmChange(form.dataset.confirmMessage);
+                if (ok && form.hasAttribute('data-satellite-action')) {
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button.disabled) return;
+                    button.disabled = true;
+                    const toast = document.getElementById('satellite-toast');
+                    try {
+                        const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+                        if (!response.ok) throw new Error(({403: 'You do not have permission.', 404: 'This satellite is no longer available.', 419: 'Your session expired. Refresh and try again.'})[response.status] || 'Unable to update satellite. Please try again.');
+                        const result = await response.json();
+                        const row = form.closest('tr');
+                        if (row) {
+                            await row.animate([{opacity: 1}, {opacity: 0}], {duration: 220, fill: 'forwards'}).finished;
+                        }
+                        sessionStorage.setItem('satellite-toast', JSON.stringify(result));
+                        window.location.reload();
+                    } catch (error) {
+                        toast.hidden = false;
+                        toast.textContent = error.message;
+                        button.disabled = false;
+                    }
+                    return;
+                }
                 if (ok) {
                     form.dataset.confirmed = 'true';
                     markFormSubmitting(form);
