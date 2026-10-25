@@ -11,7 +11,7 @@
 .sentiment-workspace .sentiment-tabs{display:flex;flex-wrap:nowrap;gap:28px;width:100%;min-width:0;border-bottom:1px solid #dce1e8;margin-bottom:28px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none;-ms-overflow-style:none}
 .sentiment-workspace .sentiment-tabs::-webkit-scrollbar{display:none}
 .sentiment-workspace .sentiment-tabs a{display:flex;align-items:center;flex:none;min-height:44px;padding:8px 0;text-decoration:none;color:#667085;font-size:14px;white-space:nowrap;font-weight:600;border-bottom:3px solid transparent}
-.sentiment-workspace .sentiment-tabs a[aria-current]{color:#b42318;border-bottom-color:#b42318}
+.sentiment-workspace .sentiment-tabs a[aria-current]{color:#b42318;border-bottom-color:#450d07}
 
 .sentiment-workspace .quality-grid span{font-size:13px;color:#667085;font-weight:600}
 

@@ -31,13 +31,13 @@
             @endif
             @if ($seeker)
                 <input type="hidden" name="seeker_id" value="{{ $seeker->id }}">
-                <div style="padding: 12px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid #e33c24;">
+                <div style="padding: 12px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid #450d07;">
                     <strong>{{ $seeker->name }}</strong><br>
                     <small style="color: #666;">Seeker</small>
                 </div>
             @elseif ($member)
                 <input type="hidden" name="member_id" value="{{ $member->id }}">
-                <div style="padding: 12px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid #e33c24;">
+                <div style="padding: 12px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid #450d07;">
                     <strong>{{ $member->display_name }}</strong><br>
                     <small style="color: #666;">Member</small>
                 </div>
@@ -96,7 +96,7 @@
 
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
             <a href="{{ route('satellites.follow-ups.index', $satellite) }}" style="padding: 12px 24px; background: #f3f4f6; color: #111; text-decoration: none; border-radius: 8px; font-weight: 800; cursor: pointer;">Cancel</a>
-            <button type="submit" style="padding: 12px 24px; background: #e33c24; color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">Create Follow-Up</button>
+            <button type="submit" class="btn-primary" style="display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 8px; font-weight: 800; cursor: pointer;">Create Follow-Up</button>
         </div>
     </form>
 </div>

@@ -7,7 +7,7 @@
             <h1>My Feedback</h1>
             <p style="margin: 8px 0 0; color: #6b7280; font-weight: 700;">Your submitted system feedback and explainable sentiment results.</p>
         </div>
-        <a href="{{ route('feedback.create') }}" style="display: inline-block; padding: 11px 16px; background: #e33c24; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 800;">New Feedback</a>
+        <a href="{{ route('feedback.create') }}" class="btn-primary" style="display: inline-flex; align-items: center; padding: 11px 16px; border-radius: 8px; text-decoration: none; font-weight: 800;">New Feedback</a>
     </div>
 
     @if (session('status'))

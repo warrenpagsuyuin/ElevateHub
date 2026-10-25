@@ -3,9 +3,9 @@
             ['key' => 'archived', 'label' => 'Archived', 'count' => $statusTabCounts['archived'], 'url' => route('admin.satellites', array_merge(request()->except('page'), ['view' => 'archived']))],
         ]" />
         <div id="satellite-toast" class="notice" role="status" hidden></div>
-        <div class="stats">
+        <div class="stats metric-card-grid">
             @foreach (['Total Satellites' => $totalSatellites, 'Active Leaders' => $activeLeaders, 'Total Members' => $activeMembers, 'Open Reports' => $openReports] as $label => $value)
-                <div class="card elevate-stat-card" aria-label="{{ $label }}, {{ $value === null ? 'No data for '.$selectedDashboardMonth.' '.$selectedDashboardYear : number_format($value).', '.$periodLabel }}"><div class="info"><span class="label stat-card-label">{{ $label }}</span><span class="value stat-card-value">{{ $value === null ? '—' : number_format($value) }}</span>@if($value === null)<span class="period-unavailable">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</span>@endif</div></div>
+                <div class="card metric-card elevate-stat-card" aria-label="{{ $label }}, {{ $value === null ? 'No data for '.$selectedDashboardMonth.' '.$selectedDashboardYear : number_format($value).', '.$periodLabel }}"><div class="info"><span class="label stat-card-label">{{ $label }}</span><span class="value stat-card-value">{{ $value === null ? '—' : number_format($value) }}</span>@if($value === null)<span class="period-unavailable">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</span>@endif</div></div>
             @endforeach
         </div>
 

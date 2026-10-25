@@ -3,23 +3,41 @@
 @section('title', 'Admin Dashboard | Elevate DGM')
 
 @section('content')
-<div class="admin-dashboard-page">
+<div class="admin-dashboard-page satellite-dashboard satellite-overview" data-satellite-dashboard data-refresh-interval="30000" data-live="{{ $isLiveDashboard ? 'true' : 'false' }}" data-year="{{ $dashboardCurrentYear }}" data-month="{{ $dashboardCurrentMonth }}">
     <div class="page-header admin-dashboard-header">
         <div>
             <h1>Dashboard</h1>
-            <p class="page-subtitle">{{ now()->format('F j, Y') }}</p>
+            <p class="page-subtitle" data-dashboard-subtitle @if(!$isLiveDashboard) hidden @endif>
+                @if($isLiveDashboard)
+                    <span data-dashboard-date>{{ now()->format('F j, Y') }}</span> · <span data-dashboard-updated>Updated {{ $dashboardUpdatedAt }}</span>
+                @else
+                    Viewing {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }} · <a href="{{ route('admin.dashboard', ['month' => 'Live', 'year' => $dashboardCurrentYear]) }}" data-back-to-live>Back to Live</a>
+                @endif
+            </p>
+        </div>
+        <div class="dashboard-header-actions">
+            <div data-dashboard-controls>
+                @include('components.satellite-period-controls', ['periodFormAction' => route('admin.dashboard')])
+            </div>
+            <button type="button" class="history-button" data-history-open aria-label="Activity history" title="Activity history" aria-expanded="false" aria-controls="activity-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg>
+            </button>
         </div>
     </div>
 
-    <section class="dashboard-intro" aria-labelledby="movement-summary-title">
-        <p class="summary-title" id="movement-summary-title">ELEVATE MOVEMENT WIDE SUMMARY</p>
-    </section>
+    <div class="sr-only" aria-live="polite" data-period-announce></div>
+    <div class="dashboard-network-error" data-dashboard-error role="alert" hidden>Unable to update. Showing previous data. <button type="button" data-dashboard-retry>Retry</button></div>
 
-    <div class="stats-grid admin-summary-grid">
-        @foreach ($movementSummaryCards as $card)
-            @include('admin.dashboard-directory.card', ['card' => $card])
-        @endforeach
+    <div data-dashboard-content>
+        @include('admin.dashboard-content')
     </div>
+
+    <dialog class="mv-drawer activity-history-drawer" id="activity-history" aria-labelledby="activity-history-title">
+        <header class="activity-history-head"><h2 id="activity-history-title">Activity history</h2><button type="button" class="btn-secondary" data-history-close aria-label="Close activity history">&times;</button></header>
+        <div data-history-error role="alert" hidden>Unable to update. Showing previous data. <button type="button" class="btn-secondary" data-dashboard-retry>Retry</button></div>
+        <div data-history-body></div>
+        <a class="touch-target" href="{{ route('admin.satellites') }}">View all satellites</a>
+    </dialog>
 </div>
 @endsection
 
@@ -213,4 +231,8 @@
                 font-size: 11px;
             }
         }
+@endpush
+
+@push('scripts')
+    <script>{!! file_get_contents(resource_path('js/satellite-dashboard.js')) !!}</script>
 @endpush

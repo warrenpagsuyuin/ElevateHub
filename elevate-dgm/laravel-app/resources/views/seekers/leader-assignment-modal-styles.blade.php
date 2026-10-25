@@ -12,8 +12,6 @@
 .leader-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 .leader-modal-actions button { min-height: 44px; border-radius: 999px; padding: 0 17px; font-weight: 900; cursor: pointer; }
 .leader-cancel { border: 1px solid #d8dde6; background: #fff; color: var(--ink, #111); }
-.leader-submit { border: 0; background: var(--brand-red, #ef3b24); color: #fff; }
-.leader-submit:hover, .leader-submit:focus-visible { background: var(--brand-red-dark, #c92f1b); outline: none; }
 .leader-submit:disabled { opacity: 0.6; cursor: wait; }
 .leader-error { display: none; margin-bottom: 14px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #991b1b; padding: 10px; font-size: 13px; font-weight: 800; }
 .leader-error.open { display: block; }

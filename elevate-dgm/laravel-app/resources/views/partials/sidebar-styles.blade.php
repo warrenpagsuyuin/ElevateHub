@@ -177,7 +177,7 @@
         .sidebar-link[aria-current="page"] {
             background: var(--sidebar-active-bg);
             color: var(--sidebar-active-text);
-            box-shadow: inset 4px 0 0 var(--brand-red);
+            box-shadow: inset 4px 0 0 var(--ui-border-red, #450d07);
         }
 
         .sidebar-section-label {
@@ -505,7 +505,7 @@
 
         .btn-secondary:hover,
         .btn-secondary:focus-visible {
-            border-color: var(--brand-red);
+            border-color: var(--ui-border-red, #450d07);
             color: var(--brand-red);
         }
 
@@ -538,8 +538,8 @@
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: var(--brand-red);
-            box-shadow: 0 0 0 3px rgba(239, 59, 36, 0.12);
+            border-color: var(--ui-border-red, #450d07);
+            box-shadow: 0 0 0 3px rgba(69, 13, 7, 0.12);
         }
 
         .notice,

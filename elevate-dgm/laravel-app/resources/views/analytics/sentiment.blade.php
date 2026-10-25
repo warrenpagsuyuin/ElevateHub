@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@push('styles')
+    .sentiment-explanation > summary { width: fit-content; list-style: none; cursor: pointer; }
+    .sentiment-explanation > summary::-webkit-details-marker { display: none; }
+@endpush
+
 @php
     $formatMetric = fn ($value): string => $value === null ? 'No labels yet' : number_format($value * 100, 1).'%';
 @endphp
@@ -14,7 +19,7 @@
         </div>
         <form method="POST" action="{{ route('admin.analytics.sentiment.analyze') }}" style="margin: 0;">
             @csrf
-            <button type="submit" style="display: inline-block; padding: 12px 18px; background: #e33c24; color: #fff; border: none; border-radius: 8px; font-weight: 900; cursor: pointer;">Analyze Feedback</button>
+            <button type="submit" class="btn-primary" style="display: inline-flex; align-items: center; padding: 12px 18px; border-radius: 8px; font-weight: 900; cursor: pointer;">Analyze Feedback</button>
         </form>
     </div>
 
@@ -31,41 +36,41 @@
         </div>
     @endif
 
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px;">
-        <div style="background: #111; color: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em;">Accuracy</div>
-            <div style="font-size: 28px; font-weight: 900; margin-top: 8px;">{{ $formatMetric($evaluation['accuracy']) }}</div>
+    <div class="stats-grid metric-card-grid" style="display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px;">
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Accuracy</span>
+            <span class="value stat-card-value">{{ $formatMetric($evaluation['accuracy']) }}</span>
         </div>
-        <div style="background: #e33c24; color: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em;">Precision</div>
-            <div style="font-size: 28px; font-weight: 900; margin-top: 8px;">{{ $formatMetric($evaluation['macro_precision']) }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Precision</span>
+            <span class="value stat-card-value">{{ $formatMetric($evaluation['macro_precision']) }}</span>
         </div>
-        <div style="background: #fff; color: #111; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10); border-left: 4px solid #e33c24;">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Recall</div>
-            <div style="font-size: 28px; font-weight: 900; margin-top: 8px;">{{ $formatMetric($evaluation['macro_recall']) }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Recall</span>
+            <span class="value stat-card-value">{{ $formatMetric($evaluation['macro_recall']) }}</span>
         </div>
-        <div style="background: #fff; color: #111; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10); border-left: 4px solid #111;">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">F1 Score</div>
-            <div style="font-size: 28px; font-weight: 900; margin-top: 8px;">{{ $formatMetric($evaluation['macro_f1']) }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">F1 Score</span>
+            <span class="value stat-card-value">{{ $formatMetric($evaluation['macro_f1']) }}</span>
         </div>
     </div>
 
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px;">
-        <div style="background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Positive</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px; color: #c92f1b;">{{ $summary['counts']['Positive'] ?? 0 }}</div>
+    <div class="stats-grid metric-card-grid" style="display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 14px; margin-bottom: 18px;">
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Positive</span>
+            <span class="value stat-card-value">{{ $summary['counts']['Positive'] ?? 0 }}</span>
         </div>
-        <div style="background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Neutral</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px;">{{ $summary['counts']['Neutral'] ?? 0 }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Neutral</span>
+            <span class="value stat-card-value">{{ $summary['counts']['Neutral'] ?? 0 }}</span>
         </div>
-        <div style="background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Negative</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px; color: #7f1d1d;">{{ $summary['counts']['Negative'] ?? 0 }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Negative</span>
+            <span class="value stat-card-value">{{ $summary['counts']['Negative'] ?? 0 }}</span>
         </div>
-        <div style="background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Labeled</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px;">{{ $summary['labeled'] ?? 0 }} / {{ $summary['total'] ?? 0 }}</div>
+        <div class="card metric-card elevate-stat-card">
+            <span class="label stat-card-label">Labeled</span>
+            <span class="value stat-card-value">{{ $summary['labeled'] ?? 0 }} / {{ $summary['total'] ?? 0 }}</span>
         </div>
     </div>
 
@@ -90,7 +95,7 @@
                 </select>
             </label>
             <div style="display: flex; gap: 10px;">
-                <button type="submit" style="padding: 10px 18px; background: #e33c24; color: #fff; border: none; border-radius: 8px; font-weight: 900; cursor: pointer;">Apply Filters</button>
+                <button type="submit" class="btn-primary" style="display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 8px; font-weight: 900; cursor: pointer;">Apply Filters</button>
                 <a href="{{ route('admin.analytics.sentiment') }}" style="padding: 10px 18px; background: #f3f4f6; color: #111; text-decoration: none; border-radius: 8px; font-weight: 900;">Clear Filters</a>
             </div>
         </form>
@@ -127,7 +132,6 @@
                     <th style="padding: 15px; text-align: left; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Predicted Label</th>
                     <th style="padding: 15px; text-align: left; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Human Reference Label</th>
                     <th style="padding: 15px; text-align: left; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Original Feedback</th>
-                    <th style="padding: 15px; text-align: left; font-weight: 900; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Why This Sentiment?</th>
                 </tr>
             </thead>
             <tbody>
@@ -154,7 +158,20 @@
                             <small style="display: block; margin-top: 5px; color: #6b7280;">{{ $feedback->created_at?->format('M d, Y g:i A') }}</small>
                         </td>
                         <td style="padding: 15px;">
-                            <span style="display: inline-block; padding: 5px 10px; background: {{ $sentimentBg }}; color: {{ $sentimentColor }}; border-radius: 4px; font-size: 12px; font-weight: 900;">{{ $sentiment ?? 'Unanalyzed' }}</span>
+                            @if ($decisionPath)
+                                <details class="sentiment-explanation">
+                                    <summary aria-label="Show explanation for {{ $sentiment ?? 'unanalyzed' }} sentiment">
+                                        <span style="display: inline-block; padding: 5px 10px; background: {{ $sentimentBg }}; color: {{ $sentimentColor }}; border-radius: 4px; font-size: 12px; font-weight: 900;">{{ $sentiment ?? 'Unanalyzed' }}</span>
+                                    </summary>
+                                    <ul style="margin: 8px 0 0; padding-left: 18px; font-size: 13px;">
+                                        @foreach ($decisionPath as $step)
+                                            <li style="margin-bottom: 5px;">{{ $step }}</li>
+                                        @endforeach
+                                    </ul>
+                                </details>
+                            @else
+                                <span style="display: inline-block; padding: 5px 10px; background: {{ $sentimentBg }}; color: {{ $sentimentColor }}; border-radius: 4px; font-size: 12px; font-weight: 900;">{{ $sentiment ?? 'Unanalyzed' }}</span>
+                            @endif
                             @if ($feedback->sentiment_confidence !== null)
                                 <small style="display: block; margin-top: 6px; color: #6b7280; font-weight: 700;">{{ number_format($feedback->sentiment_confidence * 100, 0) }}% confidence</small>
                             @endif
@@ -181,24 +198,10 @@
                             @endif
                         </td>
                         <td style="padding: 15px; color: #374151; line-height: 1.45;">{{ Str::limit($feedback->message, 190) }}</td>
-                        <td style="padding: 15px; color: #374151; font-size: 13px;">
-                            @if ($decisionPath)
-                                <details>
-                                    <summary style="cursor: pointer; color: #e33c24; font-weight: 900;">Why this sentiment?</summary>
-                                    <ul style="margin: 8px 0 0; padding-left: 18px;">
-                                        @foreach ($decisionPath as $step)
-                                            <li style="margin-bottom: 5px;">{{ $step }}</li>
-                                        @endforeach
-                                    </ul>
-                                </details>
-                            @else
-                                <span style="color: #6b7280;">No explanation is available yet.</span>
-                            @endif
-                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="padding: 34px; text-align: center; color: #6b7280; font-weight: 700;">No system feedback is available for sentiment analysis.</td>
+                        <td colspan="4" style="padding: 34px; text-align: center; color: #6b7280; font-weight: 700;">No system feedback is available for sentiment analysis.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -10,29 +10,29 @@
     <h1>District Dashboard</h1>
 </div>
 
-<div class="stats">
-    <div class="card red">
+<div class="stats metric-card-grid">
+    <div class="card metric-card elevate-stat-card">
         <div class="info">
-            <span class="label">District</span>
-            <span class="value">{{ $user?->district ?? 'Not Set' }}</span>
+            <span class="label stat-card-label">District</span>
+            <span class="value stat-card-value">{{ $user?->district ?? 'Not Set' }}</span>
         </div>
     </div>
-    <div class="card black">
+    <div class="card metric-card elevate-stat-card">
         <div class="info">
-            <span class="label">Assigned Satellites</span>
-            <span class="value">{{ $satellites->count() }}</span>
+            <span class="label stat-card-label">Assigned Satellites</span>
+            <span class="value stat-card-value">{{ $satellites->count() }}</span>
         </div>
     </div>
-    <div class="card red">
+    <div class="card metric-card elevate-stat-card">
         <div class="info">
-            <span class="label">Role</span>
-            <span class="value">{{ ucfirst((string) ($user?->role ?? 'member')) }}</span>
+            <span class="label stat-card-label">Role</span>
+            <span class="value stat-card-value">{{ ucfirst((string) ($user?->role ?? 'member')) }}</span>
         </div>
     </div>
-    <div class="card black">
+    <div class="card metric-card elevate-stat-card">
         <div class="info">
-            <span class="label">Status</span>
-            <span class="value">Active</span>
+            <span class="label stat-card-label">Status</span>
+            <span class="value stat-card-value">Active</span>
         </div>
     </div>
 </div>

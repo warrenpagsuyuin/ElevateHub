@@ -23,7 +23,7 @@
 :is(.seekers-workspace,.directory-workspace) :is(.seekers-table,.archive-table,.directory-data-table) tr:is(:hover,:focus-within) td { background:var(--ui-page); }
 :is(.seekers-workspace,.directory-workspace) :is(.seekers-table,.archive-table,.directory-data-table) tr:focus-within { outline:2px solid var(--ui-focus); outline-offset:-2px; }
 :is(.seekers-workspace,.directory-workspace) .seeker-name-cell { display:flex; align-items:center; gap:var(--ui-space-2); min-width:0; }
-:is(.seekers-workspace,.directory-workspace) .seeker-detail-name { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+.seekers-card .seeker-detail-name { min-width:0; color:var(--ui-text); white-space:normal; overflow-wrap:anywhere; }
 :is(.seekers-workspace,.directory-workspace) .seeker-detail-button { display:inline-flex; align-items:center; justify-content:center; gap:var(--ui-space); flex:none; min-width:var(--ui-target); min-height:var(--ui-target); padding:var(--ui-space); background:var(--ui-surface); border:1px solid var(--ui-divider); border-radius:var(--radius-sm); color:var(--ui-text); font:inherit; cursor:pointer; }
 :is(.seekers-workspace,.directory-workspace) .seeker-detail-button svg { width:15px; height:15px; flex:none; }
 :is(.seekers-workspace,.directory-workspace) .missing-value { color:var(--ui-muted); font-size:var(--ui-text-xs); }

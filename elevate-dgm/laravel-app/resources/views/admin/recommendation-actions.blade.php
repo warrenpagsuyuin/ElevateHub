@@ -25,8 +25,7 @@
 .checkbox-field input { margin-top: 3px; }
 .checkbox-field p { color: #667085; font-size: 12px; font-weight: 700; line-height: 1.4; margin: 3px 0 0; }
 .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.primary-button, .secondary-button { align-items: center; border-radius: 10px; display: inline-flex; font-weight: 900; justify-content: center; min-height: 42px; padding: 0 16px; text-decoration: none; }
-.primary-button { background: #ef3b24; border: 0; color: #fff; cursor: pointer; }
+.primary-button, .secondary-button { align-items: center; border-radius: 10px; display: inline-flex; font-weight: 900; justify-content: center; min-height: 42px; padding: 0 16px; text-decoration: none; cursor: pointer; }
 .secondary-button { background: #fff; border: 1px solid #d0d5dd; color: #111; }
 .status-message { background: #dcfce7; border-left: 4px solid #22c55e; border-radius: 12px; color: #166534; font-weight: 800; margin-bottom: 18px; padding: 14px 16px; }
 .error-box { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 12px; color: #991b1b; font-weight: 800; margin-bottom: 18px; padding: 14px 16px; }

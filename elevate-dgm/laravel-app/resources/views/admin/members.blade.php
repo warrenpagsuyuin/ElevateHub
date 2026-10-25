@@ -6,12 +6,9 @@
 .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
         .header h1 { margin: 0; font-size: 32px; font-weight: 900; }
         .stats { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
-        .card { border-radius: 14px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 105px; color: #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10); }
-        .card.red { background: #e33c24; }
-        .card.black { background: #111; }
-        .card .info { display: flex; flex-direction: column; gap: 6px; }
-        .card .label { font-size: 14px; font-weight: 800; opacity: 0.95; }
-        .card .value { font-size: 30px; font-weight: 900; line-height: 1; }
+        .card .info { display: flex; flex-direction: column; gap: 8px; }
+        .card .label { font-size: 14px; font-weight: 800; }
+        .card .value { font-size: 36px; font-weight: 900; line-height: 1.2; }
 @include('partials.admin-summary-table-styles')
 @include('partials.table-pagination-styles')
 @include('partials.data-table-styles')
@@ -20,11 +17,11 @@
 
 @section('content')
 <div class="header"><h1>Members Dashboard</h1></div>
-        <div class="stats legacy-stat-cards">
-            <div class="card red"><div class="info"><span class="label">Total Members</span><span class="value">{{ $totalMembers }}</span></div></div>
-            <div class="card black"><div class="info"><span class="label">Total Satellites</span><span class="value">{{ $totalSatellites }}</span></div></div>
-            <div class="card red"><div class="info"><span class="label">Total Leaders</span><span class="value">{{ $totalLeaders }}</span></div></div>
-            <div class="card black"><div class="info"><span class="label">New Members</span><span class="value">{{ $newMembers }}</span></div></div>
+        <div class="stats legacy-stat-cards metric-card-grid">
+            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">Total Members</span><span class="value stat-card-value">{{ $totalMembers }}</span></div></div>
+            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">Total Satellites</span><span class="value stat-card-value">{{ $totalSatellites }}</span></div></div>
+            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">Total Leaders</span><span class="value stat-card-value">{{ $totalLeaders }}</span></div></div>
+            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">New Members</span><span class="value stat-card-value">{{ $newMembers }}</span></div></div>
         </div>
 
         @php

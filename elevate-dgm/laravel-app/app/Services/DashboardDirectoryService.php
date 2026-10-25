@@ -11,7 +11,7 @@ class DashboardDirectoryService
 {
     public const TYPES = ['dgroup-members' => 'DGroup Members', 'dgroup-leaders' => 'DGroup Leaders', 'dgroups' => 'DGroups', 'campuses' => 'Campuses'];
 
-    public function query(string $type, ?string $category = null, ?int $satellite = null): Builder
+    public function query(string $type, ?string $category = null, ?int $satellite = null, ?\DateTimeInterface $start = null, ?\DateTimeInterface $end = null): Builder
     {
         $q = Member::active()->whereIn('satellite_id', \App\Models\Satellite::active()->select('id'))->where('dgroup_role', $type === 'dgroup-members' ? Member::ROLE_MEMBER : Member::ROLE_LEADER);
         if ($category) {
@@ -20,11 +20,15 @@ class DashboardDirectoryService
         if ($satellite) {
             $q->where('satellite_id', $satellite);
         }
+        if ($start && $end) {
+            $q->where('members.created_at', '>=', $start)->where('members.created_at', '<', $end);
+        }
         if ($type === 'dgroups') {
             $q->whereIn('members.id', DB::table('members as a')->join('members as l', 'l.id', '=', 'a.leader_member_id')
                 ->whereNull('a.archived_at')->where('a.status', '!=', Member::STATUS_INACTIVE)
                 ->whereNull('l.archived_at')->where('l.status', '!=', Member::STATUS_INACTIVE)
                 ->where('a.dgroup_role', Member::ROLE_MEMBER)->whereColumn('a.satellite_id', 'l.satellite_id')
+                ->when($start && $end, fn ($sub) => $sub->where('a.created_at', '>=', $start)->where('a.created_at', '<', $end))
                 ->select('a.leader_member_id')->groupBy('a.leader_member_id')
                 ->havingRaw('COUNT(*) >= ?', [max(1, (int) config('dashboard_directory.DGROUP_MIN_MEMBERS'))]));
         }
@@ -68,11 +72,14 @@ class DashboardDirectoryService
         return collect($campuses)->sortKeys()->values();
     }
 
-    public function summary(): array
+    public function summary(?array $period = null): array
     {
+        $start = !empty($period) && empty($period['isLiveDashboard']) ? ($period['dashboardStart'] ?? null) : null;
+        $end = !empty($period) && empty($period['isLiveDashboard']) ? ($period['dashboardEnd'] ?? null) : null;
+
         $cards = [];
         foreach (['dgroup-leaders', 'dgroups', 'dgroup-members', 'campuses'] as $type) {
-            $count = fn ($category = null) => $type === 'campuses' ? $this->campuses($category)->count() : $this->query($type, $category)->count();
+            $count = fn ($category = null) => $type === 'campuses' ? $this->campuses($category)->count() : $this->query($type, $category, null, $start, $end)->count();
             $cards[] = ['key' => $type, 'label' => strtoupper(self::TYPES[$type]), 'title' => self::TYPES[$type], 'total' => $count(),
                 'segments' => array_map(fn ($category) => ['label' => $category, 'value' => $count($category)], config('dashboard_directory.categories'))];
         }

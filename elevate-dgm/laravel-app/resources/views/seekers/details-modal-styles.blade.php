@@ -22,7 +22,7 @@
 }
 .seeker-detail-button:focus-visible { box-shadow: 0 0 0 3px rgba(227, 60, 36, 0.18); }
 .seeker-detail-button svg { display: block; width: 15px; height: 15px; }
-.seeker-detail-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seeker-detail-name { min-width: 0; color: var(--ui-text, #111); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .seeker-modal-backdrop {
     position: fixed;
     inset: 0;

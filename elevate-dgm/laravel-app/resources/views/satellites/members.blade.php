@@ -71,12 +71,9 @@
         .header-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; border: 0; border-radius: 999px; padding: 0 18px; color: var(--ink); background: #fff; font-size: 14px; font-weight: 900; text-decoration: none; cursor: pointer; transition: 0.15s ease; white-space: nowrap; }
         .btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
-        .btn-primary { background: var(--brand-red); color: #fff; box-shadow: 0 10px 22px rgba(227, 60, 36, 0.22); }
-        .btn-primary:hover, .btn-primary:focus-visible { background: var(--brand-red-dark); color: #fff; outline: none; }
+        .btn-primary { box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18); }
         .btn-secondary { border: 1px solid var(--line); background: #fff; color: var(--ink); }
         .btn-secondary:hover, .btn-secondary:focus-visible { border-color: var(--brand-red); color: var(--brand-red); outline: none; }
-        .btn-danger { background: #b42318; color: #fff; }
-        .btn-danger:hover, .btn-danger:focus-visible { background: #912018; outline: none; }
         .btn:disabled { opacity: 0.58; cursor: wait; }
         .flash { margin-bottom: 16px; padding: 13px 16px; border-radius: 12px; font-size: 14px; font-weight: 850; }
         .flash-success { border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; }
@@ -867,7 +864,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-                <button type="submit" class="btn btn-danger" data-loading-text="Deleting...">Delete Member</button>
+                <button type="submit" class="btn btn-danger" data-loading-text="Deleting...">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                    Delete Member
+                </button>
             </div>
         </form>
     </section>

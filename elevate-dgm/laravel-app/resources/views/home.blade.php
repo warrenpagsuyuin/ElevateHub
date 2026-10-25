@@ -18,29 +18,29 @@
     </div>
 </div>
 
-<section class="stats-grid" aria-label="Profile summary">
-    <article class="stat-card">
+<section class="stats-grid metric-card-grid" aria-label="Profile summary">
+    <article class="stat-card metric-card elevate-stat-card">
         <div class="info">
-            <span class="stat-value">{{ $roleLabel }}</span>
-            <span class="stat-label">Role</span>
+            <span class="label stat-card-label">Role</span>
+            <span class="value stat-card-value">{{ $roleLabel }}</span>
         </div>
     </article>
-    <article class="stat-card">
+    <article class="stat-card metric-card elevate-stat-card">
         <div class="info">
-            <span class="stat-value">{{ $assignedSatellite?->display_name ?? 'Unassigned' }}</span>
-            <span class="stat-label">Assigned Satellite</span>
+            <span class="label stat-card-label">Assigned Satellite</span>
+            <span class="value stat-card-value">{{ $assignedSatellite?->display_name ?? 'Unassigned' }}</span>
         </div>
     </article>
-    <article class="stat-card">
+    <article class="stat-card metric-card elevate-stat-card">
         <div class="info">
-            <span class="stat-value">{{ $user?->district ?? 'Not Set' }}</span>
-            <span class="stat-label">District</span>
+            <span class="label stat-card-label">District</span>
+            <span class="value stat-card-value">{{ $user?->district ?? 'Not Set' }}</span>
         </div>
     </article>
-    <article class="stat-card">
+    <article class="stat-card metric-card elevate-stat-card">
         <div class="info">
-            <span class="stat-value">Active</span>
-            <span class="stat-label">Status</span>
+            <span class="label stat-card-label">Status</span>
+            <span class="value stat-card-value">Active</span>
         </div>
     </article>
 </section>

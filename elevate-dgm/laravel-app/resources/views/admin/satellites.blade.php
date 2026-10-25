@@ -10,10 +10,9 @@
         .notice { margin-bottom: 18px; border: 1px solid rgba(227, 60, 36, 0.18); border-radius: 10px; background: #fff; color: #111; padding: 12px 16px; font-weight: 700; }
         .notice.error { color: #b42318; }
         .stats { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
-        .card { border-radius: 14px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 105px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10); }
-        .card .info { display: flex; flex-direction: column; gap: 6px; }
-        .card .label { font-size: 14px; font-weight: 800; opacity: 0.95; }
-        .card .value { font-size: 30px; font-weight: 900; line-height: 1; }
+        .card .info { display: flex; flex-direction: column; gap: 8px; }
+        .card .label { font-size: 14px; font-weight: 800; }
+        .card .value { font-size: 36px; font-weight: 900; line-height: 1.2; }
 @include('partials.admin-summary-table-styles')
         .satellite-name { color: inherit; font: inherit; font-weight: 800; }
         .muted { color: rgba(17, 24, 39, 0.68); font-size: 13px; font-weight: 600; }

@@ -144,7 +144,7 @@ body.sidebar-open {
 .sidebar-link[aria-current="page"] {
     background: var(--sidebar-active-bg);
     color: var(--sidebar-active-text);
-    box-shadow: inset 4px 0 0 var(--brand-red);
+    box-shadow: inset 4px 0 0 var(--ui-border-red, #450d07);
 }
 
 .sidebar-footer,

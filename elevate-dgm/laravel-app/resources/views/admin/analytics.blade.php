@@ -11,9 +11,9 @@
     </header>
     <section class="analytics-current-stats" aria-label="Current active satellite totals">
         <p class="mv-note">Current active records, matching the Members and Satellites dashboards. Checkpoint metrics below retain their dated definitions and coverage.</p>
-        <div class="stats">
+        <div class="stats metric-card-grid">
         @foreach (['totalSatellites' => 'Total Satellites', 'activeLeaders' => 'Active Leaders', 'activeMembers' => 'Total Members', 'openReports' => 'Open Reports'] as $key => $label)
-            <div class="card {{ $loop->odd ? 'red' : 'black' }}"><div class="info"><span class="label">{{ $label }}</span><span class="value">{{ $activeSatelliteCounts[$key] }}</span></div></div>
+            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">{{ $label }}</span><span class="value stat-card-value">{{ $activeSatelliteCounts[$key] }}</span></div></div>
         @endforeach
         </div>
     </section>

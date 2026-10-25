@@ -4,6 +4,7 @@
     --ui-primary: #b42318;
     --ui-primary-hover: #912018;
     --ui-primary-active: #701a12;
+    --ui-border-red: #450d07;
     --ui-navigation-accent: #ff6b53;
     --ui-surface: #ffffff;
     --ui-page: #f3f4f6;
@@ -111,30 +112,42 @@ body { color: var(--ui-text); font-size: var(--ui-text-base); line-height: 1.5; 
 .data-table-column-toggle { gap: var(--ui-space-4); }
 .data-table-column-toggle .data-table-column-checkbox:checked {
     background-color: var(--ui-primary);
-    border-color: var(--ui-primary) !important;
+    border-color: var(--ui-border-red, #450d07) !important;
 }
 :is(.btn, .btn-secondary, .data-table-button, .data-table-link-button,
     .data-table-icon-button, .data-table-menu-button, .mobile-menu-button,
     .pagination-link) { border-color: var(--ui-border); }
-.sidebar-footer button, .signout button, .logout-button,
-.data-table-button.primary, .data-table-link-button.primary, .btn-primary,
-.new-button, .modal-submit, .primary-button, .btn-danger,
-.data-table-button.danger, .data-table-link-button.danger {
+.sidebar-footer button, .signout button, .logout-button {
     background: var(--ui-primary) !important;
     border-color: var(--ui-primary);
     color: var(--ui-surface) !important;
 }
-.sidebar-footer button:hover, .signout button:hover, .logout-button:hover,
-.data-table-button.primary:hover, .data-table-link-button.primary:hover, .btn-primary:hover,
-.new-button:hover, .modal-submit:hover, .primary-button:hover, .btn-danger:hover,
-.data-table-button.danger:hover, .data-table-link-button.danger:hover {
+.sidebar-footer button:hover, .signout button:hover, .logout-button:hover {
     background: var(--ui-primary-hover) !important;
     border-color: var(--ui-primary-hover);
 }
-.sidebar-footer button:active, .signout button:active, .logout-button:active,
-.data-table-button.primary:active, .data-table-link-button.primary:active, .btn-primary:active,
-.new-button:active, .modal-submit:active, .primary-button:active, .btn-danger:active {
+.sidebar-footer button:active, .signout button:active, .logout-button:active {
     background: var(--ui-primary-active) !important;
+}
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary,
+    .new-button, .modal-submit, .primary-button, .btn-danger,
+    .data-table-button.danger, .data-table-link-button.danger):not([role="menuitem"]) {
+    background: #1A1A1A !important;
+    border: 2px solid var(--ui-border-red, #450d07) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary,
+    .new-button, .modal-submit, .primary-button, .btn-danger,
+    .data-table-button.danger, .data-table-link-button.danger):not([role="menuitem"]):hover {
+    background: #2F2F2F !important;
+    border-color: var(--ui-border-red, #450d07) !important;
+    color: #ffffff !important;
+}
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary,
+    .new-button, .modal-submit, .primary-button, .btn-danger,
+    .data-table-button.danger, .data-table-link-button.danger):not([role="menuitem"]):active {
+    background: #111111 !important;
 }
 .btn-secondary:hover, .data-table-button:not(.primary):not(.danger):hover,
 .data-table-link-button:not(.primary):not(.danger):hover,
@@ -143,7 +156,7 @@ body { color: var(--ui-text); font-size: var(--ui-text-base); line-height: 1.5; 
 .secondary-button:hover, .data-table-search-clear:hover, .modal-close:hover {
     background: var(--ui-error-surface);
     color: var(--ui-primary) !important;
-    border-color: var(--ui-primary);
+    border-color: var(--ui-border-red, #450d07);
 }
 :is(button, .btn, .data-table-link-button, .pagination-link):active:not(:disabled):not([aria-disabled="true"]) {
     box-shadow: inset 0 0 0 2px currentColor;

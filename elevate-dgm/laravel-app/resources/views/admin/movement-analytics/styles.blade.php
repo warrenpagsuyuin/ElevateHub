@@ -127,8 +127,8 @@
 .movement .mv-attention { max-height:650px; overflow:auto; }
 .mv-rank-row > .mv-note { grid-column:1 / -1; text-align:left; }
 #mv-status:has(.mv-loader)::after { content:''; display:block; width:100%; height:50px; border-radius:8px; background:linear-gradient(90deg,#eee,#fafafa,#eee); margin-top:15px; }
-#mv-sample-banner { position:sticky; top:0; z-index:10; border:3px solid #b42318; background:#fff; font-weight:700; }
-.movement .mv-verdict { background:#fff; color:var(--mv-ink); padding:16px 20px; border-left:3px solid #b42318; }
+#mv-sample-banner { position:sticky; top:0; z-index:10; border:3px solid #450d07; background:#fff; font-weight:700; }
+.movement .mv-verdict { background:#fff; color:var(--mv-ink); padding:16px 20px; border-left:3px solid #450d07; }
 .movement .mv-verdict h2 { font-size:16px; line-height:1.5; }
 .movement .mv-verdict p,.movement .mv-verdict .mv-verdict-link { color:var(--mv-muted); }
 .mv-resolution { grid-template-columns:repeat(2,minmax(0,1fr)); }

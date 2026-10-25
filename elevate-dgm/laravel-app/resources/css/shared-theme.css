@@ -24,7 +24,7 @@
     --stat-card-bg: #1A1A1A;
     --stat-card-border: #2F2F2F;
     --stat-card-border-hover: #3A3A3A;
-    --stat-card-accent: var(--ui-primary);
+    --stat-card-accent: var(--ui-border-red, #450d07);
     --stat-card-label: #B8B8B8;
     --stat-card-value: #F2F2F2;
     --stat-card-chevron: var(--stat-card-label);
@@ -57,7 +57,7 @@
     --table-bar-bg: var(--stat-card-bg);
     --table-bar-text: var(--stat-card-value);
     --table-bar-border: var(--stat-card-border);
-    --table-bar-accent: var(--ui-primary);
+    --table-bar-accent: var(--ui-border-red, #450d07);
     --table-bar-control-bg: var(--ui-surface);
     --table-bar-control-text: var(--ui-text);
     --table-bar-control-border: var(--ui-border);
@@ -67,10 +67,16 @@
     --table-bar-button-hover: var(--ui-surface);
     --table-footer-padding: 16px 20px;
     --btn-dark-bg: var(--stat-card-bg);
-    --btn-dark-text: var(--stat-card-value);
+    --btn-dark-text: #FFFFFF;
     --btn-dark-hover: var(--stat-card-border);
     --btn-dark-active: var(--ui-text);
     --btn-dark-focus-ring: var(--stat-card-focus);
+    --ui-border-red: #450d07;
+    --btn-border-red: var(--ui-border-red, #450d07);
+    --btn-border-red-hover: var(--ui-border-red, #450d07);
+    --btn-disabled-bg: #2D3139;
+    --btn-disabled-text: #9CA3AF;
+    --btn-disabled-border: rgba(69, 13, 7, 0.45);
 }
 
 /* Geometry falls back gently; existing grids, minimum heights and weights stay local. */
@@ -131,9 +137,62 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
 .activity-history-drawer .activity-status { display:inline-flex; align-items:center; justify-self:start; gap:var(--ui-space); min-height:26px; padding:var(--ui-space) var(--ui-space-2); border-radius:999px; background:var(--summary-row-border); color:var(--summary-row-value); font-size:var(--ui-text-xs); font-weight:800; }
 .summary-row:is(a, [tabindex]):focus-visible { outline:2px solid var(--stat-card-focus); outline-offset:2px; }
 
-/* Preserve the approved legacy summary groups on Members and Satellites. */
-.legacy-stat-cards .card.red { background: var(--ui-primary); color: var(--ui-surface); }
-.legacy-stat-cards .card.black { background: var(--ui-text); color: var(--ui-surface); }
+/* All summary/stat cards across all dashboards match the approved 1st card style (Image 1) */
+:is(.stats, .legacy-stat-cards, .stats-grid:not(.admin-summary-grid), .metric-card-grid) :is(.card, .stat-card:not(.admin-summary-card), .metric-card, .elevate-stat-card:not(.admin-summary-card)) {
+    background: var(--stat-card-bg) !important;
+    color: var(--stat-card-value) !important;
+    border: 1px solid var(--stat-card-border) !important;
+    border-top: var(--stat-card-accent-width, 4px) solid var(--stat-card-accent) !important;
+    border-radius: var(--stat-card-radius, 16px) !important;
+    padding: var(--stat-card-padding, 18px 22px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    gap: var(--ui-space-2, 8px) !important;
+    min-height: 105px !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+}
+
+:is(.stats, .legacy-stat-cards, .stats-grid:not(.admin-summary-grid), .metric-card-grid) :is(.card, .stat-card:not(.admin-summary-card), .metric-card, .elevate-stat-card:not(.admin-summary-card)) :is(.info, [class*="info"]) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    text-align: left !important;
+    gap: var(--ui-space-2, 8px) !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+:is(.stats, .legacy-stat-cards, .stats-grid:not(.admin-summary-grid), .metric-card-grid) :is(.card, .stat-card:not(.admin-summary-card), .metric-card, .elevate-stat-card:not(.admin-summary-card)) :is(.label, .stat-card-label, .stat-label) {
+    color: var(--stat-card-label) !important;
+    font-size: var(--stat-card-label-size, 14px) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .06em !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    text-align: left !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+}
+
+:is(.stats, .legacy-stat-cards, .stats-grid:not(.admin-summary-grid), .metric-card-grid) :is(.card, .stat-card:not(.admin-summary-card), .metric-card, .elevate-stat-card:not(.admin-summary-card)) :is(.value, .stat-card-value, .stat-value) {
+    color: var(--stat-card-value) !important;
+    font-size: var(--stat-card-value-size, 36px) !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    text-align: left !important;
+    overflow-wrap: anywhere !important;
+}
 
 /* Panels and Table Cards */
 .table-card, .directory-card, .seekers-card, .elevate-table-card, .data-card.recent-activity {
@@ -271,12 +330,12 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
 .pagination-bar .pagination-link:hover {
     background: var(--table-bar-button-hover);
     color: var(--table-bar-button-text);
-    border-color: var(--ui-primary);
+    border-color: var(--ui-border-red, #450d07);
 }
 .pagination-bar .pagination-current {
     background: var(--table-bar-bg);
     color: var(--table-bar-text);
-    border: 2px solid var(--ui-primary);
+    border: 2px solid var(--ui-border-red, #450d07);
     text-decoration: underline;
     text-underline-offset: 4px;
 }
@@ -297,9 +356,17 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
     height: 16px;
     content: '';
     border: 2px solid var(--table-bar-text);
-    border-top-color: var(--ui-primary);
+    border-top-color: var(--ui-border-red, #450d07);
     border-radius: 50%;
     animation: pagination-spin .7s linear infinite;
+}
+
+/* Sidebar active indicator border in navigation panel */
+.menu a.active,
+.menu a[aria-current="page"],
+.sidebar-link.active,
+.sidebar-link[aria-current="page"] {
+    box-shadow: inset 4px 0 0 var(--ui-border-red, #450d07) !important;
 }
 .pagination-loading-status {
     position: absolute;
@@ -366,26 +433,295 @@ select option:disabled,
     font-size: 12px;
 }
 
-:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
-    .modal-submit, .primary-button, .research button.primary, .research a.primary,
-    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action) {
-    background: var(--btn-dark-bg);
-    color: var(--btn-dark-text);
-    border-color: var(--btn-dark-bg);
+/* ==========================================================================
+   Shared Button System
+   ========================================================================== */
+
+/* 1. Primary and confirm actions:
+   Save, Assign, Submit, Apply, Add, Create, Update, Confirm:
+   near-black background token, white bold text, 2px red border using theme red token. */
+:is(
+    .btn-primary,
+    .primary-button,
+    .modal-submit,
+    .new-button,
+    .leader-submit,
+    .sync-button,
+    .data-table-button.primary,
+    .data-table-link-button.primary,
+    .research button.primary,
+    .research a.primary,
+    .sentiment-workspace button.primary,
+    .sentiment-workspace a.primary,
+    .recommendation-button.primary,
+    .dark-action,
+    .mv-button.mv-dark,
+    #qc-attest-submit,
+    #qc-finalize-submit
+):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]) {
+    background: var(--btn-dark-bg) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border: 2px solid var(--btn-border-red) !important;
+    box-sizing: border-box;
+    min-height: var(--ui-target, 44px);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
-:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
-    .modal-submit, .primary-button, .research button.primary, .research a.primary,
-    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action):hover {
-    background: var(--btn-dark-hover);
-    color: var(--btn-dark-text);
-    border-color: var(--btn-dark-hover);
+
+:is(
+    .btn-primary,
+    .primary-button,
+    .modal-submit,
+    .new-button,
+    .leader-submit,
+    .sync-button,
+    .data-table-button.primary,
+    .data-table-link-button.primary,
+    .research button.primary,
+    .research a.primary,
+    .sentiment-workspace button.primary,
+    .sentiment-workspace a.primary,
+    .recommendation-button.primary,
+    .dark-action,
+    .mv-button.mv-dark,
+    #qc-attest-submit,
+    #qc-finalize-submit
+):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]):hover {
+    background: var(--btn-dark-hover) !important;
+    color: #FFFFFF !important;
+    border-color: var(--btn-border-red) !important;
 }
-:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
-    .modal-submit, .primary-button, .research button.primary, .research a.primary,
-    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action):active { background: var(--btn-dark-active); }
-.sidebar-footer .signout-button { background: var(--signout-bg); color: var(--signout-text); border: 1px solid var(--signout-border); }
-.sidebar-footer .signout-button:hover { background: var(--signout-bg-hover); border-color: var(--signout-border-hover); }
-.sidebar-footer .signout-button:active { background: var(--signout-bg-active); }
+
+:is(
+    .btn-primary,
+    .primary-button,
+    .modal-submit,
+    .new-button,
+    .leader-submit,
+    .sync-button,
+    .data-table-button.primary,
+    .data-table-link-button.primary,
+    .research button.primary,
+    .research a.primary,
+    .sentiment-workspace button.primary,
+    .sentiment-workspace a.primary,
+    .recommendation-button.primary,
+    .dark-action,
+    .mv-button.mv-dark,
+    #qc-attest-submit,
+    #qc-finalize-submit
+):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]):active {
+    background: var(--btn-dark-active) !important;
+    transform: translateY(1px);
+}
+
+:is(
+    .btn-primary,
+    .primary-button,
+    .modal-submit,
+    .new-button,
+    .leader-submit,
+    .sync-button,
+    .data-table-button.primary,
+    .data-table-link-button.primary,
+    .research button.primary,
+    .research a.primary,
+    .sentiment-workspace button.primary,
+    .sentiment-workspace a.primary,
+    .recommendation-button.primary,
+    .dark-action,
+    .mv-button.mv-dark,
+    #qc-attest-submit,
+    #qc-finalize-submit
+):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]):focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--btn-border-red, #450d07) !important;
+}
+
+:is(
+    .btn-primary,
+    .primary-button,
+    .modal-submit,
+    .new-button,
+    .leader-submit,
+    .sync-button,
+    .data-table-button.primary,
+    .data-table-link-button.primary,
+    .research button.primary,
+    .research a.primary,
+    .sentiment-workspace button.primary,
+    .sentiment-workspace a.primary,
+    .recommendation-button.primary,
+    .dark-action,
+    .mv-button.mv-dark,
+    #qc-attest-submit,
+    #qc-finalize-submit
+):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]):is(:disabled, [aria-disabled="true"], [disabled]) {
+    background: var(--btn-disabled-bg) !important;
+    color: var(--btn-disabled-text) !important;
+    border-color: var(--btn-disabled-border) !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    opacity: 1 !important;
+}
+
+/* 2. Destructive actions:
+   Delete, Remove, Cancel/Revoke, Deactivate:
+   same look as primary: near-black background, white text, 2px red border. */
+:is(
+    .btn-danger,
+    .data-table-button.danger,
+    .data-table-link-button.danger,
+    .btn-destructive,
+    .button-danger
+):not([role="menuitem"]) {
+    background: var(--btn-dark-bg) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border: 2px solid var(--btn-border-red) !important;
+    box-sizing: border-box;
+    min-height: var(--ui-target, 44px);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(
+    .btn-danger,
+    .data-table-button.danger,
+    .data-table-link-button.danger,
+    .btn-destructive,
+    .button-danger
+):not([role="menuitem"]):hover {
+    background: var(--btn-dark-hover) !important;
+    color: #FFFFFF !important;
+    border-color: var(--btn-border-red) !important;
+}
+
+:is(
+    .btn-danger,
+    .data-table-button.danger,
+    .data-table-link-button.danger,
+    .btn-destructive,
+    .button-danger
+):not([role="menuitem"]):active {
+    background: var(--btn-dark-active) !important;
+    transform: translateY(1px);
+}
+
+:is(
+    .btn-danger,
+    .data-table-button.danger,
+    .data-table-link-button.danger,
+    .btn-destructive,
+    .button-danger
+):not([role="menuitem"]):focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--btn-border-red, #450d07) !important;
+}
+
+:is(
+    .btn-danger,
+    .data-table-button.danger,
+    .data-table-link-button.danger,
+    .btn-destructive,
+    .button-danger
+):not([role="menuitem"]):is(:disabled, [aria-disabled="true"], [disabled]) {
+    background: var(--btn-disabled-bg) !important;
+    color: var(--btn-disabled-text) !important;
+    border-color: var(--btn-disabled-border) !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    opacity: 1 !important;
+}
+
+/* 3. Archive (and Restore if it shares the archive button class):
+   near-black background, white text, NO red border (transparent / same-black border so size does not shift). */
+:is(
+    .btn-archive,
+    .data-table-button.archive,
+    .data-table-link-button.archive,
+    [data-archive-submit]
+):not([role="menuitem"]) {
+    background: var(--btn-dark-bg) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border: 2px solid var(--btn-dark-bg) !important;
+    box-sizing: border-box;
+    min-height: var(--ui-target, 44px);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:is(
+    .btn-archive,
+    .data-table-button.archive,
+    .data-table-link-button.archive,
+    [data-archive-submit]
+):not([role="menuitem"]):hover {
+    background: var(--btn-dark-hover) !important;
+    border-color: var(--btn-dark-hover) !important;
+    color: #FFFFFF !important;
+}
+
+:is(
+    .btn-archive,
+    .data-table-button.archive,
+    .data-table-link-button.archive,
+    [data-archive-submit]
+):not([role="menuitem"]):active {
+    background: var(--btn-dark-active) !important;
+    border-color: var(--btn-dark-active) !important;
+    transform: translateY(1px);
+}
+
+:is(
+    .btn-archive,
+    .data-table-button.archive,
+    .data-table-link-button.archive,
+    [data-archive-submit]
+):not([role="menuitem"]):focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--stat-card-border) !important;
+}
+
+:is(
+    .btn-archive,
+    .data-table-button.archive,
+    .data-table-link-button.archive,
+    [data-archive-submit]
+):not([role="menuitem"]):is(:disabled, [aria-disabled="true"], [disabled]) {
+    background: var(--btn-disabled-bg) !important;
+    color: var(--btn-disabled-text) !important;
+    border-color: var(--btn-disabled-bg) !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    opacity: 1 !important;
+}
+
+/* 4. Sign Out:
+   keep red, as the theme defines. */
+.sidebar-footer .signout-button,
+.signout button,
+.sidebar-footer button,
+.logout-button {
+    background: var(--ui-primary) !important;
+    color: #FFFFFF !important;
+    border: 1px solid var(--ui-primary) !important;
+    font-weight: 800;
+}
+
+.sidebar-footer .signout-button:hover,
+.signout button:hover,
+.sidebar-footer button:hover,
+.logout-button:hover {
+    background: var(--ui-primary-hover) !important;
+    border-color: var(--ui-primary-hover) !important;
+}
+
+.sidebar-footer .signout-button:active,
+.signout button:active,
+.sidebar-footer button:active,
+.logout-button:active {
+    background: var(--ui-primary-active) !important;
+}
 :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
     outline: 2px solid var(--stat-card-focus);
     outline-offset: 2px;

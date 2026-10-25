@@ -227,7 +227,7 @@
         }
 
         .secondary-button.resend-emphasis {
-            border: 1px solid #b42318;
+            border: 1px solid #450d07;
             background: #fef2f2;
             color: #b42318;
         }
@@ -279,19 +279,23 @@
         .primary-button {
             width: 100%;
             height: 48px;
-            background: #dc2626;
+            background: #1A1A1A;
+            border: 2px solid var(--ui-border-red, #450d07);
             color: #ffffff;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             transition: background 150ms ease, box-shadow 150ms ease;
         }
 
         .primary-button:hover {
-            background: #b91c1c;
+            background: #2F2F2F;
+            border-color: var(--ui-border-red, #450d07);
+            color: #ffffff;
         }
 
-        .primary-button:focus {
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.16);
+        .primary-button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--ui-border-red, #450d07);
         }
 
         .switch-form {
@@ -335,6 +339,7 @@
         @include('partials.accessibility-styles')
         @include('partials.cs114-theme-styles')
     </style>
+    @vite('resources/css/shared-theme.css')
 </head>
 <body class="antialiased">
     <a class="skip-link" href="#main-content">Skip to main content</a>

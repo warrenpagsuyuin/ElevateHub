@@ -252,6 +252,36 @@ class AdminDashboardRoutesTest extends TestCase
             ->assertSee('3');
     }
 
+    public function test_admin_dashboard_shows_live_period_controls_and_activity_history(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('data-satellite-dashboard', false)
+            ->assertSee('data-period-form', false)
+            ->assertSee('live-dot', false)
+            ->assertSee('data-history-open', false)
+            ->assertSee('id="activity-history"', false);
+
+        $jsonResponse = $this->actingAs($admin)
+            ->getJson(route('admin.dashboard', ['month' => 'Live', 'year' => now()->year]));
+
+        $jsonResponse->assertOk()
+            ->assertJsonStructure([
+                'html',
+                'controls',
+                'activities',
+                'updatedAt',
+                'selectedMonth',
+                'selectedYear',
+                'date',
+                'year',
+                'month',
+            ]);
+    }
+
     public function test_new_satellite_is_not_auto_assigned(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

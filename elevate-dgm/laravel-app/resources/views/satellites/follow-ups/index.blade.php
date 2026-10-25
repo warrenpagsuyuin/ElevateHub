@@ -50,7 +50,7 @@
                 @csrf
                 <button type="submit" style="display: inline-block; padding: 12px 18px; background: #111; color: #fff; border: none; text-decoration: none; border-radius: 8px; font-weight: 800; cursor: pointer;">Analyze Sentiment</button>
             </form>
-            <a href="{{ route('satellites.follow-ups.create', $satellite) }}" style="display: inline-block; padding: 12px 24px; background: #e33c24; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 800;">New Follow-Up</a>
+            <a href="{{ route('satellites.follow-ups.create', $satellite) }}" class="btn-primary" style="display: inline-flex; align-items: center; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 800;">New Follow-Up</a>
         </div>
         @endif
     </div>
@@ -105,7 +105,7 @@
             </select>
         </label>
         <div class="follow-up-filter-actions">
-            <button type="submit" style="padding: 10px 18px; background: #e33c24; color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">Apply Filters</button>
+            <button type="submit" class="btn-primary" style="display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 8px; font-weight: 800; cursor: pointer;">Apply Filters</button>
             <a href="{{ route('satellites.follow-ups.index', $satellite) }}" style="padding: 10px 18px; background: #f3f4f6; color: #111; text-decoration: none; border-radius: 8px; font-weight: 800;">Clear Filters</a>
         </div>
     </form>

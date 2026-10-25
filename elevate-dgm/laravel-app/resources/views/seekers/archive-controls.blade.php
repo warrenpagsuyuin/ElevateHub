@@ -31,7 +31,7 @@
         </div>
         <label for="archive-note">Reason / note <span data-note-required>(required)</span></label>
         <textarea id="archive-note" name="note" maxlength="1000" rows="3"></textarea>
-        <div class="archive-dialog-actions"><button type="button" class="data-table-link-button tertiary" data-archive-cancel>Cancel</button><button type="submit" class="data-table-button primary" data-archive-submit>Archive</button></div>
+        <div class="archive-dialog-actions"><button type="button" class="data-table-link-button tertiary" data-archive-cancel>Cancel</button><button type="submit" class="data-table-button btn-archive" data-archive-submit>Archive</button></div>
     </form>
 </dialog>
 @push('scripts')
