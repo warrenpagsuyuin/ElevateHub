@@ -87,6 +87,9 @@
     font-size: var(--stat-card-value-size);
     overflow-wrap: anywhere;
 }
+.metric-card.elevate-stat-card { gap:var(--ui-space-2); justify-content:center; text-align:left; }
+.metric-card .stat-card-label { font-weight:800; }
+.metric-card .stat-card-value { font-weight:900; line-height:1.2; }
 .admin-summary-card { gap: var(--ui-space-4); }
 .admin-summary-card a { min-width: var(--ui-target); min-height: var(--ui-target); }
 .admin-summary-card .summary-number { display: inline-flex; align-items: center; }

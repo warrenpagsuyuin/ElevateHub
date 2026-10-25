@@ -76,24 +76,11 @@
     @endif
 
     <div class="follow-up-stats">
-        <div style="background: #e33c24; color: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em;">Positive Notes</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px;">{{ $sentimentSummary['counts']['Positive'] ?? 0 }}</div>
-        </div>
-        <div style="background: #111; color: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em;">Neutral Notes</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px;">{{ $sentimentSummary['counts']['Neutral'] ?? 0 }}</div>
-        </div>
-        <div style="background: #fff; color: #111; border-radius: 10px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10); border-left: 4px solid #b42318;">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Negative Notes</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px; color: #b42318;">{{ $sentimentSummary['counts']['Negative'] ?? 0 }}</div>
-        </div>
-        <div style="background: #fff; color: #111; border-radius: 10px; padding: 16px 18px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10);">
-            <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Unanalyzed</div>
-            <div style="font-size: 30px; font-weight: 900; margin-top: 8px;">{{ $sentimentSummary['unanalyzed'] ?? 0 }}</div>
-        </div>
+        @include('components.metric-card', ['label' => 'Positive Notes', 'value' => $sentimentSummary['counts']['Positive'] ?? 0])
+        @include('components.metric-card', ['label' => 'Neutral Notes', 'value' => $sentimentSummary['counts']['Neutral'] ?? 0])
+        @include('components.metric-card', ['label' => 'Negative Notes', 'value' => $sentimentSummary['counts']['Negative'] ?? 0])
+        @include('components.metric-card', ['label' => 'Unanalyzed', 'value' => $sentimentSummary['unanalyzed'] ?? 0])
     </div>
-
     <form method="GET" action="{{ route('satellites.follow-ups.index', $satellite) }}" class="follow-up-filters">
         <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: #374151;">
             Status

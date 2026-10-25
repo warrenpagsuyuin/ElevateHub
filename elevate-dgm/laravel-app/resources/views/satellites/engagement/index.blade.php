@@ -9,10 +9,10 @@
     $needsFollowUpLabel = \App\Services\EngagementClassificationService::CLASSIFICATION_NEEDS_FOLLOW_UP;
     $insufficientLabel = \App\Services\EngagementClassificationService::CLASSIFICATION_INSUFFICIENT;
     $summaryCards = [
-        ['label' => $activeLabel, 'value' => $classifications[$activeLabel] ?? 0, 'color' => '#16a34a'],
-        ['label' => $moderateLabel, 'value' => $classifications[$moderateLabel] ?? 0, 'color' => '#d97706'],
-        ['label' => $needsFollowUpLabel, 'value' => $classifications[$needsFollowUpLabel] ?? 0, 'color' => '#dc2626'],
-        ['label' => 'Insufficient Information', 'value' => $classifications[$insufficientLabel] ?? 0, 'color' => '#6b7280'],
+        ['label' => $activeLabel, 'value' => $classifications[$activeLabel] ?? 0],
+        ['label' => $moderateLabel, 'value' => $classifications[$moderateLabel] ?? 0],
+        ['label' => $needsFollowUpLabel, 'value' => $classifications[$needsFollowUpLabel] ?? 0],
+        ['label' => 'Insufficient Information', 'value' => $classifications[$insufficientLabel] ?? 0],
     ];
 @endphp
 
@@ -41,10 +41,7 @@
 
     <div class="stats-grid engagement-summary-grid">
         @foreach ($summaryCards as $card)
-            <div class="ui-card metric-card">
-                <div class="metric-value" style="color: {{ $card['color'] }};">{{ $card['value'] }}</div>
-                <div class="metric-label">{{ $card['label'] }}</div>
-            </div>
+            @include('components.metric-card', ['label' => $card['label'], 'value' => $card['value']])
         @endforeach
     </div>
 
@@ -146,23 +143,6 @@
 
     .engagement-summary-grid {
         margin-bottom: 24px;
-    }
-
-    .metric-card {
-        padding: 20px;
-        text-align: center;
-    }
-
-    .metric-value {
-        font-size: 32px;
-        font-weight: 900;
-    }
-
-    .metric-label {
-        color: #667085;
-        font-size: 14px;
-        font-weight: 800;
-        margin-top: 4px;
     }
 
     .data-table th,
