@@ -2,7 +2,6 @@
     <div class="section-heading satisfaction-heading elevate-panel-heading">
         <div>
             <h2 id="satisfaction-heading">Satisfaction Overview</h2>
-            <p>Member feedback trends and satisfaction ratings from Sunday services.</p>
         </div>
     </div>
 

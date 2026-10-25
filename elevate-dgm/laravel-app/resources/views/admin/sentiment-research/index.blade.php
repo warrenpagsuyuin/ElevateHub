@@ -6,7 +6,6 @@
 @include('admin.sentiment-research._satisfaction-styles')
 @endpush
 @section('content')
-<p class="muted">Historical research includes feedback from archived satellites. Archive status does not change research eligibility or results.</p>
 @php
     $labels = \App\Services\SentimentResearchMetrics::LABELS;
     $distribution = collect($labels)->mapWithKeys(fn($label) => [$label => array_sum(array_column($report['table11'], $label))]);
@@ -17,7 +16,7 @@
 @endphp
 <div class="research sentiment-workspace">
     <header class="research-head">
-        <div><a class="sentiment-back" href="{{ route('admin.analytics') }}">Analytics / Sentiment</a><h1>Sentiment Analytics</h1><p class="subtitle">Understand feedback. Review with confidence. Turn responses into insight.</p></div>
+        <div><a class="sentiment-back" href="{{ route('admin.analytics') }}">Analytics / Sentiment</a><h1>Sentiment Analytics</h1></div>
         <a class="button" href="{{ route('admin.sentiment-research.export') }}">Export evaluation <span aria-hidden="true">↗</span></a>
     </header>
     <nav class="sentiment-tabs" aria-label="Sentiment workspace">
@@ -35,7 +34,7 @@
     @if($section === 'overview')
     @include('admin.sentiment-research._satisfaction')
 
-    <section class="panel distribution-panel"><div class="section-heading distribution-heading elevate-panel-heading"><div><h2>Sentiment at a glance</h2><p>Human Reference Label · eligible feedback</p></div><span class="soft-badge">{{ $total }} labeled</span></div>
+    <section class="panel distribution-panel"><div class="section-heading distribution-heading elevate-panel-heading"><div><h2>Sentiment at a glance</h2></div><span class="soft-badge">{{ $total }} labeled</span></div>
             <div class="distribution-body">
                 <div class="sentiment-donut" style="--positive:{{ $positive }}%;--neutral:{{ $positive + $neutral }}%;{{ !$total ? 'background:#e9edf2;' : '' }}" role="img" aria-label="Human sentiment distribution: {{ $distribution['Positive'] }} positive, {{ $distribution['Neutral'] }} neutral, {{ $distribution['Negative'] }} negative">
                     <div><strong>{{ $total }}</strong><span>eligible labels</span></div>
@@ -44,7 +43,7 @@
             </div>
             <p class="muted distribution-footnote">Distribution reflects eligible human references, not automated predictions.</p>
     </section>
-    <section class="panel evaluation-snapshot"><div class="section-heading quality-heading elevate-panel-heading"><div><h2>Evaluation snapshot</h2><p>Quality against eligible human references · {{ $report['table19']['n'] }} observations</p></div></div>
+    <section class="panel evaluation-snapshot"><div class="section-heading quality-heading elevate-panel-heading"><div><h2>Evaluation snapshot</h2></div></div>
         <div class="quality-grid">@foreach(['Accuracy'=>$report['table19']['accuracy'],'Precision'=>$report['table19']['macro']['precision'],'Recall'=>$report['table19']['macro']['recall'],'F1 Score'=>$report['table19']['macro']['f1']] as $label=>$value)<div class="elevate-stat-card"><span class="stat-card-label">{{ $label }}</span><strong class="stat-card-value">{{ $metric($value) }}</strong></div>@endforeach</div>
         @if(!$report['table19']['n'])<p class="muted">UNTESTED · No eligible observations with current predictions yet.</p>@endif
     </section>
