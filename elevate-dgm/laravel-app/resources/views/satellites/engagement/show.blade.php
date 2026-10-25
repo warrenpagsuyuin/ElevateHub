@@ -12,6 +12,9 @@
     $classification = $result?->classification;
     $displayClassification = $result?->classification_label ?? 'Unclassified';
     $confidence = $result?->confidence;
+    $normalizedConfidence = $confidence !== null && $confidence > 0
+        ? round($confidence > 1 ? $confidence : $confidence * 100) . '%'
+        : 'N/A';
     $generatedAt = $result?->generated_at ?? $result?->updated_at;
     $metrics = is_array($result?->metrics) ? $result->metrics : [];
     $decisionPath = is_array($result?->decision_path) ? $result->decision_path : ($metrics['decision_path'] ?? []);
@@ -33,9 +36,9 @@
 <div class="page-inner engagement-detail">
     <div class="page-header">
         <div>
-            <a href="{{ route('satellites.engagement.index', $satellite) }}" class="back-link">Back to Analytics</a>
+            <a href="{{ route('satellites.engagement.index', $satellite) }}" class="back-link">← Back to Analytics</a>
             <h1>{{ $member->display_name }}</h1>
-            <p>{{ $satellite->display_name }} - Engagement classification result and explainability review.</p>
+            <p>{{ $satellite->display_name }} — Engagement classification result, recorded indicators, and pastoral review.</p>
         </div>
 
         <a href="{{ route('satellites.members', $satellite) }}" class="secondary-action">View Members</a>
@@ -54,33 +57,36 @@
             <section class="ui-card result-card">
                 <div class="eyebrow">Engagement Classification</div>
                 <div class="classification-banner" style="background: {{ $badge['panel'] }}; border-color: {{ $badge['text'] }};">
-                    <span class="classification-pill" style="background: {{ $badge['bg'] }}; color: {{ $badge['text'] }};">
-                        {{ $displayClassification }}
-                    </span>
-                    <div class="confidence-text">Confidence: {{ $confidence !== null && $confidence > 0 ? round($confidence * 100) . '%' : 'N/A' }}</div>
+                    <div class="banner-top-row">
+                        <span class="classification-pill" style="background: {{ $badge['bg'] }}; color: {{ $badge['text'] }};">
+                            {{ $displayClassification }}
+                        </span>
+                        <div class="confidence-text">Confidence: {{ $normalizedConfidence }}</div>
+                    </div>
                 </div>
-                <dl class="metadata-list">
+                <dl class="metadata-list metadata-grid-2col">
                     <div>
-                        <dt title="The approved model family used to generate this engagement result.">Model</dt>
-                        <dd>{{ $result->model_name ?: 'Not recorded' }}</dd>
+                        <dt>Role</dt>
+                        <dd>{{ $member->display_role }}</dd>
                     </div>
                     <div>
-                        <dt title="The specific approved model version used to generate this result.">Model Version</dt>
-                        <dd>{{ $result->model_version ?: 'Not recorded' }}</dd>
+                        <dt>Campus / School</dt>
+                        <dd>{{ $member->campus_school ?: 'Not recorded' }}</dd>
                     </div>
                     <div>
                         <dt>Generated</dt>
                         <dd>{{ $generatedAt?->format('M d, Y g:i A') ?? 'Not recorded' }}</dd>
                     </div>
                     <div>
-                        <dt>Data Sufficiency</dt>
-                        <dd>{{ \Illuminate\Support\Str::of($result->data_sufficiency ?: 'not recorded')->replace('_', ' ')->title() }}</dd>
-                    </div>
-                    <div>
                         <dt>Human Review</dt>
                         <dd>{{ $result->human_review_required ? 'Required' : 'Not required' }}</dd>
                     </div>
                 </dl>
+                <div class="metadata-footer">
+                    <span><strong>Model:</strong> {{ $result->model_name ?: 'Not recorded' }} ({{ $result->model_version ?: 'Not recorded' }})</span>
+                    <span>&middot;</span>
+                    <span><strong>Data Sufficiency:</strong> {{ \Illuminate\Support\Str::of($result->data_sufficiency ?: 'not recorded')->replace('_', ' ')->title() }}</span>
+                </div>
             </section>
 
             <section class="ui-card xai-card">
@@ -94,6 +100,18 @@
                         {{ $result->explanation ?: 'The recorded indicators used for this classification are shown below for authorized review.' }}
                     @endif
                 </p>
+
+                @if (! empty($usedFeatures))
+                    <div class="xai-summary-pills">
+                        @foreach ($usedFeatures as $feature)
+                            <div class="xai-summary-pill">
+                                <span class="xai-pill-label">{{ $feature['label'] ?? 'Recorded Indicator' }}</span>
+                                <strong class="xai-pill-value">{{ $feature['value'] ?? 'Not recorded' }}</strong>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <div class="notice-box">
                     Classification is intended for authorized administrative review only. It does not measure faith, spiritual maturity, character, emotional condition, or personal worth.
                     Human review is required before any follow-up decision. The system does not automatically contact, discipline, or exclude members.
@@ -101,39 +119,70 @@
             </section>
         </div>
 
-        <section class="ui-card section-card">
-            <div class="section-heading">
-                <div>
-                    <div class="eyebrow">Factors Used</div>
-                    <h2>{{ $isCart ? 'Factors Used by CART' : 'Factors Used by Review Baseline' }}</h2>
-                </div>
-            </div>
-
-            @if (! empty($usedFeatures))
-                <div class="table-scroll">
-                    <table class="data-table compact-table">
-                        <thead>
-                            <tr>
-                                <th>Indicator</th>
-                                <th>Recorded Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($usedFeatures as $feature)
-                                <tr>
-                                    <td>{{ $feature['label'] ?? 'Recorded Indicator' }}</td>
-                                    <td>{{ $feature['value'] ?? 'Not recorded' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="muted-text">No structured indicator list is available for this result.</p>
+        <div class="action-factors-grid {{ $canManageSatellite ? 'has-action-col' : '' }}">
+            @if ($canManageSatellite)
+                <section class="ui-card section-card action-review-card">
+                    <div class="section-heading">
+                        <div>
+                            <div class="eyebrow">Pastoral &amp; Administrative Action</div>
+                            <h2>Assign recommendation for human review</h2>
+                        </div>
+                        <a href="{{ route('satellites.recommendations.index', $satellite) }}" class="secondary-action secondary-action-sm">View recommendations</a>
+                    </div>
+                    <p class="muted-text" style="margin-bottom: 14px;">Choose an approved catalogue action that applies to this result. Insufficient information permits only an approved data-validation action.</p>
+                    @if ($recommendationActions->isEmpty())
+                        <div class="empty-catalogue-box">
+                            <p>No eligible approved catalogue actions are available. An administrator must review and approve suitable wording before a recommendation can be assigned.</p>
+                        </div>
+                    @else
+                        <form method="post" action="{{ route('satellites.engagement.recommendations.store', [$satellite, $member]) }}" class="recommendation-form">
+                            @csrf
+                            <label>Approved action<select name="recommended_action_id" required><option value="">Choose action</option>@foreach ($recommendationActions as $action)<option value="{{ $action->id }}" @selected((string) old('recommended_action_id') === (string) $action->id)>{{ $action->title }} — {{ $action->description }}</option>@endforeach</select></label>
+                            <div class="form-row-2col">
+                                <label>Assigned reviewer<select name="assigned_to" required>@foreach ($recommendationAssignees as $assignee)<option value="{{ $assignee->id }}" @selected((int) old('assigned_to', auth()->id()) === $assignee->id)>{{ $assignee->name }}</option>@endforeach</select></label>
+                                <label>Expiry date (optional)<input type="date" name="expires_at" min="{{ now()->toDateString() }}" value="{{ old('expires_at') }}"></label>
+                            </div>
+                            <label>Assignment notes<textarea name="assignment_notes" maxlength="2000" rows="2" placeholder="Optional context for the reviewer...">{{ old('assignment_notes') }}</textarea></label>
+                            <button class="recommendation-button primary" type="submit">Assign for review</button>
+                        </form>
+                    @endif
+                </section>
             @endif
-        </section>
 
-        <section class="ui-card section-card">
+            <section class="ui-card section-card">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow">Factors Used</div>
+                        <h2>{{ $isCart ? 'Factors Used by CART' : 'Factors Used by Review Baseline' }}</h2>
+                    </div>
+                </div>
+
+                @if (! empty($usedFeatures))
+                    <div class="table-scroll">
+                        <table class="data-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Indicator</th>
+                                    <th>Recorded Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($usedFeatures as $feature)
+                                    <tr>
+                                        <td>{{ $feature['label'] ?? 'Recorded Indicator' }}</td>
+                                        <td>{{ $feature['value'] ?? 'Not recorded' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="muted-text">No structured indicator list is available for this result.</p>
+                @endif
+            </section>
+        </div>
+
+        <section class="ui-card section-card technical-section-card">
             <div class="section-heading">
                 <div>
                     <div class="eyebrow" title="The sequence of model rules followed before producing the classification.">{{ $isCart ? 'CART Decision Path' : 'Review Decision Path' }}</div>
@@ -143,10 +192,10 @@
             </div>
 
             @if(!empty($result?->model_metadata['reference_notice']))
-                <p class="muted-text">{{ $result->model_metadata['reference_notice'] }}</p>
+                <p class="muted-text" style="margin-bottom: 10px;">{{ $result->model_metadata['reference_notice'] }}</p>
             @endif
             @if($modelRun && !$modelRun->is_active)
-                <p class="muted-text">This result uses a previous reference-dataset revision. Ask an administrator to run the current evaluation before relying on this prediction.</p>
+                <p class="muted-text" style="margin-bottom: 10px;">This result uses a previous reference-dataset revision. Ask an administrator to run the current evaluation before relying on this prediction.</p>
             @endif
             @if (! empty($decisionPath))
                 <details class="xai-disclosure">
@@ -196,7 +245,7 @@
         </section>
 
         @if (auth()->user()?->role === 'admin' && $modelRun)
-            <section class="ui-card section-card">
+            <section class="ui-card section-card technical-section-card">
                 <div class="section-heading">
                     <div>
                         <div class="eyebrow">Model Evaluation</div>
@@ -228,26 +277,6 @@
                     </div>
                 </div>
             </section>
-        @endif
-
-        @if ($canManageSatellite)
-        <section class="ui-card section-card">
-            <h2>Assign recommendation for human review</h2>
-            <p class="muted-text">Choose an approved catalogue action that applies to this result. Insufficient information permits only an approved data-validation action.</p>
-            @if ($recommendationActions->isEmpty())
-                <p>No eligible approved catalogue actions are available. An administrator must review and approve suitable wording before a recommendation can be assigned.</p>
-            @else
-                <form method="post" action="{{ route('satellites.engagement.recommendations.store', [$satellite, $member]) }}" class="recommendation-form">
-                    @csrf
-                    <label>Approved action<select name="recommended_action_id" required><option value="">Choose action</option>@foreach ($recommendationActions as $action)<option value="{{ $action->id }}" @selected((string) old('recommended_action_id') === (string) $action->id)>{{ $action->title }} — {{ $action->description }}</option>@endforeach</select></label>
-                    <label>Assigned reviewer<select name="assigned_to" required>@foreach ($recommendationAssignees as $assignee)<option value="{{ $assignee->id }}" @selected((int) old('assigned_to', auth()->id()) === $assignee->id)>{{ $assignee->name }}</option>@endforeach</select></label>
-                    <label>Assignment notes<textarea name="assignment_notes" maxlength="2000">{{ old('assignment_notes') }}</textarea></label>
-                    <label>Expiry date (optional)<input type="date" name="expires_at" min="{{ now()->toDateString() }}" value="{{ old('expires_at') }}"></label>
-                    <button class="recommendation-button primary" type="submit">Assign for review</button>
-                </form>
-            @endif
-            <p><a href="{{ route('satellites.recommendations.index', $satellite) }}">View recommendations</a></p>
-        </section>
         @endif
 
         <div class="action-row">
@@ -286,11 +315,32 @@
         text-decoration: none;
     }
 
+    .secondary-action-sm {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+
     .detail-grid {
         display: grid;
         gap: 20px;
         grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
         margin-bottom: 20px;
+    }
+
+    .action-factors-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1fr;
+        margin-bottom: 20px;
+    }
+
+    .action-factors-grid.has-action-col {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    }
+
+    .action-factors-grid .section-card {
+        margin-top: 0;
     }
 
     .result-card,
@@ -312,7 +362,7 @@
     .eyebrow-subtle {
         color: #111;
         margin-bottom: 6px;
-        margin-top: 14px;
+        margin-top: 12px;
     }
 
     .classification-banner {
@@ -320,6 +370,14 @@
         border-radius: 12px;
         margin-bottom: 18px;
         padding: 16px;
+    }
+
+    .banner-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .classification-pill {
@@ -331,10 +389,9 @@
     }
 
     .confidence-text {
-        color: #4b5563;
+        color: #374151;
         font-size: 14px;
         font-weight: 800;
-        margin-top: 10px;
     }
 
     .metadata-list {
@@ -343,56 +400,123 @@
         margin: 0;
     }
 
+    .metadata-grid-2col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .metadata-list div {
         display: grid;
         gap: 4px;
+        background: #f9fafb;
+        border: 1px solid #eef0f3;
+        border-radius: 10px;
+        padding: 10px 12px;
     }
 
     .metadata-list dt {
         color: #667085;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 900;
         text-transform: uppercase;
     }
 
     .metadata-list dd {
         color: #111;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 800;
         margin: 0;
+    }
+
+    .metadata-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #eef0f3;
+        font-size: 12px;
+        color: #667085;
     }
 
     .xai-card h2,
     .section-card h2,
     .empty-state h2 {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 900;
-        margin: 0 0 10px;
+        margin: 0 0 8px;
     }
 
     .xai-card p,
     .empty-state p,
     .muted-text {
-        color: #667085;
-        font-size: 15px;
+        color: #4b5563;
+        font-size: 14px;
         line-height: 1.6;
         margin: 0;
     }
 
-    .notice-box {
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-radius: 12px;
-        color: #9a3412;
-        font-size: 14px;
+    .xai-summary-pills {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .xai-summary-pill {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .xai-pill-label {
+        font-size: 11px;
         font-weight: 800;
+        text-transform: uppercase;
+        color: #667085;
+    }
+
+    .xai-pill-value {
+        font-size: 15px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .notice-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-left: 3px solid #9ca3af;
+        border-radius: 10px;
+        color: #4b5563;
+        font-size: 12.5px;
+        font-weight: 600;
         line-height: 1.5;
-        margin-top: 18px;
-        padding: 14px;
+        margin-top: 16px;
+        padding: 12px 14px;
     }
 
     .section-card {
         margin-top: 20px;
+    }
+
+    .action-review-card {
+        border-top: 3px solid #450d07;
+    }
+
+    .empty-catalogue-box {
+        background: #f9fafb;
+        border: 1px dashed #d0d5dd;
+        border-radius: 10px;
+        padding: 14px;
+    }
+
+    .form-row-2col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
     .section-heading {
@@ -400,34 +524,35 @@
         display: flex;
         gap: 16px;
         justify-content: space-between;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
 
     .model-chip {
-        background: #111;
+        background: #1A1A1A;
+        border: 1px solid #450d07;
         border-radius: 999px;
         color: #fff;
         font-size: 12px;
         font-weight: 900;
-        padding: 7px 10px;
+        padding: 6px 10px;
         white-space: nowrap;
     }
 
     .compact-table {
-        min-width: 520px;
+        width: 100%;
     }
 
     .compact-table th,
     .compact-table td {
         border-bottom: 1px solid #eef0f3;
-        padding: 14px 16px;
+        padding: 12px 14px;
         text-align: left;
     }
 
     .compact-table th {
         background: #f9fafb;
         color: #111;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 900;
         text-transform: uppercase;
     }
@@ -443,15 +568,16 @@
     }
 
     .xai-disclosure summary {
-        background: #111;
+        background: #1A1A1A;
+        border: 1px solid #450d07;
         border-radius: 10px;
         color: #fff;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 900;
         list-style-position: inside;
         max-width: max-content;
-        padding: 11px 14px;
+        padding: 10px 14px;
     }
 
     .xai-disclosure summary:focus-visible {
@@ -460,7 +586,7 @@
     }
 
     .xai-disclosure[open] summary {
-        background: #ef3b24;
+        background: #2d120e;
     }
 
     .evaluation-grid {
@@ -525,8 +651,11 @@
         margin-top: 20px;
     }
 
-    @media (max-width: 900px) {
-        .detail-grid {
+    @media (max-width: 960px) {
+        .detail-grid,
+        .action-factors-grid.has-action-col,
+        .form-row-2col,
+        .metadata-grid-2col {
             grid-template-columns: 1fr;
         }
     }

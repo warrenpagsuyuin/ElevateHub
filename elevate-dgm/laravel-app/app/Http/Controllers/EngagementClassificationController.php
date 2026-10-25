@@ -33,8 +33,42 @@ class EngagementClassificationController extends Controller
         abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
 
         $perPage = $this->perPage($request);
-        $members = $satellite->members()
-            ->with('engagementResult')
+        $search = trim((string) $request->query('search', ''));
+        $classificationFilter = trim((string) $request->query('classification', ''));
+        $roleFilter = trim((string) $request->query('role', ''));
+
+        $membersQuery = $satellite->members()->with('engagementResult');
+
+        if ($search !== '') {
+            $membersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('campus_school', 'like', '%'.$search.'%');
+            });
+        }
+
+        if ($roleFilter !== '') {
+            $membersQuery->where('dgroup_role', $roleFilter);
+        }
+
+        if ($classificationFilter !== '') {
+            $aliases = match ($classificationFilter) {
+                EngagementClassificationService::CLASSIFICATION_ACTIVE => [EngagementClassificationService::CLASSIFICATION_ACTIVE, 'High'],
+                EngagementClassificationService::CLASSIFICATION_MODERATELY_ACTIVE => [EngagementClassificationService::CLASSIFICATION_MODERATELY_ACTIVE, 'Medium'],
+                EngagementClassificationService::CLASSIFICATION_NEEDS_FOLLOW_UP => [EngagementClassificationService::CLASSIFICATION_NEEDS_FOLLOW_UP, 'Low'],
+                EngagementClassificationService::CLASSIFICATION_INSUFFICIENT, 'Insufficient Information' => [EngagementClassificationService::CLASSIFICATION_INSUFFICIENT, 'Inactive'],
+                default => [$classificationFilter],
+            };
+            if (in_array($classificationFilter, [EngagementClassificationService::CLASSIFICATION_INSUFFICIENT, 'Insufficient Information'], true)) {
+                $membersQuery->where(function ($q) use ($aliases) {
+                    $q->whereDoesntHave('engagementResult')
+                        ->orWhereHas('engagementResult', fn ($rq) => $rq->whereIn('classification', $aliases));
+                });
+            } else {
+                $membersQuery->whereHas('engagementResult', fn ($rq) => $rq->whereIn('classification', $aliases));
+            }
+        }
+
+        $members = $membersQuery
             ->paginate($perPage)
             ->withQueryString();
         $classifiedCounts = $satellite->members()
@@ -60,6 +94,9 @@ class EngagementClassificationController extends Controller
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
             'canManageSatellite' => $user->canManageSatellite($satellite),
+            'search' => $search,
+            'classificationFilter' => $classificationFilter,
+            'roleFilter' => $roleFilter,
         ]);
     }
 
