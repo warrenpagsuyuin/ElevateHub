@@ -3,13 +3,13 @@
 @section('title', 'Satisfaction Questionnaire | Elevate DGM')
 
 @push('styles')
-    .feedback-page { max-width: 980px; margin: 0 auto; }
+    .feedback-page { max-width: 920px; margin: 0 auto; }
     @include('feedback._satisfaction-styles')
 @endpush
 
 @section('content')
 <div class="feedback-page">
-    <div class="header" style="margin-bottom: 24px;">
+    <div class="header" style="margin-bottom: 20px;">
         <div>
             <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary, #111); margin: 0 0 6px;">Satisfaction Questionnaire</h1>
             <p class="page-subtitle" style="color: var(--text-muted, #667085); margin: 0; font-size: 14px;">Share your experience with Sunday services and church activities.</p>
@@ -40,7 +40,7 @@
                 Your anonymous answers for <strong>{{ \Carbon\Carbon::parse($answeredDate)->format('F j, Y') }}</strong> have already been recorded. You can review the questions again or pick a different date to submit.
             </p>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button type="button" onclick="closeAnsweredModal()" class="btn btn-primary" style="display: block; width: 100%; padding: 12px 20px; font-size: 0.9375rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                <button type="button" onclick="closeAnsweredModal()" class="btn btn-primary" style="display: block; width: 100%; padding: 12px 20px; font-size: 0.9375rem; font-weight: 700; border-radius: 9999px; cursor: pointer;">
                     Review Again / Choose Another Date
                 </button>
             </div>
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 counter.style.color = '#dc2626';
                 counter.style.fontWeight = '700';
             } else {
-                counter.style.color = '#6b7280';
+                counter.style.color = '#64748b';
                 counter.style.fontWeight = 'normal';
             }
         };
@@ -74,7 +74,51 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const form = document.querySelector('form[data-satisfaction-form]');
+    const progressBadge = document.getElementById('satisfaction-progress-badge');
+    const footerStatus = document.getElementById('satisfaction-footer-status');
+
     if (form) {
+        const fieldsets = Array.from(form.querySelectorAll('.satisfaction-question'));
+        const total = fieldsets.length;
+
+        const updateProgress = () => {
+            let answered = 0;
+            fieldsets.forEach((fs) => {
+                const checked = fs.querySelector('input[type="radio"]:checked');
+                if (checked) {
+                    answered++;
+                    fs.classList.add('is-answered');
+                } else {
+                    fs.classList.remove('is-answered');
+                }
+            });
+
+            if (progressBadge && total > 0) {
+                if (answered === total) {
+                    progressBadge.textContent = '✓ All ' + total + ' answered';
+                    progressBadge.classList.add('is-complete');
+                } else {
+                    progressBadge.textContent = answered + ' of ' + total + ' answered';
+                    progressBadge.classList.remove('is-complete');
+                }
+            }
+
+            if (footerStatus && total > 0) {
+                if (answered === total) {
+                    footerStatus.textContent = 'All ' + total + ' questions answered — ready to submit.';
+                    footerStatus.style.color = '#065f46';
+                    footerStatus.style.fontWeight = '600';
+                } else {
+                    footerStatus.textContent = 'Please answer each question shown for the selected date (' + (total - answered) + ' remaining).';
+                    footerStatus.style.color = '#475467';
+                    footerStatus.style.fontWeight = '500';
+                }
+            }
+        };
+
+        form.addEventListener('change', updateProgress);
+        updateProgress();
+
         form.addEventListener('submit', function () {
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
