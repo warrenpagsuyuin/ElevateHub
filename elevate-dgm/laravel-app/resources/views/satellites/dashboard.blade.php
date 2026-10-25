@@ -13,8 +13,13 @@
                 @endif
             </p>
         </div>
-        <div data-dashboard-controls>
-            @include('components.satellite-period-controls')
+        <div class="dashboard-header-actions">
+            <div data-dashboard-controls>
+                @include('components.satellite-period-controls')
+            </div>
+            <button type="button" class="history-button" data-history-open aria-label="Activity history" title="Activity history" aria-expanded="false" aria-controls="activity-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg>
+            </button>
         </div>
     </div>
 
@@ -24,6 +29,12 @@
     <div data-dashboard-content>
         @include('satellites.dashboard-content')
     </div>
+    <dialog class="mv-drawer activity-history-drawer" id="activity-history" aria-labelledby="activity-history-title">
+        <header class="activity-history-head"><h2 id="activity-history-title">Activity history</h2><button type="button" class="btn-secondary" data-history-close aria-label="Close activity history">&times;</button></header>
+        <div data-history-error role="alert" hidden>Unable to update. Showing previous data. <button type="button" class="btn-secondary" data-dashboard-retry>Retry</button></div>
+        <div data-history-body></div>
+        <a class="touch-target" href="{{ route('satellites.follow-ups.index', $satellite) }}">View all in Follow-Ups</a>
+    </dialog>
 </div>
 @endsection
 
