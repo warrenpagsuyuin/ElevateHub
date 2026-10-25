@@ -150,15 +150,22 @@ html:has(.mv-drawer[open]) { overflow:hidden; }
     white-space:nowrap;
 }
 :root .satellite-dashboard .compact-dashboard-grid .stat-card-link .stat-card-value {
-    grid-column:1;
-    grid-row:2;
     margin-top:0;
     font-weight:800;
     min-width:0;
 }
-.satellite-dashboard .card-chevron {
-    grid-column:2;
+.satellite-dashboard .stat-card-value-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--ui-space-3);
+    width:100%;
+    min-width:0;
+    grid-column:1 / -1;
     grid-row:2;
+}
+.satellite-dashboard .card-chevron {
+    flex-shrink:0;
     color:var(--stat-card-chevron);
     font-size:20px;
     line-height:1;
