@@ -88,8 +88,11 @@
     overflow-wrap: anywhere;
 }
 .metric-card.elevate-stat-card { gap:var(--ui-space-2); justify-content:center; text-align:left; }
-.metric-card .stat-card-label { font-weight:800; }
+.metric-card .stat-card-label { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .metric-card .stat-card-value { font-weight:900; line-height:1.2; }
+.metric-card-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+@media (max-width:1023px) { .metric-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:479px) { .metric-card-grid { grid-template-columns:minmax(0,1fr); } }
 .admin-summary-card { gap: var(--ui-space-4); }
 .admin-summary-card a { min-width: var(--ui-target); min-height: var(--ui-target); }
 .admin-summary-card .summary-number { display: inline-flex; align-items: center; }

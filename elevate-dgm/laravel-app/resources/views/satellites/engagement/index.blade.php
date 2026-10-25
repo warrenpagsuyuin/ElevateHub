@@ -39,7 +39,7 @@
         </div>
     @endif
 
-    <div class="stats-grid engagement-summary-grid">
+    <div class="metric-card-grid engagement-summary-grid">
         @foreach ($summaryCards as $card)
             @include('components.metric-card', ['label' => $card['label'], 'value' => $card['value']])
         @endforeach
@@ -139,10 +139,6 @@
         background: #dcfce7;
         border-left: 4px solid #22c55e;
         color: #166534;
-    }
-
-    .engagement-summary-grid {
-        margin-bottom: 24px;
     }
 
     .data-table th,

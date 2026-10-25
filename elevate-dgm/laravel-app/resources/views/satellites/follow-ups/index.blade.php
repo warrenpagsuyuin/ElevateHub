@@ -6,8 +6,6 @@
     .app-main:has(.follow-up-history) { padding: clamp(16px, 2vw, 32px) !important; }
     .follow-up-history { min-width: 0; }
     .follow-up-history .page-header { flex-wrap: wrap; }
-    .follow-up-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
-    .follow-up-stats > div { min-width: 0; overflow-wrap: anywhere; }
     .follow-up-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 14px; align-items: end; margin-bottom: 18px; padding: 18px; background: var(--ui-surface); border-radius: 10px; box-shadow: 0 12px 26px rgba(17, 24, 39, 0.10); }
     .follow-up-filters label, .follow-up-filters select { min-width: 0; width: 100%; }
     .follow-up-filters select { min-height: var(--ui-target); }
@@ -24,7 +22,6 @@
     .follow-up-table th:nth-child(6) { width: 25%; }
     .follow-up-table td:nth-child(4) > span, .follow-up-table td:nth-child(5) > span { white-space: nowrap; }
     @media (max-width: 1023px) {
-        .follow-up-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .follow-up-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .follow-up-filter-actions { grid-column: 1 / -1; }
     }
@@ -36,9 +33,6 @@
         .follow-up-filters { grid-template-columns: minmax(0, 1fr); }
         .follow-up-filter-actions { flex-direction: column; }
         .follow-up-filter-actions > * { width: 100%; }
-    }
-    @media (max-width: 479px) {
-        .follow-up-stats { grid-template-columns: minmax(0, 1fr); }
     }
 @endpush
 
@@ -75,7 +69,7 @@
         </div>
     @endif
 
-    <div class="follow-up-stats">
+    <div class="follow-up-stats metric-card-grid">
         @include('components.metric-card', ['label' => 'Positive Notes', 'value' => $sentimentSummary['counts']['Positive'] ?? 0])
         @include('components.metric-card', ['label' => 'Neutral Notes', 'value' => $sentimentSummary['counts']['Neutral'] ?? 0])
         @include('components.metric-card', ['label' => 'Negative Notes', 'value' => $sentimentSummary['counts']['Negative'] ?? 0])
