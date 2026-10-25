@@ -20,7 +20,7 @@
 
 @section('content')
 <div class="header"><h1>Members Dashboard</h1></div>
-        <div class="stats">
+        <div class="stats legacy-stat-cards">
             <div class="card red"><div class="info"><span class="label">Total Members</span><span class="value">{{ $totalMembers }}</span></div></div>
             <div class="card black"><div class="info"><span class="label">Total Satellites</span><span class="value">{{ $totalSatellites }}</span></div></div>
             <div class="card red"><div class="info"><span class="label">Total Leaders</span><span class="value">{{ $totalLeaders }}</span></div></div>

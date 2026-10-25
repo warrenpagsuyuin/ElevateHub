@@ -39,6 +39,24 @@
         }
 
         @media (max-width: 1199px) {
+
+            .stats,
+            .stats-grid,
+            .summary-grid,
+            .insights-grid,
+            .dashboard-grid,
+            .filter-grid,
+            .responsive-panel-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            .data-table-toolbar,
+            .filter-toolbar {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
+        @media (max-width: 1023px) {
             .sidebar,
             .app-sidebar {
                 width: min(320px, 84vw) !important;
@@ -64,21 +82,6 @@
 
             .mobile-topbar {
                 display: flex !important;
-            }
-
-            .stats,
-            .stats-grid,
-            .summary-grid,
-            .insights-grid,
-            .dashboard-grid,
-            .filter-grid,
-            .responsive-panel-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            }
-
-            .data-table-toolbar,
-            .filter-toolbar {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
         }
 

@@ -1,0 +1,217 @@
+:root {
+    --select-bg: #FFFFFF;
+    --select-border: #D9DCE1;
+    --select-border-hover: #B8BCC4;
+    --select-text: #111111;
+    --select-option-selected-bg: #F1F1F1;
+    --select-option-selected-text: #111111;
+    --select-option-disabled-text: #8A8F9A;
+    --select-focus: #FF5A4D;
+    --live-dot: #B42318;
+    --live-dot-halo: rgba(180,35,24,.35);
+    --panel-title-bg: #1a1a1a;
+    --panel-title-text: #ffffff;
+    --panel-row-bg: #f3f4f6;
+    --panel-row-text: #111111;
+}
+.satellite-dashboard .page-header { align-items:flex-start; }
+.satellite-dashboard .dashboard-period-controls { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; margin:0; min-height:44px; }
+.satellite-dashboard .period-control-group { position:relative; }
+.satellite-dashboard .period-control-label { display:block; margin-bottom:var(--ui-space); color:var(--ui-muted); font-size:var(--ui-text-xs); font-weight:700; }
+.satellite-dashboard .month-dropdown { position:relative; }
+:root .satellite-dashboard .month-dropdown summary,
+:root .satellite-dashboard .period-year select {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    height:44px;
+    min-height:44px;
+    border:1px solid var(--select-border) !important;
+    border-radius:var(--radius-sm);
+    background:var(--select-bg) !important;
+    color:var(--select-text) !important;
+    font-size:14px;
+    font-weight:800;
+    line-height:1.2;
+    cursor:pointer;
+    transition:border-color 150ms ease;
+}
+:root .satellite-dashboard .month-dropdown summary {
+    width:152px;
+    min-width:152px;
+    padding:0 12px 0 14px;
+    list-style:none;
+    user-select:none;
+}
+.satellite-dashboard .month-dropdown summary::-webkit-details-marker { display:none; }
+.satellite-dashboard .period-select-text { display:inline-flex; align-items:center; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.satellite-dashboard .year-select-wrap { position:relative; display:inline-flex; align-items:center; width:106px; }
+:root .satellite-dashboard .period-year select {
+    appearance:none;
+    -webkit-appearance:none;
+    width:106px;
+    min-width:106px;
+    padding:0 34px 0 14px;
+}
+.satellite-dashboard .select-chevron {
+    width:16px;
+    height:16px;
+    flex-shrink:0;
+    color:var(--select-text);
+    transition:transform 150ms ease;
+    pointer-events:none;
+}
+.satellite-dashboard .year-select-wrap .select-chevron {
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+}
+.satellite-dashboard .month-dropdown[open] summary .select-chevron {
+    transform:rotate(180deg);
+}
+:root .satellite-dashboard .month-dropdown summary:hover,
+:root .satellite-dashboard .period-year select:hover {
+    border-color:var(--select-border-hover) !important;
+}
+:root .satellite-dashboard .month-dropdown[open] summary,
+:root .satellite-dashboard .month-dropdown summary:focus-visible,
+:root .satellite-dashboard .period-year select:focus-visible {
+    outline:2px solid var(--select-focus) !important;
+    outline-offset:2px !important;
+    box-shadow:none !important;
+}
+.satellite-dashboard .period-year {
+    display:inline-flex;
+    align-items:center;
+    overflow:hidden;
+    max-width:110px;
+    opacity:1;
+    transition:max-width 150ms ease, opacity 150ms ease;
+}
+.satellite-dashboard .period-year[data-year-animating="enter"] {
+    animation:satellite-year-enter 150ms ease forwards;
+}
+@keyframes satellite-year-enter {
+    from { max-width:0; opacity:0; }
+    to { max-width:110px; opacity:1; }
+}
+.satellite-dashboard .month-menu { position:absolute; right:0; top:calc(100% + 8px); z-index:20; width:210px; max-height:300px; overflow:auto; padding:8px; border:1px solid var(--select-border); border-radius:var(--radius-sm); background:var(--select-bg); box-shadow:var(--shadow-card); }
+@media(max-width:767px) { .satellite-dashboard .month-menu { left:0; right:auto; max-width:calc(100vw - 32px); } }
+.satellite-dashboard .month-menu button { display:flex; align-items:center; width:100%; border:0; border-radius:6px; padding:10px 12px; text-align:left; color:var(--select-text); background:var(--select-bg); cursor:pointer; font-size:14px; font-weight:750; }
+.satellite-dashboard .month-menu button:hover:not(:disabled),
+.satellite-dashboard .month-menu button[aria-selected=true],
+.satellite-dashboard .period-year option:checked { background:var(--select-option-selected-bg); color:var(--select-text); }
+:root .satellite-dashboard .month-menu button:disabled,
+:root .satellite-dashboard .month-menu button[aria-disabled="true"] {
+    background:var(--select-bg) !important;
+    color:var(--select-option-disabled-text) !important;
+    border-color:transparent !important;
+    cursor:not-allowed;
+}
+.satellite-dashboard .live-dot { display:inline-block; vertical-align:middle; width:8px; height:8px; margin-right:8px; flex-shrink:0; border-radius:50%; background:var(--live-dot); animation:satellite-live-pulse 2s ease-out infinite; }
+@keyframes satellite-live-pulse { 0%,100% { box-shadow:0 0 0 0 var(--live-dot-halo); } 50% { box-shadow:0 0 0 5px transparent; } }
+.satellite-dashboard .summary-title { margin:0; font-size:18px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.satellite-dashboard .dashboard-intro { margin-bottom:14px; }
+.satellite-dashboard .compact-dashboard-grid { grid-template-columns:repeat(4,minmax(0,1fr)); align-items:stretch; }
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link {
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:auto auto;
+    align-content:start;
+    align-items:center;
+    justify-items:stretch;
+    gap:4px 12px;
+    width:100%;
+    min-height:0;
+    text-decoration:none;
+}
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link:is(:link,:visited,:hover,:focus,:focus-visible,:active),
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link * {
+    text-decoration:none;
+}
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link:hover {
+    border-color:var(--stat-card-border-hover);
+    border-top-color:var(--stat-card-accent);
+}
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link:focus-visible {
+    outline:2px solid var(--stat-card-focus);
+    outline-offset:2px;
+}
+.satellite-dashboard .stat-label { font-weight:700; }
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link .stat-card-label {
+    grid-column:1;
+    grid-row:1;
+    margin:0;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link .stat-card-value {
+    grid-column:1;
+    grid-row:2;
+    margin-top:0;
+    font-weight:800;
+    min-width:0;
+}
+.satellite-dashboard .card-chevron {
+    grid-column:2;
+    grid-row:2;
+    color:var(--stat-card-chevron);
+    font-size:20px;
+    line-height:1;
+}
+:root .satellite-dashboard .compact-dashboard-grid .stat-card-link:is(:hover,:focus-visible) .card-chevron {
+    color:var(--stat-card-chevron-hover);
+}
+.satellite-dashboard .dashboard-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:16px; margin-bottom:20px; }
+.satellite-dashboard .summary-panel { background:var(--panel-bg); border:1px solid var(--panel-border); border-top:var(--stat-card-accent-width) solid var(--stat-card-accent); border-radius:var(--table-card-radius); overflow:hidden; min-width:0; display:flex; flex-direction:column; }
+.satellite-dashboard .summary-panel > h2 { margin:0; background:var(--panel-title-bg); color:var(--panel-title-text); padding:16px 20px; font-size:16px; font-weight:700; line-height:1.5; }
+.satellite-dashboard .mini-stat-list { display:grid; grid-auto-rows:max-content; align-content:start; flex:1; gap:10px; padding:16px; margin:0; }
+.satellite-dashboard .mini-stat { flex-direction:row; align-items:center; justify-content:space-between; gap:var(--ui-space-4); }
+.satellite-dashboard .summary-row-label { flex:1; min-width:0; font-weight:650; overflow-wrap:anywhere; }
+.satellite-dashboard .summary-row-value { flex:0 1 auto; max-width:55%; margin:0; font-weight:850; opacity:1; overflow-wrap:anywhere; text-align:right; }
+.satellite-dashboard .dashboard-empty-period { padding:16px; color:var(--panel-row-text); background:var(--panel-row-bg); border-radius:var(--radius-sm); }
+.satellite-dashboard .activity-list { display:grid; gap:10px; }
+.satellite-dashboard .activity-row { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(110px,1fr) minmax(120px,1fr); align-items:center; gap:var(--ui-space-4); padding:13px 14px; border:1px solid var(--panel-border); border-radius:var(--radius-md); background:var(--panel-row-bg); color:var(--panel-row-text); }
+.satellite-dashboard .activity-row > * { min-width:0; overflow-wrap:anywhere; }
+.satellite-dashboard .activity-type,.satellite-dashboard .activity-date { font-size:var(--ui-text-xs); color:var(--ui-muted); font-weight:650; }
+.satellite-dashboard .activity-date { text-align:right; }
+.satellite-dashboard .activity-row strong { color:var(--ui-text); font-weight:850; }
+.satellite-dashboard .activity-status { display:inline-flex; align-items:center; justify-self:start; gap:var(--ui-space); min-height:26px; border-radius:999px; background:var(--ui-disabled-surface); color:var(--ui-disabled-text); padding:4px 10px; font-size:var(--ui-text-xs); font-weight:800; }
+.satellite-dashboard .activity-status:is([data-status="Successful"],[data-status="Completed"]) { color:var(--ui-success); background:var(--ui-success-surface); }
+.satellite-dashboard .activity-status[data-status="Pending"] { color:var(--ui-warning); background:var(--ui-warning-surface); }
+.satellite-dashboard .activity-status:is([data-status="Unsuccessful"],[data-status="Cancelled"]) { color:var(--ui-error); background:var(--ui-error-surface); }
+.satellite-dashboard .activity-footer { padding:0 var(--ui-space-4) var(--ui-space-4); }
+.satellite-dashboard .dashboard-refresh-status { padding:12px; border:1px solid var(--select-border); margin-bottom:16px; }
+.satellite-dashboard [data-dashboard-content][aria-busy=true] { cursor:progress; }
+:root .satellite-dashboard :is(a,button,select,summary):focus-visible { outline:2px solid var(--select-focus); outline-offset:2px; }
+@media(min-width:768px) and (max-width:1279px) { .satellite-dashboard .compact-dashboard-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:1024px) { .satellite-dashboard .dashboard-panels { grid-template-columns:1fr; } }
+@media(max-width:767px) {
+    .satellite-dashboard .activity-row { grid-template-columns:1fr; gap:var(--ui-space-2); }
+    .satellite-dashboard .activity-date { text-align:left; }
+    .satellite-dashboard .compact-dashboard-grid { grid-template-columns:1fr; }
+    .satellite-dashboard .page-header { display:flex; flex-direction:column; align-items:stretch; }
+    .satellite-dashboard [data-dashboard-controls],
+    .satellite-dashboard .dashboard-period-controls { width:100%; justify-content:flex-start; }
+    .satellite-dashboard .dashboard-period-controls[data-live-mode="false"] .period-control-group { flex:0 1 55%; max-width:55%; }
+    :root .satellite-dashboard .dashboard-period-controls[data-live-mode="false"] .month-dropdown summary { width:100%; min-width:0; }
+    .satellite-dashboard .dashboard-period-controls[data-live-mode="false"] .period-year { flex:0 1 40%; max-width:40%; }
+    .satellite-dashboard .dashboard-period-controls[data-live-mode="false"] .year-select-wrap,
+    :root .satellite-dashboard .dashboard-period-controls[data-live-mode="false"] .period-year select { width:100%; min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .satellite-dashboard .live-dot { animation:none; }
+    .satellite-dashboard .period-year,
+    .satellite-dashboard .period-year[data-year-animating="enter"],
+    .satellite-dashboard .select-chevron,
+    :root .satellite-dashboard .month-dropdown summary,
+    :root .satellite-dashboard .period-year select {
+        transition:none !important;
+        animation:none !important;
+    }
+}

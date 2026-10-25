@@ -80,7 +80,7 @@
 
     const backdrop = ensureBackdrop();
     const toggle = ensureTopbar();
-    const desktop = window.matchMedia('(min-width: 1200px)');
+    const desktop = window.matchMedia('(min-width: 1024px)');
     const skipLink = document.querySelector('.skip-link');
     const drawerControls = () => [...sidebar.querySelectorAll('a[href], button, input, select, [tabindex]'), backdrop]
         .filter((element) => !element.disabled && element.tabIndex >= 0 && element.getClientRects().length > 0);

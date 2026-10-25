@@ -12,11 +12,12 @@
         @include('partials.sidebar-styles')
         @include('partials.table-pagination-styles')
         @include('partials.status-tabs-styles')
+        {{-- The styles stack contains raw CSS; the layout owns its style element. --}}
         @stack('styles')
         @include('partials.sidebar-responsive-overrides')
         @include('partials.accessibility-styles')
-        @include('partials.cs114-theme-styles')
     </style>
+    @vite('resources/css/shared-theme.css')
 </head>
 <body class="antialiased">
     <a class="skip-link" href="#main-content">Skip to main content</a>

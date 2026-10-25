@@ -1,0 +1,58 @@
+/* Shared by the Vite bundle and the Blade fallback for every role. */
+:root {
+    --sidebar-link-color: #ffffff;
+    --sidebar-link-hover-bg: rgba(255, 255, 255, 0.08);
+}
+
+.menu a,
+.sidebar-link {
+    color: var(--sidebar-link-color);
+}
+
+.menu a:hover,
+.sidebar-link:hover {
+    background: var(--sidebar-link-hover-bg);
+    color: var(--sidebar-link-color);
+}
+
+.menu a.active,
+.menu a[aria-current="page"],
+.sidebar-link.active,
+.sidebar-link[aria-current="page"] {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    box-shadow: inset 4px 0 0 var(--brand-red);
+}
+
+.menu a[aria-disabled="true"],
+.menu a.disabled,
+.sidebar-link[aria-disabled="true"],
+.sidebar-link.disabled {
+    background: transparent;
+    color: var(--sidebar-link-color);
+    opacity: 0.4;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Labels and nested links inherit their link's state, including active text. */
+.menu a :is(svg, i, .sidebar-icon),
+.sidebar-link :is(svg, i, .sidebar-icon) {
+    color: inherit;
+}
+
+.menu a svg:not([fill="none"]),
+.sidebar-link svg:not([fill="none"]),
+:is(.menu a, .sidebar-link) svg [fill]:not([fill="none"]) {
+    fill: currentColor;
+}
+
+:is(.menu a, .sidebar-link) svg[stroke]:not([stroke="none"]),
+:is(.menu a, .sidebar-link) svg [stroke]:not([stroke="none"]) {
+    stroke: currentColor;
+}
+
+.sidebar-nav [role="tooltip"],
+.sidebar-tooltip {
+    color: var(--sidebar-link-color);
+}

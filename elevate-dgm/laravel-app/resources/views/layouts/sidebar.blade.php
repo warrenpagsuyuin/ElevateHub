@@ -42,7 +42,7 @@
     <div class="signout sidebar-footer">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit">Sign Out</button>
+            <button type="submit" class="signout-button">Sign Out</button>
         </form>
     </div>
 @endif

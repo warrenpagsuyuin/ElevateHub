@@ -1,0 +1,238 @@
+/* One versioned entry, loaded after Blade page styles. See docs/dashboard-theme.md. */
+@import './cs114-theme.css';
+@import './sidebar-navigation.css';
+@import './signout-button.css';
+@import './satellite-dashboard.css';
+@import './seekers-ui.css';
+
+:root {
+    --stat-card-bg: #1A1A1A;
+    --stat-card-border: #2F2F2F;
+    --stat-card-border-hover: #3A3A3A;
+    --stat-card-accent: var(--ui-primary);
+    --stat-card-label: #B8B8B8;
+    --stat-card-value: #F2F2F2;
+    --stat-card-chevron: var(--stat-card-label);
+    --stat-card-chevron-hover: var(--stat-card-value);
+    --stat-card-focus: #FF5A4D;
+    --stat-card-radius: 16px;
+    --stat-card-padding: 18px 22px;
+    --stat-card-accent-width: 4px;
+    --stat-card-label-size: 14px;
+    --stat-card-value-size: 36px;
+    --panel-bg: var(--ui-surface);
+    --panel-border: var(--ui-divider);
+    --table-title-bg: var(--stat-card-bg);
+    --table-title-text: var(--ui-surface);
+    --table-card-radius: var(--stat-card-radius);
+    --table-header-padding: 16px 24px;
+    --table-header-size: 24px;
+    --table-head-bg: #F1F1F1;
+    --table-head-text: #474C58;
+    --table-head-border: #E0E0E0;
+    --table-head-sort-inactive: #8A8F9A;
+    --table-head-sort-active: var(--stat-card-bg);
+    --table-bar-bg: var(--stat-card-bg);
+    --table-bar-text: var(--stat-card-value);
+    --table-bar-border: var(--stat-card-border);
+    --table-bar-accent: var(--ui-primary);
+    --table-bar-control-bg: var(--ui-surface);
+    --table-bar-control-text: var(--ui-text);
+    --table-bar-control-border: var(--ui-border);
+    --table-bar-focus-ring: var(--stat-card-focus);
+    --table-footer-padding: 16px 20px;
+    --btn-dark-bg: var(--stat-card-bg);
+    --btn-dark-text: var(--stat-card-value);
+    --btn-dark-hover: var(--stat-card-border);
+    --btn-dark-active: var(--ui-text);
+    --btn-dark-focus-ring: var(--stat-card-focus);
+}
+
+/* Geometry falls back gently; existing grids, minimum heights and weights stay local. */
+:where(.elevate-stat-card) {
+    min-width: 0;
+    min-height: 105px;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: anywhere;
+}
+.elevate-stat-card {
+    background: var(--stat-card-bg);
+    color: var(--stat-card-value);
+    border: 1px solid var(--stat-card-border);
+    border-top: var(--stat-card-accent-width) solid var(--stat-card-accent);
+    border-radius: var(--stat-card-radius);
+    padding: var(--stat-card-padding);
+    box-shadow: none;
+}
+.elevate-stat-card :is(.stat-card-label, .summary-row-label) {
+    color: var(--stat-card-label);
+    font-size: var(--stat-card-label-size);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    opacity: 1;
+}
+.elevate-stat-card :is(.stat-card-value, .summary-row-value) {
+    color: var(--stat-card-value);
+    font-size: var(--stat-card-value-size);
+    overflow-wrap: anywhere;
+}
+.admin-summary-card { gap: var(--ui-space-4); }
+.admin-summary-card a { min-width: var(--ui-target); min-height: var(--ui-target); }
+.admin-summary-card .summary-number { display: inline-flex; align-items: center; }
+.touch-target { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-target); min-height: var(--ui-target); }
+.elevate-stat-card .summary-breakdown { border-top: 1px solid var(--stat-card-border); }
+.elevate-stat-card :is(.summary-segment span, .mv-note, .mv-change, .mv-kpi-state, small) { color: var(--stat-card-label); }
+.elevate-stat-card :is(.summary-segment strong, .mv-change strong) { color: var(--stat-card-value); }
+a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-decoration: none; }
+
+/* Preserve the approved legacy summary groups on Members and Satellites. */
+.legacy-stat-cards .card.red { background: var(--ui-primary); color: var(--ui-surface); }
+.legacy-stat-cards .card.black { background: var(--ui-text); color: var(--ui-surface); }
+
+/* Panels and Table Cards */
+.table-card, .directory-card, .seekers-card, .elevate-table-card, .summary-panel, .data-card.recent-activity {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--stat-card-radius);
+    overflow: hidden;
+}
+
+.table-card > h2,
+.directory-card > h2,
+.seekers-card > h2,
+.elevate-table-heading,
+.elevate-panel-heading,
+.summary-panel > h2,
+.data-card.recent-activity > h2 {
+    background: var(--table-title-bg);
+    color: var(--table-title-text);
+    padding: var(--table-header-padding);
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    border-radius: 0;
+}
+.elevate-panel-heading {
+    border-radius: calc(var(--stat-card-radius) - 1px) calc(var(--stat-card-radius) - 1px) 0 0;
+}
+.elevate-panel-heading :is(h2, h3) { color: inherit; }
+.elevate-panel-heading p { color: var(--stat-card-label); }
+
+/* Table Column Header Strip */
+:is(.table-card, .directory-card, .seekers-card, .elevate-table-card) thead th,
+:is(.data-table, .members-table, .seekers-table, .follow-up-table, table[data-enhanced-table]) thead th {
+    background: var(--table-head-bg) !important;
+    color: var(--table-head-text) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .04em !important;
+    border-bottom: 1px solid var(--table-head-border) !important;
+    padding: 14px 18px !important;
+}
+
+/* Table Rows and Dividers */
+:is(.table-card, .directory-card, .seekers-card, .elevate-table-card) tbody td,
+:is(.data-table, .members-table, .seekers-table, .follow-up-table, table[data-enhanced-table]) tbody td {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E0E0E0;
+    color: #111111;
+    font-size: 14px;
+}
+:is(.table-card, .directory-card, .seekers-card, .elevate-table-card) tbody tr:hover td,
+:is(.data-table, .members-table, .seekers-table, .follow-up-table, table[data-enhanced-table]) tbody tr:hover td {
+    background: #F9FAFB;
+}
+
+/* Table Footer / Pagination Bar */
+.elevate-table-footer,
+.directory-pagination,
+.data-table-pagination,
+.table-card .pagination-bar,
+.directory-card .pagination-bar,
+.pagination-bar {
+    background: var(--table-bar-bg) !important;
+    color: var(--table-bar-text) !important;
+    border-top: 1px solid var(--table-bar-border) !important;
+    padding: var(--table-footer-padding) !important;
+}
+.elevate-table-footer :is(.pagination-summary, .pagination-page-size, .pagination-mobile-status, .pagination-ellipsis),
+.directory-pagination :is(.pagination-summary, .pagination-page-size),
+.pagination-bar :is(.pagination-summary, .pagination-page-size, .pagination-mobile-status, .pagination-ellipsis) {
+    color: var(--table-bar-text) !important;
+}
+.elevate-table-footer select,
+.directory-pagination select,
+.pagination-bar select {
+    background: var(--table-bar-control-bg);
+    color: var(--table-bar-control-text);
+    border: 1px solid var(--table-bar-control-border);
+}
+
+/* Secondary Buttons */
+:is(.data-table-button, .data-table-link-button, .btn-secondary, .button-secondary):not(.primary):not(.danger) {
+    background: #FFFFFF !important;
+    color: #111111 !important;
+    border: 1px solid #D9DCE1 !important;
+}
+:is(.data-table-button, .data-table-link-button, .btn-secondary, .button-secondary):not(.primary):not(.danger):hover {
+    background: #F7F7F7 !important;
+    border-color: #B8BCC4 !important;
+}
+
+
+/* Dropdown and Select Options */
+select option:checked,
+.month-menu button[aria-selected="true"],
+.month-option.active {
+    background: #F1F1F1 !important;
+    color: #111111 !important;
+}
+select option:hover,
+.month-menu button:hover:not(:disabled),
+.month-option:hover {
+    background: #F7F7F7 !important;
+}
+select option:disabled,
+.month-menu button:disabled,
+.month-menu button[aria-disabled="true"] {
+    color: #8A8F9A !important;
+}
+
+/* Status Badges */
+.status-pill, .activity-status, .data-table-badge {
+    border-radius: 999px;
+    font-weight: 750;
+    font-size: 12px;
+}
+
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
+    .modal-submit, .primary-button, .research button.primary, .research a.primary,
+    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action) {
+    background: var(--btn-dark-bg);
+    color: var(--btn-dark-text);
+    border-color: var(--btn-dark-bg);
+}
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
+    .modal-submit, .primary-button, .research button.primary, .research a.primary,
+    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action):hover {
+    background: var(--btn-dark-hover);
+    color: var(--btn-dark-text);
+    border-color: var(--btn-dark-hover);
+}
+:is(.data-table-button.primary, .data-table-link-button.primary, .btn-primary, .new-button,
+    .modal-submit, .primary-button, .research button.primary, .research a.primary,
+    .sentiment-workspace button.primary, .sentiment-workspace a.primary, .dark-action):active { background: var(--btn-dark-active); }
+.sidebar-footer .signout-button { background: var(--signout-bg); color: var(--signout-text); border: 1px solid var(--signout-border); }
+.sidebar-footer .signout-button:hover { background: var(--signout-bg-hover); border-color: var(--signout-border-hover); }
+.sidebar-footer .signout-button:active { background: var(--signout-bg-active); }
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--stat-card-focus);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+@media (max-width: 560px) {
+    :root { --stat-card-padding: 16px 18px; --stat-card-label-size: 13px; --stat-card-value-size: 32px; }
+}

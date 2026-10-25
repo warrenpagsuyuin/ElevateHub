@@ -1,0 +1,36 @@
+/* One presentation for all logout controls; layout and typography stay in the shell. */
+:root {
+    --signout-bg: var(--btn-dark-bg);
+    --signout-bg-hover: var(--btn-dark-hover);
+    --signout-bg-active: var(--btn-dark-active);
+    --signout-border: var(--brand-red);
+    --signout-border-hover: var(--ui-primary-hover);
+    --signout-text: var(--btn-dark-text);
+    --signout-focus: var(--stat-card-focus);
+}
+
+.signout-button {
+    background: var(--signout-bg);
+    border: 1px solid var(--signout-border);
+    border-radius: 9999px;
+    color: var(--signout-text);
+    box-shadow: none;
+    text-align: center;
+    cursor: pointer;
+}
+
+.signout-button:hover {
+    background: var(--signout-bg-hover);
+    border-color: var(--signout-border-hover);
+}
+
+.signout-button:active {
+    background: var(--signout-bg-active);
+}
+
+.signout-button:is(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    background: var(--signout-bg);
+    border-color: var(--signout-border);
+    color: color-mix(in srgb, var(--signout-text) 60%, transparent);
+    pointer-events: none;
+}
