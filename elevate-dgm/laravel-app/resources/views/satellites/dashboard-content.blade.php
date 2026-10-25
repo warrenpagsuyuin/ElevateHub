@@ -9,7 +9,11 @@
     @endforeach
 </div>
 @if($emptyPeriod)
-    <div class="dashboard-panels">@foreach(['Engagement summary', 'Seeker summary'] as $title)<section class="summary-panel"><h2>{{ $title }}</h2><p class="dashboard-empty-period">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</p></section>@endforeach</div>
+    <div class="dashboard-panels">
+        @foreach(['engagement-summary-title' => 'Engagement summary', 'seeker-summary-title' => 'Seeker summary'] as $id => $title)
+            <section class="summary-panel" aria-labelledby="{{ $id }}"><h3 id="{{ $id }}">{{ $title }}</h3><p class="dashboard-empty-period">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</p></section>
+        @endforeach
+    </div>
 @else
     <div class="dashboard-panels">
         @include('components.summary-panel', ['id' => 'engagement-summary-title', 'title' => 'Engagement summary', 'items' => $engagementSummary])

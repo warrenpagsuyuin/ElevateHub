@@ -22,6 +22,13 @@
     --stat-card-value-size: 36px;
     --panel-bg: var(--ui-surface);
     --panel-border: var(--ui-divider);
+    --panel-title-bg: #1A1A1A;
+    --panel-title-text: #FFFFFF;
+    --summary-panel-border: #D9DCE1;
+    --summary-row-bg: #F3F4F6;
+    --summary-row-border: #E0E0E0;
+    --summary-row-label: #525252;
+    --summary-row-value: #111111;
     --table-title-bg: var(--stat-card-bg);
     --table-title-text: var(--ui-surface);
     --table-card-radius: var(--stat-card-radius);
@@ -89,12 +96,26 @@
 .elevate-stat-card :is(.summary-segment strong, .mv-change strong) { color: var(--stat-card-value); }
 a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-decoration: none; }
 
+/* Summary data is separate from the dark KPI-card presentation. */
+.summary-panel { display:flex; flex-direction:column; align-self:start; min-width:0; overflow:hidden; background:var(--panel-bg); border:1px solid var(--summary-panel-border); border-radius:var(--table-card-radius); }
+.summary-panel > h3 { display:flex; align-items:center; min-height:56px; margin:0; padding:0 var(--ui-space-6); background:var(--panel-title-bg); color:var(--panel-title-text); font-size:var(--ui-text-lg); font-weight:700; line-height:1.5; letter-spacing:.02em; }
+.summary-panel .mini-stat-list { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:1fr; align-content:start; gap:var(--ui-space-3); padding:var(--ui-space-4); margin:0; }
+.summary-row, .activity-history-drawer .history-entry { min-height:64px; background:var(--summary-row-bg); border:1px solid var(--summary-row-border); border-radius:var(--radius-md); box-shadow:none; }
+.summary-row { display:grid; grid-template-columns:minmax(0,1fr) max-content; align-items:center; gap:var(--ui-space-4); padding:var(--ui-space-3) var(--ui-space-5); }
+.summary-row-label { min-width:0; color:var(--summary-row-label); font-size:var(--ui-text-sm); font-weight:650; line-height:1.4; text-transform:uppercase; letter-spacing:.05em; overflow-wrap:anywhere; }
+.summary-row-value { margin:0; color:var(--summary-row-value); font-size:var(--ui-text-2xl); font-weight:850; line-height:1.2; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.activity-history-drawer .history-entry { margin-bottom:var(--ui-space-3); }
+.activity-history-drawer .history-entry summary { display:grid; gap:var(--ui-space-2); min-height:64px; padding:var(--ui-space-3) var(--ui-space-5); cursor:pointer; font-size:var(--ui-text-sm); color:var(--summary-row-value); overflow-wrap:anywhere; }
+.activity-history-drawer .history-entry summary > span:not(.activity-status) { color:var(--summary-row-label); }
+.activity-history-drawer .activity-status { display:inline-flex; align-items:center; justify-self:start; gap:var(--ui-space); min-height:26px; padding:var(--ui-space) var(--ui-space-2); border-radius:999px; background:var(--summary-row-border); color:var(--summary-row-value); font-size:var(--ui-text-xs); font-weight:800; }
+.summary-row:is(a, [tabindex]):focus-visible { outline:2px solid var(--stat-card-focus); outline-offset:2px; }
+
 /* Preserve the approved legacy summary groups on Members and Satellites. */
 .legacy-stat-cards .card.red { background: var(--ui-primary); color: var(--ui-surface); }
 .legacy-stat-cards .card.black { background: var(--ui-text); color: var(--ui-surface); }
 
 /* Panels and Table Cards */
-.table-card, .directory-card, .seekers-card, .elevate-table-card, .summary-panel, .data-card.recent-activity {
+.table-card, .directory-card, .seekers-card, .elevate-table-card, .data-card.recent-activity {
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: var(--stat-card-radius);
@@ -106,7 +127,6 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
 .seekers-card > h2,
 .elevate-table-heading,
 .elevate-panel-heading,
-.summary-panel > h2,
 .data-card.recent-activity > h2 {
     background: var(--table-title-bg);
     color: var(--table-title-text);

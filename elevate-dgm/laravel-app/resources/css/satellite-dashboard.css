@@ -9,8 +9,6 @@
     --select-focus: #FF5A4D;
     --live-dot: #B42318;
     --live-dot-halo: rgba(180,35,24,.35);
-    --panel-title-bg: #1a1a1a;
-    --panel-title-text: #ffffff;
     --panel-row-bg: #f3f4f6;
     --panel-row-text: #111111;
 }
@@ -168,39 +166,20 @@ html:has(.mv-drawer[open]) { overflow:hidden; }
 :root .satellite-dashboard .compact-dashboard-grid .stat-card-link:is(:hover,:focus-visible) .card-chevron {
     color:var(--stat-card-chevron-hover);
 }
-.satellite-dashboard .dashboard-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:16px; margin-bottom:20px; }
-.satellite-dashboard .summary-panel { background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:var(--table-card-radius); overflow:hidden; min-width:0; display:flex; flex-direction:column; }
-.satellite-dashboard .summary-panel > h2 { margin:0; background:var(--panel-title-bg); color:var(--panel-title-text); padding:16px 20px; font-size:16px; font-weight:700; line-height:1.5; }
-.satellite-dashboard .mini-stat-list { display:grid; grid-auto-rows:max-content; align-content:start; flex:1; gap:10px; padding:16px; margin:0; }
-.satellite-dashboard .mini-stat { flex-direction:row; align-items:center; justify-content:space-between; gap:var(--ui-space-4); }
-.satellite-dashboard .summary-row-label { flex:1; min-width:0; font-weight:650; overflow-wrap:anywhere; }
-.satellite-dashboard .summary-row-value { flex:0 1 auto; max-width:55%; margin:0; font-weight:850; opacity:1; overflow-wrap:anywhere; text-align:right; }
+.satellite-dashboard .dashboard-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; margin-bottom:20px; }
 .satellite-dashboard .dashboard-empty-period { padding:16px; color:var(--panel-row-text); background:var(--panel-row-bg); border-radius:var(--radius-sm); }
-.satellite-dashboard .activity-status { display:inline-flex; align-items:center; justify-self:start; gap:var(--ui-space); min-height:26px; border-radius:999px; background:var(--ui-disabled-surface); color:var(--ui-disabled-text); padding:4px 10px; font-size:var(--ui-text-xs); font-weight:800; }
-.satellite-dashboard .activity-status:is([data-status="Successful"],[data-status="Completed"]) { color:var(--ui-success); background:var(--ui-success-surface); }
-.satellite-dashboard .activity-status[data-status="Pending"] { color:var(--ui-warning); background:var(--ui-warning-surface); }
-.satellite-dashboard .activity-status:is([data-status="Unsuccessful"],[data-status="Cancelled"]) { color:var(--ui-error); background:var(--ui-error-surface); }
 .satellite-overview .activity-history-drawer > a { display:inline-flex; align-items:center; min-height:var(--ui-target); font-size:var(--ui-text-sm); }
 .satellite-overview .dashboard-header-actions { display:flex; align-items:flex-end; gap:var(--ui-space-2); min-width:0; flex-shrink:0; max-width:100%; }
 .satellite-overview .history-button { display:inline-flex; align-items:center; justify-content:center; width:var(--ui-target); height:var(--ui-target); min-height:var(--ui-target); padding:0; flex-shrink:0; background:var(--ui-surface); color:var(--ui-text); border:1px solid var(--ui-text); border-radius:var(--radius-sm); cursor:pointer; }
 .satellite-overview .history-button:hover { background:var(--ui-disabled-surface); }
 .satellite-overview .history-button:focus-visible { outline:2px solid var(--stat-card-focus) !important; outline-offset:2px !important; box-shadow:0 0 0 2px var(--ui-surface) !important; }
-.satellite-overview .mini-stat { min-height:84px; padding:var(--ui-space-3) var(--ui-space-4); border:0; border-radius:var(--radius-md); box-shadow:none; background:var(--stat-card-bg); }
-.satellite-overview .mini-stat::before, .satellite-overview .mini-stat::after { content:none; }
-.satellite-overview .mini-stat .summary-row-label { color:var(--stat-card-label); font-size:var(--ui-text-xs); line-height:1.4; text-transform:uppercase; letter-spacing:.04em; }
-.satellite-overview .mini-stat .summary-row-value { color:var(--stat-card-value); font-size:var(--ui-text-3xl); }
-.satellite-overview .summary-panel > h2 { padding:var(--ui-space-2) var(--ui-space-3); font-size:var(--ui-text-sm); }
-.satellite-overview .mini-stat-list { grid-template-columns:minmax(0,1fr); grid-auto-rows:minmax(84px,max-content); gap:var(--ui-space-3); padding:var(--ui-space-2); }
 .satellite-overview .activity-history-drawer { width:384px; padding:max(var(--ui-space-4),env(safe-area-inset-top)) max(var(--ui-space-4),env(safe-area-inset-right)) max(var(--ui-space-4),env(safe-area-inset-bottom)) max(var(--ui-space-4),env(safe-area-inset-left)); }
 .satellite-overview .activity-history-head { display:flex; align-items:center; justify-content:space-between; gap:var(--ui-space-2); margin-bottom:var(--ui-space-4); }
 .satellite-overview .activity-history-head h2 { margin:0; font-size:var(--ui-text-lg); }
 .satellite-overview .history-filter { display:grid; gap:var(--ui-space-2); font-size:var(--ui-text-sm); font-weight:700; }
 .satellite-overview .history-filter select { width:100%; min-height:var(--ui-target); background:var(--ui-surface); color:var(--ui-text); border:1px solid var(--ui-border); border-radius:var(--radius-sm); font-size:var(--ui-text-base); }
 .satellite-overview .history-date-group h3 { margin:var(--ui-space-4) 0 var(--ui-space-2); color:var(--ui-primary); font-size:var(--ui-text-xs); }
-.satellite-overview .history-entry { margin-bottom:var(--ui-space-2); border:1px solid var(--ui-divider); border-radius:var(--radius-sm); }
 .satellite-overview .history-entry[open] { outline:2px solid var(--ui-primary); outline-offset:-2px; }
-.satellite-overview .history-entry summary { display:grid; gap:var(--ui-space-2); min-height:var(--ui-target); padding:var(--ui-space-3); cursor:pointer; font-size:var(--ui-text-sm); overflow-wrap:anywhere; }
-.satellite-overview .history-entry summary > span:not(.activity-status) { color:var(--ui-muted); }
 .satellite-overview .history-entry dl { margin:0; padding:var(--ui-space-3); border-top:1px solid var(--ui-divider); font-size:var(--ui-text-sm); }
 .satellite-overview .history-entry dl > div { display:flex; justify-content:space-between; gap:var(--ui-space-3); }
 .satellite-overview .history-entry dd { margin:0; text-align:right; }
