@@ -117,6 +117,7 @@ html:has(.mv-drawer[open]) { overflow:hidden; }
 .satellite-dashboard .dashboard-intro { margin-bottom:var(--ui-space-3); }
 .satellite-dashboard .compact-dashboard-grid { grid-template-columns:repeat(4,minmax(0,1fr)); align-items:stretch; }
 :root .satellite-dashboard .compact-dashboard-grid .stat-card-link {
+    --stat-card-accent-width:0px;
     position:relative;
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
@@ -135,7 +136,6 @@ html:has(.mv-drawer[open]) { overflow:hidden; }
 }
 :root .satellite-dashboard .compact-dashboard-grid .stat-card-link:hover {
     border-color:var(--stat-card-border-hover);
-    border-top-color:var(--stat-card-accent);
 }
 :root .satellite-dashboard .compact-dashboard-grid .stat-card-link:focus-visible {
     outline:2px solid var(--stat-card-focus);
@@ -169,7 +169,7 @@ html:has(.mv-drawer[open]) { overflow:hidden; }
     color:var(--stat-card-chevron-hover);
 }
 .satellite-dashboard .dashboard-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:16px; margin-bottom:20px; }
-.satellite-dashboard .summary-panel { background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:var(--table-card-radius); overflow:hidden; min-width:0; display:flex; flex-direction:column; }
+.satellite-dashboard .summary-panel { background:var(--panel-bg); border:1px solid var(--panel-border); border-top:var(--stat-card-accent-width) solid var(--stat-card-accent); border-radius:var(--table-card-radius); overflow:hidden; min-width:0; display:flex; flex-direction:column; }
 .satellite-dashboard .summary-panel > h2 { margin:0; background:var(--panel-title-bg); color:var(--panel-title-text); padding:16px 20px; font-size:16px; font-weight:700; line-height:1.5; }
 .satellite-dashboard .mini-stat-list { display:grid; grid-auto-rows:max-content; align-content:start; flex:1; gap:10px; padding:16px; margin:0; }
 .satellite-dashboard .mini-stat { flex-direction:row; align-items:center; justify-content:space-between; gap:var(--ui-space-4); }
