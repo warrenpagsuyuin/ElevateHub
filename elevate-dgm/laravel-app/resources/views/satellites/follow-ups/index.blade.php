@@ -13,6 +13,7 @@
     .follow-up-filter-actions > * { display: inline-flex; align-items: center; justify-content: center; min-height: var(--ui-target); white-space: nowrap; }
     .follow-up-history .table-scroll { overflow-x: auto; }
     .follow-up-table { min-width: 900px; table-layout: fixed; }
+    .follow-up-table .follow-up-target { color: var(--ui-text); }
     .follow-up-table th, .follow-up-table td { overflow-wrap: anywhere; vertical-align: top; }
     .follow-up-table th:nth-child(1) { width: 17%; }
     .follow-up-table th:nth-child(2) { width: 13%; }
@@ -127,10 +128,10 @@
                     <tr style="border-bottom: 1px solid #e5e7eb;">
                         <td style="padding: 16px;">
                             @if ($followUp->seeker)
-                                <strong style="color: #e33c24;">{{ $followUp->seeker->name }}</strong><br>
+                                <strong class="follow-up-target">{{ $followUp->seeker->name }}</strong><br>
                                 <small style="color: #6b7280;">Seeker</small>
                             @elseif ($followUp->member)
-                                <strong style="color: #e33c24;">{{ $followUp->member->display_name }}</strong><br>
+                                <strong class="follow-up-target">{{ $followUp->member->display_name }}</strong><br>
                                 <small style="color: #6b7280;">Member</small>
                             @else
                                 <small style="color: #999;">—</small>

@@ -175,7 +175,7 @@
     }
 
     .table-action {
-        color: #ef3b24;
+        color: var(--ui-text);
         font-weight: 900;
         text-decoration: none;
         white-space: nowrap;
