@@ -217,19 +217,19 @@ Route::get('/satellites/{satellite}/follow-ups', [SatelliteFollowUpController::c
     ->middleware(['auth', 'satellite.access'])
     ->name('satellites.follow-ups.index');
 Route::get('/satellites/{satellite}/follow-ups/create', [SatelliteFollowUpController::class, 'create'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:follow-ups-manage'])
     ->name('satellites.follow-ups.create');
 Route::post('/satellites/{satellite}/follow-ups', [SatelliteFollowUpController::class, 'store'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:follow-ups-manage'])
     ->name('satellites.follow-ups.store');
 Route::post('/satellites/{satellite}/follow-ups/analyze-sentiment', [SatelliteFollowUpController::class, 'analyzeSentiment'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:follow-ups-manage'])
     ->name('satellites.follow-ups.analyze-sentiment');
 Route::patch('/satellites/{satellite}/follow-ups/{followUp}', [SatelliteFollowUpController::class, 'update'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:follow-ups-manage'])
     ->name('satellites.follow-ups.update');
 Route::delete('/satellites/{satellite}/follow-ups/{followUp}', [SatelliteFollowUpController::class, 'destroy'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:follow-ups-manage'])
     ->name('satellites.follow-ups.destroy');
 
 Route::get('/satellites/{satellite}/engagement', [EngagementClassificationController::class, 'index'])

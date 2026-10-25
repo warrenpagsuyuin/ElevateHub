@@ -140,6 +140,16 @@ class User extends Authenticatable
             && ($this->canManageSatellite($satellite) || $this->normalizedRole() === 'volunteer');
     }
 
+    public function canManageSatelliteFollowUps(Satellite $satellite): bool
+    {
+        if ($this->normalizedRole() === 'admin') {
+            return true;
+        }
+
+        return $this->canAccessSatellite($satellite)
+            && ($this->canManageSatellite($satellite) || $this->normalizedRole() === 'volunteer');
+    }
+
     public function normalizedRole(): string
     {
         return str_replace([' ', '-'], '_', strtolower((string) ($this->role ?: 'member')));

@@ -33,7 +33,7 @@ class SatelliteFollowUpController extends Controller
     public function index(Request $request, Satellite $satellite): View
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
+        abort_unless($user instanceof User && ($user->normalizedRole() === 'admin' || $user->canAccessSatellite($satellite)), 403);
 
         $satellite->load('assignedUsers');
         $filters = $this->filters($request);
@@ -42,7 +42,23 @@ class SatelliteFollowUpController extends Controller
 
         $query = FollowUp::query()
             ->where('satellite_id', $satellite->id)
-            ->with(['seeker', 'member']);
+            ->with(['seeker', 'member', 'leader']);
+
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('notes', 'like', '%'.$search.'%')
+                    ->orWhereHas('seeker', fn ($sq) => $sq->where('name', 'like', '%'.$search.'%'))
+                    ->orWhereHas('member', fn ($mq) => $mq->where('name', 'like', '%'.$search.'%')->orWhere('full_name', 'like', '%'.$search.'%'))
+                    ->orWhereHas('leader', fn ($lq) => $lq->where('name', 'like', '%'.$search.'%')->orWhere('full_name', 'like', '%'.$search.'%'));
+            });
+        }
+
+        if ($filters['target_type'] === 'seeker') {
+            $query->whereNotNull('seeker_id');
+        } elseif ($filters['target_type'] === 'member') {
+            $query->whereNotNull('member_id');
+        }
 
         if ($filters['status'] !== '') {
             $query->where('status', $filters['status']);
@@ -52,7 +68,9 @@ class SatelliteFollowUpController extends Controller
             $query->where('method', $filters['method']);
         }
 
-        if ($filters['sentiment'] !== '') {
+        if ($filters['sentiment'] === 'Unanalyzed') {
+            $query->whereNull('sentiment_label');
+        } elseif ($filters['sentiment'] !== '') {
             $query->where('sentiment_label', $filters['sentiment']);
         }
 
@@ -66,6 +84,8 @@ class SatelliteFollowUpController extends Controller
             FollowUp::where('satellite_id', $satellite->id)->get(['sentiment_label'])
         );
 
+        $canManageFollowUps = $user->canManageSatelliteFollowUps($satellite);
+
         return view('satellites.follow-ups.index', [
             'satellite' => $satellite,
             'followUps' => $followUps,
@@ -78,14 +98,14 @@ class SatelliteFollowUpController extends Controller
             'sentimentSummary' => $sentimentSummary,
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
-            'canManageSatellite' => $user->canManageSatellite($satellite),
+            'canManageSatellite' => $canManageFollowUps,
         ]);
     }
 
     public function create(Satellite $satellite, ?Seeker $seeker = null, ?Member $member = null): View
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canManageSatelliteFollowUps($satellite), 403);
 
         if ($seeker) {
             abort_unless($seeker->assigned_satellite_slug === $satellite->slug, 404);
@@ -107,7 +127,7 @@ class SatelliteFollowUpController extends Controller
     public function store(Request $request, Satellite $satellite): RedirectResponse
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canManageSatelliteFollowUps($satellite), 403);
 
         $validated = $request->validate([
             'seeker_id' => ['nullable', 'integer', 'exists:seekers,id'],
@@ -146,7 +166,7 @@ class SatelliteFollowUpController extends Controller
     public function update(Request $request, Satellite $satellite, FollowUp $followUp): RedirectResponse
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canManageSatelliteFollowUps($satellite), 403);
         abort_unless($followUp->satellite_id === $satellite->id, 404);
 
         $validated = $request->validate([
@@ -171,7 +191,7 @@ class SatelliteFollowUpController extends Controller
     public function analyzeSentiment(Satellite $satellite): RedirectResponse
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canManageSatelliteFollowUps($satellite), 403);
 
         $result = $this->sentimentService->analyzeQuery(
             FollowUp::where('satellite_id', $satellite->id)
@@ -186,7 +206,7 @@ class SatelliteFollowUpController extends Controller
     public function destroy(Satellite $satellite, FollowUp $followUp): RedirectResponse
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->canManageSatellite($satellite), 403);
+        abort_unless($user instanceof User && $user->canManageSatelliteFollowUps($satellite), 403);
         abort_unless($followUp->satellite_id === $satellite->id, 404);
 
         $followUp->delete();
@@ -199,11 +219,14 @@ class SatelliteFollowUpController extends Controller
     private function filters(Request $request): array
     {
         $sentiment = (string) $request->query('sentiment', '');
+        $validSentiments = array_merge(FollowUp::SENTIMENTS, ['Unanalyzed']);
 
         return [
+            'search' => trim((string) $request->query('search', '')),
+            'target_type' => (string) $request->query('target_type', ''),
             'status' => (string) $request->query('status', ''),
             'method' => (string) $request->query('method', ''),
-            'sentiment' => in_array($sentiment, FollowUp::SENTIMENTS, true) ? $sentiment : '',
+            'sentiment' => in_array($sentiment, $validSentiments, true) ? $sentiment : '',
         ];
     }
 

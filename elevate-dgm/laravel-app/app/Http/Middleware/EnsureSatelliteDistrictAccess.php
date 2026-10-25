@@ -41,6 +41,7 @@ class EnsureSatelliteDistrictAccess
             'seeker-status' => $user->canManageSeekers($satellite),
             'seeker-status-update' => $user->canChangeSeekerStatus($satellite),
             'manage' => $user->canManageSatellite($satellite),
+            'follow-ups-manage' => $user->canManageSatelliteFollowUps($satellite),
             'member-update' => $user->canUpdateSatelliteMembers($satellite),
             'seeker-leader-assignment' => $user->canAssignSeekerLeader($satellite),
             'members-view' => $user->canViewSatelliteMembers($satellite),
