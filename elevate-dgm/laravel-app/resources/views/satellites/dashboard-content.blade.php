@@ -1,9 +1,8 @@
+@php($emptyPeriod = !$isLiveDashboard && !$dashboardHasData)
 <section class="dashboard-intro" aria-labelledby="satellite-summary-title">
     <h2 class="summary-title" id="satellite-summary-title">{{ strtoupper($satellite->display_name) }} SATELLITE SUMMARY</h2>
-    <p class="page-subtitle">{{ $isLiveDashboard ? 'Overall registrations and their current statuses.' : $selectedDashboardMonth.' '.$selectedDashboardYear.' registrations and their current statuses, not a historical status snapshot. Card links open the current directories.' }}</p>
+    @if($emptyPeriod)<p class="dashboard-empty-period">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</p>@endif
 </section>
-@php($emptyPeriod = !$isLiveDashboard && !$dashboardHasData)
-@if($emptyPeriod)<p class="dashboard-empty-period">No data for {{ $selectedDashboardMonth }} {{ $selectedDashboardYear }}</p>@endif
 <div class="stats-grid compact-dashboard-grid">
     @foreach($satelliteSummaryCards as $index => $card)
         @include('components.stat-card', ['card' => $card, 'index' => $index, 'emptyPeriod' => $emptyPeriod])
@@ -18,16 +17,24 @@
     </div>
 @endif
 <section class="data-card recent-activity" aria-labelledby="recent-activity-title">
-    <h2 class="section-title" id="recent-activity-title">Recent Activity</h2>
+    <header class="activity-heading">
+        <h2 class="section-title" id="recent-activity-title">Recent Activity</h2>
+        <div class="activity-actions">
+            <a class="touch-target" href="{{ route('satellites.follow-ups.index', $satellite) }}">View all</a>
+            <button type="button" class="history-button" data-history-open aria-label="Activity history" title="Activity history" aria-expanded="false" aria-controls="activity-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg>
+            </button>
+        </div>
+    </header>
     <div class="activity-list" role="list">
-        @forelse($recentActivity as $activity)
+        @forelse(array_slice($recentActivity, 0, 3) as $activity)
             <div class="activity-row" role="listitem">
-                <strong>{{ $activity['target'] }}</strong>
-                <span class="activity-type">{{ $activity['method'] }} follow-up</span>
+                <strong title="{{ $activity['target'] }}">{{ $activity['target'] }}</strong>
+                <span class="activity-type" title="{{ $activity['method'] }} follow-up">{{ $activity['method'] }} follow-up</span>
                 <span class="activity-status" data-status="{{ $activity['status'] }}" aria-label="{{ $activity['statusLabel'] }}: {{ $activity['status'] }}"><span aria-hidden="true">{{ match ($activity['status']) { 'Successful', 'Completed' => '✓', 'Pending' => '…', 'Unsuccessful', 'Cancelled' => '×', default => '•' } }}</span>{{ $activity['status'] }}</span>
                 <small class="activity-date">{{ $activity['date'] }}</small>
             </div>
         @empty<p class="empty-state">{{ $isLiveDashboard ? 'No follow-ups yet.' : 'No follow-ups for '.$selectedDashboardMonth.' '.$selectedDashboardYear.'.' }}</p>@endforelse
     </div>
-    <div class="activity-footer"><a class="touch-target" href="{{ route('satellites.follow-ups.index', $satellite) }}">View all</a></div>
 </section>
+<template data-activity-history>@include('satellites.activity-history')</template>

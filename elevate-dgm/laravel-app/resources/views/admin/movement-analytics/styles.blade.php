@@ -109,8 +109,7 @@
 .mv-state-actions .mv-button { min-height:44px; }
 .mv-loader { display:inline-block; width:15px; height:15px; border:2px solid #ddd; border-top-color:var(--mv-red); border-radius:50%; animation:mv-spin 1s linear infinite; margin-right:8px; }
 @keyframes mv-spin { to { transform:rotate(360deg); } }
-.movement .mv-drawer { position:fixed; margin:0 0 0 auto; inset:0 0 0 auto; width:560px; max-width:100%; height:100dvh; max-height:100dvh; border:0; border-left:1px solid #ddd; padding:28px; color:var(--mv-ink); box-shadow:-15px 0 55px #0002; background:white; }
-.mv-drawer::backdrop { background:#1118; }
+.movement .mv-drawer { width:560px; padding:28px; }
 .mv-drawer-head { display:flex; justify-content:space-between; gap:20px; align-items:center; border-bottom:1px solid #ddd; padding-bottom:22px; margin-bottom:24px; }
 .mv-drawer h3 { margin:24px 0 12px; }
 .mv-drawer p { font-size:13px; line-height:1.7; color:var(--mv-muted); }

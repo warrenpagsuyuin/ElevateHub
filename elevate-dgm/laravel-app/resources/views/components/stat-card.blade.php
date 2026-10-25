@@ -10,7 +10,7 @@
    data-focus-key="card-{{ $index }}"
    href="{{ $card['href'] }}"
    aria-label="{{ $accessibleName }}">
-    <span class="stat-label stat-card-label">{{ $card['label'] }}</span>
+    <span class="stat-label stat-card-label" title="{{ $card['label'] }}">{{ $card['label'] }}</span>
     <strong class="stat-value stat-card-value">{{ $valueText }}</strong>
     <span class="card-chevron" aria-hidden="true">›</span>
 </a>
