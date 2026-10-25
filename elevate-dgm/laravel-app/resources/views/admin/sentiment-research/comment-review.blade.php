@@ -57,21 +57,12 @@
     @if(session('error'))<div class="notice error" role="alert">{{ session('error') }}</div>@endif
     @if($errors->any())<div class="notice error" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 
-    <x-directory-toolbar tag="div" class="comment-review-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%; box-sizing: border-box;">
-        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <form method="GET" action="{{ route('admin.satisfaction-comments.review') }}" style="display: flex; gap: 10px; align-items: center; margin: 0;">
-                <label class="comment-queue-label">Filter Queue:
-                    <select name="status" onchange="this.form.submit()">
-                        @foreach($filters as $key => $name)
-                            <option value="{{ $key }}" @selected($filter === $key)>{{ $name }}</option>
-                        @endforeach
-                    </select>
-                </label>
-            </form>
-
-            <div class="queue-filter-pills" aria-label="Quick queue filters">
+    <x-directory-toolbar tag="div" class="comment-review-toolbar" style="display: flex !important; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%; box-sizing: border-box;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0;">
+            <span class="comment-queue-label" style="font-size: 13px; font-weight: 700; color: #334155; margin: 0;">Filter Queue:</span>
+            <div class="queue-filter-pills" role="navigation" aria-label="Filter queue by status">
                 @foreach($filters as $key => $name)
-                    <a href="{{ route('admin.satisfaction-comments.review', ['status' => $key]) }}" class="queue-filter-pill {{ $filter === $key ? 'is-active' : '' }}">{{ $name }}</a>
+                    <a href="{{ route('admin.satisfaction-comments.review', ['status' => $key]) }}" class="queue-filter-pill {{ $filter === $key ? 'is-active' : '' }}" @if($filter === $key) aria-current="page" @endif>{{ $name }}</a>
                 @endforeach
             </div>
         </div>
@@ -79,6 +70,9 @@
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <span class="soft-badge" style="background: #1A1A1A; color: #ffffff; padding: 6px 12px; border-radius: 9999px; font-size: 12.5px;">
                 {{ $queue->total() }} {{ \Illuminate\Support\Str::plural('comment', $queue->total()) }} in queue
+            </span>
+            <span class="seekers-result-count" style="white-space: nowrap;">Inter-rater agreement: <strong>{{ $agreement['observed'] !== null ? number_format($agreement['observed'] * 100, 1).'%' : 'N/A' }}</strong>
+                @if($agreement['kappa'] !== null) (κ = {{ number_format($agreement['kappa'], 3) }}) @endif
             </span>
         </div>
     </x-directory-toolbar>
