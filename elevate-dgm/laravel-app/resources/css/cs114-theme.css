@@ -93,17 +93,6 @@ body { color: var(--ui-text); font-size: var(--ui-text-base); line-height: 1.5; 
 .summary-segment strong { font-size: var(--ui-text-xl); }
 .card .value { font-size: var(--ui-text-3xl); color: var(--ui-surface); }
 .card .label { font-size: var(--ui-text-sm); color: var(--ui-surface); opacity: 1; }
-.pagination-bar, .table-card .pagination-bar {
-    background: var(--ui-primary);
-    color: var(--ui-surface);
-}
-.pagination-summary, .pagination-page-size { color: var(--ui-surface); }
-.pagination-bar .pagination-mobile-status, .pagination-bar .pagination-ellipsis { color: var(--ui-surface); }
-.pagination-current, .directory-card .pagination-current {
-    background: var(--ui-primary);
-    border-color: var(--ui-surface);
-    color: var(--ui-surface);
-}
 :is(button, .btn, .data-table-button, .data-table-link-button,
     .pagination-link, .pagination-current, .pagination-disabled,
     .data-table-chip, .data-table-sort-link, .data-table-sort-button,
@@ -151,7 +140,6 @@ body { color: var(--ui-text); font-size: var(--ui-text-base); line-height: 1.5; 
 .btn-secondary:hover, .data-table-button:not(.primary):not(.danger):hover,
 .data-table-link-button:not(.primary):not(.danger):hover,
 .data-table-icon-button:hover, .data-table-menu-button:hover,
-.pagination-link:hover, .directory-card .pagination-link:hover,
 .secondary-button:hover, .data-table-search-clear:hover, .modal-close:hover {
     background: var(--ui-error-surface);
     color: var(--ui-primary) !important;
@@ -191,7 +179,6 @@ body { color: var(--ui-text); font-size: var(--ui-text-base); line-height: 1.5; 
 .data-table-actions, .data-table-column-actions { gap: var(--ui-space-3); }
 .data-table-columns-panel { padding: var(--ui-space-6); gap: var(--ui-space-4); }
 .data-table-empty-card { gap: var(--ui-space-3); padding: var(--ui-space-8) var(--ui-space-6); }
-.pagination-bar, .table-card .pagination-bar, .directory-card .pagination-bar { padding: var(--ui-space-4) var(--ui-space-5); }
 .table-card h2 { padding: var(--ui-space-4) var(--ui-space-6); }
 .table-card th, .table-card td { padding: var(--ui-space-4) var(--ui-space-6); }
 .table-card .data-table-action-col { width: calc(var(--ui-target) + var(--ui-space-6) * 2); }

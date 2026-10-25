@@ -33,7 +33,7 @@
         .seekers-table tbody tr:last-child td { border-bottom: none; }
         .seekers-table tbody tr:hover { background: #fff9f7; }
         .seeker-name { color: var(--ink); font-weight: 900; }
-        .leader-button { min-height: 40px; border: 1px solid #f0b4a8; border-radius: 8px; padding: 0 12px; background: #fff; color: var(--brand-red); font-size: 13px; font-weight: 900; cursor: pointer; }
+        .leader-button { min-height: var(--ui-target); border: 1px solid #f0b4a8; border-radius: 8px; padding: 0 12px; background: #fff; color: var(--ui-text); font-size: 13px; font-weight: 900; cursor: pointer; }
         .leader-button:hover, .leader-button:focus-visible { background: var(--brand-red-soft); border-color: var(--brand-red); outline: none; }
         .leader-assigned { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; border: 0; padding: 0; background: transparent; color: var(--ink); font-weight: 800; cursor: pointer; text-align: left; }
         .leader-assigned:hover, .leader-assigned:focus-visible { color: var(--brand-red); outline: none; }

@@ -11,7 +11,7 @@
         $tableId = $tableId ?? 'table';
     @endphp
 
-    <nav class="pagination-bar" id="{{ $tableId }}-pagination" role="navigation" aria-label="{{ ucfirst($recordLabel) }} pagination" data-pagination-nav>
+    <nav class="pagination-bar" id="{{ $tableId }}-pagination" aria-label="Pagination" data-pagination-nav>
         <div class="pagination-summary">
             Showing {{ $paginator->firstItem() }}-{{ $paginator->lastItem() }} of {{ $paginator->total() }} {{ $recordLabel }}
         </div>
@@ -37,7 +37,7 @@
         @if ($paginator->hasPages())
             <div class="pagination-links">
                 @if ($paginator->onFirstPage())
-                    <span class="pagination-disabled" aria-disabled="true">&lsaquo; Previous</span>
+                    <button type="button" class="pagination-disabled" disabled>&lsaquo; Previous</button>
                 @else
                     <a class="pagination-link" href="{{ $paginator->previousPageUrl() }}" aria-label="Go to previous page" data-pagination-link>&lsaquo; Previous</a>
                 @endif
@@ -46,10 +46,11 @@
                 @php $previousPage = null; @endphp
                 @foreach ($pageLinks as $page)
                     @if ($previousPage !== null && $page > $previousPage + 1)<span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>@endif
+                    @if ($page === $lastPage && $currentPage < $lastPage - 1)<span class="pagination-mobile-ellipsis" aria-hidden="true">&hellip;</span>@endif
                     @if ($page === $currentPage)
                         <span class="pagination-current" aria-current="page" aria-label="Page {{ $page }}, current page">{{ $page }}</span>
                     @else
-                        <a class="pagination-link" href="{{ $paginator->url($page) }}" aria-label="Go to page {{ $page }}" data-pagination-link>{{ $page }}</a>
+                        <a @class(['pagination-link', 'pagination-page-number', 'pagination-last-page' => $page === $lastPage]) href="{{ $paginator->url($page) }}" aria-label="Go to page {{ $page }}" data-pagination-link>{{ $page }}</a>
                     @endif
                     @php $previousPage = $page; @endphp
                 @endforeach
@@ -57,7 +58,7 @@
                 @if ($paginator->hasMorePages())
                     <a class="pagination-link" href="{{ $paginator->nextPageUrl() }}" aria-label="Go to next page" data-pagination-link>Next &rsaquo;</a>
                 @else
-                    <span class="pagination-disabled" aria-disabled="true">Next &rsaquo;</span>
+                    <button type="button" class="pagination-disabled" disabled>Next &rsaquo;</button>
                 @endif
             </div>
         @endif

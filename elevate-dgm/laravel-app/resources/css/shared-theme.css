@@ -40,6 +40,9 @@
     --table-bar-control-text: var(--ui-text);
     --table-bar-control-border: var(--ui-border);
     --table-bar-focus-ring: var(--stat-card-focus);
+    --table-bar-button-bg: var(--ui-disabled-surface);
+    --table-bar-button-text: var(--ui-text);
+    --table-bar-button-hover: var(--ui-surface);
     --table-footer-padding: 16px 20px;
     --btn-dark-bg: var(--stat-card-bg);
     --btn-dark-text: var(--stat-card-value);
@@ -169,6 +172,120 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
     background: var(--table-bar-control-bg);
     color: var(--table-bar-control-text);
     border: 1px solid var(--table-bar-control-border);
+}
+
+/* One pagination presentation for Seekers, Follow-Ups and the other shared tables. */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--ui-space-4);
+    margin: 0;
+    min-width: 0;
+    width: 100%;
+    border-radius: 0 0 var(--table-card-radius) var(--table-card-radius);
+    font-size: var(--ui-text-sm);
+    font-weight: 900;
+}
+.pagination-summary { line-height: 1.3; overflow-wrap: anywhere; }
+.pagination-page-size {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+    margin: 0;
+    white-space: nowrap;
+}
+.pagination-page-size select {
+    min-height: var(--ui-target);
+    min-width: 64px;
+    border-radius: var(--radius-sm);
+    padding: 0 var(--ui-space-2);
+    font: inherit;
+    font-size: var(--ui-text-base);
+}
+.pagination-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--ui-space-2);
+    min-width: 0;
+}
+.pagination-bar :is(.pagination-link, .pagination-current, .pagination-disabled) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--ui-target);
+    min-height: var(--ui-target);
+    padding: 0 var(--ui-space-3);
+    border: 1px solid var(--table-bar-control-border);
+    border-radius: var(--radius-sm);
+    background: var(--table-bar-button-bg);
+    color: var(--table-bar-button-text);
+    font: inherit;
+    line-height: 1;
+    text-decoration: none;
+}
+.pagination-bar .pagination-link:hover {
+    background: var(--table-bar-button-hover);
+    color: var(--table-bar-button-text);
+    border-color: var(--ui-primary);
+}
+.pagination-bar .pagination-current {
+    background: var(--table-bar-bg);
+    color: var(--table-bar-text);
+    border: 2px solid var(--ui-primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+.pagination-bar .pagination-disabled:disabled {
+    background: var(--ui-disabled-surface) !important;
+    color: var(--ui-disabled-text) !important;
+    cursor: not-allowed;
+}
+.pagination-bar :is(a, select):focus-visible {
+    outline: 3px solid var(--table-bar-focus-ring) !important;
+    outline-offset: 3px !important;
+}
+.pagination-ellipsis, .pagination-mobile-ellipsis { min-width: 16px; text-align: center; }
+.pagination-mobile-ellipsis, .pagination-mobile-status { display: none; }
+.pagination-loading { position: relative; }
+.pagination-loading::after {
+    width: 16px;
+    height: 16px;
+    content: '';
+    border: 2px solid var(--table-bar-text);
+    border-top-color: var(--ui-primary);
+    border-radius: 50%;
+    animation: pagination-spin .7s linear infinite;
+}
+.pagination-loading-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+@keyframes pagination-spin { to { transform: rotate(360deg); } }
+@media (max-width: 767px) {
+    .pagination-bar {
+        --table-footer-padding: var(--ui-space-3) var(--ui-space-2);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--ui-space-3) var(--ui-space-2);
+    }
+    .pagination-summary { font-size: var(--ui-text-xs); }
+    .pagination-page-size { font-size: var(--ui-text-xs); gap: var(--ui-space); }
+    .pagination-page-size select { min-width: var(--ui-target); padding: 0 var(--ui-space); }
+    .pagination-links { grid-column: 1 / -1; justify-content: center; gap: var(--ui-space); }
+    .pagination-links .pagination-page-number:not(.pagination-last-page),
+    .pagination-links .pagination-ellipsis { display: none; }
+    .pagination-mobile-ellipsis { display: inline; color: var(--table-bar-text); }
+    .pagination-bar :is(.pagination-link, .pagination-current, .pagination-disabled) {
+        padding: 0 var(--ui-space-2);
+        font-size: var(--ui-text-xs);
+    }
 }
 
 /* Secondary Buttons */
