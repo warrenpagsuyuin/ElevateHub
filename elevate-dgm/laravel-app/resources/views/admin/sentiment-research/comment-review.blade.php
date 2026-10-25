@@ -4,30 +4,30 @@
 @push('styles')
 @include('admin.engagement-research._styles')
 @include('admin.sentiment-research._styles')
-.unified-review-stream { max-width: 880px; margin: 18px 0 0; display: flex; flex-direction: column; gap: 16px; }
-.unified-comment-card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px 22px; background: #ffffff; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03); transition: all 0.15s ease; }
+.sentiment-workspace.directory-workspace { max-width: 1320px; width: 100%; box-sizing: border-box; }
+.unified-review-stream { width: 100%; max-width: 100%; margin: 18px 0 0; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; }
+.unified-comment-card { width: 100%; max-width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 14px; padding: clamp(16px, 2vw, 24px); background: #ffffff; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03); transition: all 0.15s ease; }
 .unified-comment-card:hover { border-color: #cbd5e1; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05); }
 .unified-comment-card.active { border: 2px solid #450d07; background: #ffffff; box-shadow: 0 8px 24px rgba(69, 13, 7, 0.08); }
-.unified-card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 14px; }
+.unified-card-head { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 14px; }
 .unified-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .unified-ref { font-size: 13px; font-weight: 800; color: #1e293b; letter-spacing: 0.01em; }
 .unified-comment-card.active .unified-ref { color: #450d07; }
 .unified-reviews-count { font-size: 12px; font-weight: 600; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 3px 10px; border-radius: 9999px; }
-.comment-text-box { font-size: 16px; font-weight: 500; line-height: 1.6; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #450d07; border-radius: 10px; padding: 16px 18px; margin: 0 0 16px; white-space: pre-wrap; word-break: break-word; }
-.badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: #f1f5f9; color: #475569; }
+.comment-text-box { width: 100%; box-sizing: border-box; font-size: clamp(14.5px, 1.1vw, 16px); font-weight: 500; line-height: 1.65; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #450d07; border-radius: 10px; padding: clamp(14px, 1.5vw, 18px) clamp(16px, 2vw, 22px); margin: 0 0 16px; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; height: auto; min-height: 54px; }
+.badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: #f1f5f9; color: #475569; white-space: nowrap; }
 .badge-final { background: #dcfce7; color: #166534; }
 .badge-adjudicate { background: #fef3c7; color: #92400e; }
 .badge-awaiting { background: #fef9c3; color: #854d0e; }
-.sentiment-workspace .btn-label-group { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 10px 0 0; }
-@media (max-width: 720px) { .sentiment-workspace .btn-label-group { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.sentiment-workspace button.btn-label { min-height: 46px; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; border: 1.5px solid #cbd5e1; background: #ffffff; color: #1e293b; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.12s ease; }
+.sentiment-workspace .btn-label-group { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 10px 0 0; }
+.sentiment-workspace button.btn-label { width: 100%; min-height: 46px; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; border: 1.5px solid #cbd5e1; background: #ffffff; color: #1e293b; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.12s ease; box-sizing: border-box; }
 .sentiment-workspace button.btn-label:hover { transform: translateY(-1px); border-color: #450d07; box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06); }
 .sentiment-workspace button.btn-label-positive:hover { background: #f0fdf4; border-color: #16a34a; color: #166534; }
 .sentiment-workspace button.btn-label-neutral:hover { background: #f8fafc; border-color: #475569; color: #0f172a; }
 .sentiment-workspace button.btn-label-negative:hover { background: #fef2f2; border-color: #dc2626; color: #991b1b; }
 .sentiment-workspace button.btn-label-cannot-judge:hover { background: #f1f5f9; border-color: #64748b; color: #334155; }
 .kbd-hint { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; font-size: 11px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155; }
-.unified-card-footer { margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.unified-card-footer { width: 100%; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .queue-filter-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .queue-filter-pill { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 9999px; font-size: 12.5px; font-weight: 600; text-decoration: none; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; transition: all 0.15s ease; }
 .queue-filter-pill:hover { border-color: #450d07; }
@@ -57,7 +57,7 @@
     @if(session('error'))<div class="notice error" role="alert">{{ session('error') }}</div>@endif
     @if($errors->any())<div class="notice error" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 
-    <x-directory-toolbar tag="div" class="comment-review-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <x-directory-toolbar tag="div" class="comment-review-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%; box-sizing: border-box;">
         <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
             <form method="GET" action="{{ route('admin.satisfaction-comments.review') }}" style="display: flex; gap: 10px; align-items: center; margin: 0;">
                 <label class="comment-queue-label">Filter Queue:
@@ -130,7 +130,7 @@
                     <p style="font-size: 13px; color: #475569; margin: 0 0 8px;">
                         Select your independent assessment{{ $isActive ? ' (click or press keys 1–4). Automatically advances to the next comment.' : '.' }}
                     </p>
-                    <form method="POST" action="{{ route('admin.satisfaction-comments.label', $item->id) }}" @if($isActive) id="review-label-form" data-hotkey-form @endif>
+                    <form method="POST" action="{{ route('admin.satisfaction-comments.label', $item->id) }}" @if($isActive) id="review-label-form" data-hotkey-form @endif style="width: 100%; margin: 0;">
                         @csrf
                         <input type="hidden" name="status" value="{{ $filter }}">
                         <input type="hidden" name="page" value="{{ $queue->currentPage() }}">
@@ -150,7 +150,7 @@
                         <strong style="color: #92400e; font-size: 13px;">Adjudication Required:</strong>
                         <span style="font-size: 12.5px; color: #78350f;">Previous two independent reviewers disagreed. Assign the final ground-truth label.</span>
                     </div>
-                    <form method="POST" action="{{ route('admin.satisfaction-comments.adjudicate', $item->id) }}" @if($isActive) id="adjudicate-label-form" data-hotkey-form @endif>
+                    <form method="POST" action="{{ route('admin.satisfaction-comments.adjudicate', $item->id) }}" @if($isActive) id="adjudicate-label-form" data-hotkey-form @endif style="width: 100%; margin: 0;">
                         @csrf
                         <input type="hidden" name="status" value="{{ $filter }}">
                         <input type="hidden" name="page" value="{{ $queue->currentPage() }}">
