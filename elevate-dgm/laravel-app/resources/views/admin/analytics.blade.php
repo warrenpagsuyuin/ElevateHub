@@ -11,16 +11,48 @@
     </header>
     <section class="analytics-current-stats" aria-label="Current active satellite totals">
         <p class="mv-note">Current active records, matching the Members and Satellites dashboards. Checkpoint metrics below retain their dated definitions and coverage.</p>
+        @php
+            $analyticsTopCards = [
+                'totalSatellites' => [
+                    'label' => 'Total Satellites',
+                    'value' => $activeSatelliteCounts['totalSatellites'] ?? 0,
+                    'url' => route('admin.satellites'),
+                ],
+                'activeLeaders' => [
+                    'label' => 'Active Leaders',
+                    'value' => $activeSatelliteCounts['activeLeaders'] ?? 0,
+                    'url' => route('admin.members', ['dgroup_role' => 'Dgroup Leader']),
+                ],
+                'activeMembers' => [
+                    'label' => 'Total Members',
+                    'value' => $activeSatelliteCounts['activeMembers'] ?? 0,
+                    'url' => route('admin.members'),
+                ],
+                'openReports' => [
+                    'label' => 'Open Reports',
+                    'value' => $activeSatelliteCounts['openReports'] ?? 0,
+                    'url' => route('admin.satellites'),
+                ],
+            ];
+        @endphp
         <div class="stats metric-card-grid">
-        @foreach (['totalSatellites' => 'Total Satellites', 'activeLeaders' => 'Active Leaders', 'activeMembers' => 'Total Members', 'openReports' => 'Open Reports'] as $key => $label)
-            <div class="card metric-card elevate-stat-card"><div class="info"><span class="label stat-card-label">{{ $label }}</span><span class="value stat-card-value">{{ $activeSatelliteCounts[$key] }}</span></div></div>
+        @foreach ($analyticsTopCards as $key => $card)
+            <a href="{{ $card['url'] }}" class="card metric-card elevate-stat-card stat-card-link mv-top-stat-card" aria-label="{{ $card['label'] }}: {{ number_format((int) $card['value']) }}">
+                <div class="info">
+                    <span class="label stat-card-label">{{ $card['label'] }}</span>
+                    <div class="stat-card-value-row">
+                        <span class="value stat-card-value">{{ number_format((int) $card['value']) }}</span>
+                        <span class="card-chevron" aria-hidden="true">›</span>
+                    </div>
+                </div>
+            </a>
         @endforeach
         </div>
     </section>
     @if(app()->environment('local') && config('movement_analytics.sample_enabled'))
         <p class="mv-note"><a href="{{ route('admin.analytics', ['sample'=>1]) }}">Open isolated sample preview</a> · <a href="{{ route('admin.analytics') }}">Return to real data</a></p>
     @endif
-    <p id="mv-sample-banner" class="mv-state" hidden>SAMPLE DATA ? local preview only. No real records are shown and export is disabled.</p><form class="mv-filters" id="mv-filters" aria-label="Analytics filters">
+    <p id="mv-sample-banner" class="mv-state" hidden>SAMPLE DATA · local preview only. No real records are shown and export is disabled.</p><form class="mv-filters" id="mv-filters" aria-label="Analytics filters">
         <label>Checkpoint<select aria-label="Checkpoint" name="checkpoint" id="mv-checkpoint">@forelse($checkpoints as $checkpoint)<option value="{{ $checkpoint->key }}" @selected($checkpoint->key === $defaultCheckpoint)>{{ $checkpoint->label }} · {{ ucfirst($checkpoint->status) }}</option>@empty<option value="">No checkpoints configured</option>@endforelse</select><span class="mv-filter-help">Choose the reporting month. Open checkpoints can receive reports; closed checkpoints keep a saved snapshot.</span></label>
         <label>Compare with<select aria-label="Compare with" name="compare"><option value="baseline">{{ $checkpoints->firstWhere('kind', 'baseline')?->label ?? 'Baseline' }} baseline</option><option value="previous">Previous checkpoint</option></select><span class="mv-filter-help">Compare with the baseline, the starting checkpoint, or with the previous checkpoint.</span></label>
         <label>Movement group<select aria-label="Movement group" name="group"><option value="">All groups</option>@foreach($groups as $group)<option value="{{ $group->group }}">{{ $group->name }}</option>@endforeach</select><span class="mv-filter-help">Limit the view to one movement group. A unit is a DGroup used to organize satellites.</span></label>
@@ -32,7 +64,16 @@
     <section id="mv-state-card" class="mv-panel mv-state-card" role="status" aria-live="polite"><div id="mv-status" class="mv-state"><span class="mv-loader" aria-hidden="true"></span> Loading movement analytics...</div><div id="mv-state-actions" class="mv-state-actions" hidden></div><button id="mv-retry" class="mv-button" type="button" hidden>Try again</button></section>
     <noscript><div class="mv-state">Enable JavaScript to explore the analytics dashboard.</div></noscript>
     <p id="mv-completeness" class="mv-note" role="status"></p><div id="mv-content" hidden>
-        <section class="mv-verdict" aria-labelledby="mv-verdict-title"><div><p class="mv-eyebrow" id="mv-verdict-kicker">MOVEMENT PULSE</p><h2 id="mv-verdict-title"></h2><p id="mv-verdict-copy"></p></div><a href="#mv-attention" class="mv-verdict-link">Review attention items <span aria-hidden="true">&#8599;</span></a></section>
+        <nav class="mv-jump-nav" aria-label="Analytics section jump links">
+            <a href="#mv-kpis">Overview KPIs</a>
+            <a href="#mv-groups-title">01 Group comparison</a>
+            <a href="#mv-attention">02 Needs attention</a>
+            <a href="#mv-units-title">03 Unit performance</a>
+            <a href="#mv-pipeline-title">04 People &amp; pipeline</a>
+            <a href="#mv-forecast-title">05 Next checkpoint outlook</a>
+            <a href="#mv-full-data">Full data table</a>
+        </nav>
+        <section class="mv-verdict" aria-labelledby="mv-verdict-title"><div><p class="mv-eyebrow" id="mv-verdict-kicker">MOVEMENT PULSE</p><h2 id="mv-verdict-title"></h2><p id="mv-verdict-copy"></p></div><div class="mv-verdict-actions"><button type="button" class="mv-button" id="mv-switch-latest-reported" hidden>Switch to latest reported checkpoint</button><a href="#mv-attention" class="mv-verdict-link">Review attention items <span aria-hidden="true">&#8599;</span></a></div></section>
         <section class="mv-kpis" id="mv-kpis" aria-label="Movement key performance indicators"></section>
         <div class="mv-grid">
             <section class="mv-panel mv-comparison" aria-labelledby="mv-groups-title"><div class="mv-section-head"><div><p class="mv-eyebrow">01 / THE BIG PICTURE</p><h2 id="mv-groups-title">Group comparison</h2></div><span class="mv-chip">Across checkpoints</span></div><div id="mv-metrics" class="mv-tabs" role="group" aria-label="Chart metric"></div><div id="mv-group-chart"></div><p class="mv-note">Available counts are shown with coverage. Missing values are never plotted as zero.</p></section>

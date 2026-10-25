@@ -9,7 +9,7 @@
     const percent = value => `${Number(value || 0).toFixed(1)}%`;
     const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const label = (cell) => cell?.state === 'not_applicable' ? 'N/A' : cell?.state === 'conflict' ? 'Conflict' : cell?.value == null ? '—' : fmt.format(cell.value);
-    const provenance = c => c ? [({live:'Live',mixed_live:'Mixed live + reported',legacy_import:'Imported report',system:'Closed snapshot',correction:'Audited correction',mixed:'Mixed reports',sample:'SAMPLE DATA',resolved_report:'Resolved report'}[c.source] || (c.state==='not_applicable'?'Not applicable':'No source')), c.as_of && ('as of '+c.as_of), c.coverage && (c.coverage.known+' of '+c.coverage.total+' reporting units'), c.record_coverage && (c.record_coverage.known+' of '+c.record_coverage.total+' records with known fields'), c.quality!=='ok' && c.quality].filter(Boolean).join(' ? ') : 'No data';
+    const provenance = c => c ? [({live:'Live',mixed_live:'Mixed live + reported',legacy_import:'Imported report',system:'Closed snapshot',correction:'Audited correction',mixed:'Mixed reports',sample:'SAMPLE DATA',resolved_report:'Resolved report'}[c.source] || (c.state==='not_applicable'?'Not applicable':'No source')), c.as_of && ('as of '+c.as_of), c.coverage && (c.coverage.known+' of '+c.coverage.total+' reporting units'), c.record_coverage && (c.record_coverage.known+' of '+c.record_coverage.total+' records with known fields'), c.quality!=='ok' && c.quality].filter(Boolean).join(' · ') : 'No data';
     const stateLabel = (state) => ({ reported: 'Reported count', not_reported: 'Not reported', not_applicable: 'Not applicable', conflict: 'Needs resolution' }[state] || 'Not reported');
     const empty = (title, text) => `<div class="mv-empty"><strong>${esc(title)}</strong><span>${esc(text)}</span></div>`;
     const dateLabel = value => value ? new Date(value).toLocaleString('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }) : 'No reporting evidence yet';
@@ -101,19 +101,32 @@
         $('verdict-title').textContent='Showing live member counts for '+c.live+' units, reported counts for '+c.reported+' units. '+c.missing+' units have no data.';
         $('verdict-copy').textContent='Available evidence, with source and coverage. Live records are separate from historical checkpoints.';
         $('completeness').textContent='Data completeness: '+c.reported+' / '+c.total+' units reported ('+percent(c.percent)+'). '+c.live+' additional units have live member records.';
+        const switchLatestBtn = $('switch-latest-reported');
+        if (switchLatestBtn) {
+            const latestClosed = [...periodRows()].reverse().find(p => p.checkpoint?.status === 'closed' || Object.values(p.units || {}).some(u => u?.dmembers?.state === 'reported'));
+            if (c.reported === 0 && latestClosed && latestClosed.checkpoint?.key && latestClosed.checkpoint.key !== data.checkpoint.key) {
+                switchLatestBtn.hidden = false;
+                switchLatestBtn.dataset.checkpointKey = latestClosed.checkpoint.key;
+                switchLatestBtn.textContent = `View ${latestClosed.checkpoint.label} snapshot`;
+            } else {
+                switchLatestBtn.hidden = true;
+            }
+        }
         $('kpis').innerHTML=['dleaders','dgroups','dmembers','campus'].map(key=>{
             const cell=rootMetrics[key];
-            return '<article class="mv-kpi"><div class="mv-kpi-label">'+names[key]+'</div><div class="mv-kpi-value">'+esc(label(cell))+'</div>'+(cell.quality==='partial'?'<span class="mv-chip">Partial</span>':'')+'<p class="mv-note" title="Missing: '+esc(cell.coverage.missing.join(', '))+'">'+esc(provenance(cell))+'</p>'+(cell.value===null&&cell.state!=='not_applicable'?'<p class="mv-note">'+(key==='campus'?'Needs leader-reported campus totals.':'Needs reported counts or current registrations.')+' <a href="#mv-attention">Review evidence</a></p>':'')+['baseline','previous'].map(k=>'<div class="mv-change"><span>vs '+k+'</span><strong>'+esc(change(cell.changes[k]))+'</strong></div><p class="mv-note">Compared on '+cell.changes[k].compared+' of '+cell.changes[k].total+' units</p>').join('')+'</article>';
+            const pillClass = cell.source === 'live' || cell.source === 'mixed_live' ? 'live' : (cell.value !== null ? 'reported' : 'missing');
+            const pillText = cell.quality === 'partial' ? `Partial · ${cell.coverage?.known || 0}/${cell.coverage?.total || 0} units` : (cell.value !== null ? 'Complete' : 'Awaiting report');
+            return '<article class="mv-kpi"><div class="mv-kpi-head"><div class="mv-kpi-label">'+names[key]+'</div><span class="mv-source-pill '+pillClass+'">'+esc(pillText)+'</span></div><div class="mv-kpi-value">'+esc(label(cell))+'</div><p class="mv-note" title="Missing: '+esc(cell.coverage.missing.join(', '))+'">'+esc(provenance(cell))+'</p>'+(cell.value===null&&cell.state!=='not_applicable'?'<p class="mv-note">'+(key==='campus'?'Needs leader-reported campus totals.':'Needs reported counts or current registrations.')+' <a href="#mv-attention">Review evidence</a></p>':'')+['baseline','previous'].map(k=>'<div class="mv-change"><span>vs '+k+' ('+cell.changes[k].compared+'/'+cell.changes[k].total+' units)</span><strong>'+esc(change(cell.changes[k]))+'</strong></div>').join('')+'</article>';
         }).join('');
     };
     const renderGroups = () => {
         $('metrics').innerHTML=Object.entries(names).map(([key,name])=>'<button type="button" data-metric="'+key+'" aria-pressed="'+(key===metric)+'">'+name+'</button>').join('');
         const groups=Object.values(data.units).filter(u=>u.type==='group');
         const periods=data.mode==='live'?[]:[...periodRows()];
-        if(data.mode!=='reported') periods.push({checkpoint:{label:'Live ? '+data.live_as_of},units:data.live});
+        if(data.mode!=='reported') periods.push({checkpoint:{label:'Live · '+data.live_as_of},units:data.live});
         const max=Math.max(1,...groups.flatMap(u=>periods.map(p=>p.units[u.id][metric].value||0)));
         $('group-chart').innerHTML='<div class="mv-chart-groups">'+groups.map(u=>'<div class="mv-chart-group"><div class="mv-chart-bars">'+periods.map((p,i)=>{
-            const c=p.units[u.id][metric], text=u.name+' ? '+p.checkpoint.label+': '+label(c)+' ? '+provenance(c)+' ? Missing: '+c.coverage.missing.join(', ');
+            const c=p.units[u.id][metric], text=u.name+' · '+p.checkpoint.label+': '+label(c)+' · '+provenance(c)+' · Missing: '+c.coverage.missing.join(', ');
             return '<div class="mv-chart-column" tabindex="0" role="img" aria-label="'+esc(text)+'" title="'+esc(text)+'"><b>'+esc(label(c))+'</b>'+(c.value!==null?'<span class="mv-chart-bar" style="height:'+Math.max(0,c.value/max*140)+'px;background:'+colors[i%colors.length]+'"></span>':'<span class="mv-no-data">'+(c.state==='not_applicable'?'N/A':'No data')+'</span>')+'</div>';
         }).join('')+'</div><h3>'+esc(u.name==='ICP'?'Ismael (ICP)':u.name)+'</h3></div>').join('')+'</div><div class="mv-legend">'+periods.map((p,i)=>'<span><i class="mv-swatch" style="background:'+colors[i%colors.length]+'"></i>'+esc(p.checkpoint.label)+'</span>').join('')+'<span>Not reported: absent bar. Live is separate from checkpoint history.</span></div>';
     };
@@ -142,9 +155,9 @@
     };
     const annotateRanking = () => $('ranking').querySelectorAll('[data-unit]').forEach(button=>{const c=unitForKey(button.dataset.unit)?.metrics?.[metric];if(!c)return;const note=document.createElement('small');note.className='mv-note';note.textContent=provenance(c);button.title=provenance(c)+'; Missing: '+(c.coverage?.missing || []).join(', ');button.setAttribute('aria-label',button.getAttribute('aria-label')+'; '+button.title);button.append(note);});
     const conflictForm = conflict => {
-        const choices=conflict.alternatives.map((a,i)=>'<label><input type="radio" name="alternative" value="'+i+'" required> Option '+(i+1)+': '+Object.entries(a).map(([k,v])=>names[k]+': '+v).join(' ? ')+'</label>').join('<br>');
+        const choices=conflict.alternatives.map((a,i)=>'<label><input type="radio" name="alternative" value="'+i+'" required> Option '+(i+1)+': '+Object.entries(a).map(([k,v])=>names[k]+': '+v).join(' · ')+'</label>').join('<br>');
         if(conflict.resolution) return '<p>Resolved by actor #'+esc(conflict.resolution.actor_id)+' at '+esc(conflict.resolution.created_at)+'. '+esc(conflict.resolution.chosen_values)+'</p>';
-        return '<details><summary>Resolve '+esc(conflict.unit)+' ? '+esc(conflict.checkpoint)+'</summary><p>Review both source alternatives. No option is preselected.</p>'+(conflict.closed?'<p>Checkpoint is closed. Use Review checkpoint close to record an audited correction.</p>':'<form class="mv-resolution" data-code="'+esc(conflict.code)+'">'+choices+'<label>Reason<input name="reason" required minlength="10" maxlength="2000"></label><label>Source evidence reference<input name="evidence_reference" required minlength="10" maxlength="2000"></label><button class="mv-button" type="submit">Record resolution</button><p role="status"></p></form>')+'</details>';
+        return '<details><summary>Resolve '+esc(conflict.unit)+' · '+esc(conflict.checkpoint)+'</summary><p>Review both source alternatives. No option is preselected.</p>'+(conflict.closed?'<p>Checkpoint is closed. Use Review checkpoint close to record an audited correction.</p>':'<form class="mv-resolution" data-code="'+esc(conflict.code)+'">'+choices+'<label>Reason<input name="reason" required minlength="10" maxlength="2000"></label><label>Source evidence reference<input name="evidence_reference" required minlength="10" maxlength="2000"></label><button class="mv-button" type="submit">Record resolution</button><p role="status"></p></form>')+'</details>';
     };
     app.addEventListener('submit',async event=>{
         const form=event.target.closest('.mv-resolution');if(!form)return;event.preventDefault();
@@ -169,7 +182,7 @@
         if(data.sample) return;
         const { pipeline:p, engagement:e, sentiment:s }=data.activity;
         $('current-scope').textContent=data.activity.scope;
-        $('pipeline').innerHTML=`<div class="mv-pipeline-numbers"><div><strong>${fmt.format(p.total)}</strong><span>Total seekers</span></div><div><strong>${fmt.format(p.placed)}</strong><span>Joined as members</span></div><div><strong>${fmt.format(p.non_placed)}</strong><span>Not yet joined</span></div></div><div class="mv-meter"><span style="width:${p.rate || 0}%;background:#b42318"></span></div><div class="mv-split-row"><span>Joined-as-member rate</span><strong>${p.rate == null ? '—' : `${p.rate.toFixed(1)}%`}</strong></div><p class="mv-note">${fmt.format(p.active)} active ? ${fmt.format(p.archived)} archived</p><p class="mv-note">Placed means a seeker joined as a member. Includes archived seekers.${p.unknown ? ` ${p.unknown} conversion links need verification.` : ''}</p>`;
+        $('pipeline').innerHTML=`<div class="mv-pipeline-numbers"><div><strong>${fmt.format(p.total)}</strong><span>Total seekers</span></div><div><strong>${fmt.format(p.placed)}</strong><span>Joined as members</span></div><div><strong>${fmt.format(p.non_placed)}</strong><span>Not yet joined</span></div></div><div class="mv-meter"><span style="width:${p.rate || 0}%;background:#b42318"></span></div><div class="mv-split-row"><span>Joined-as-member rate</span><strong>${p.rate == null ? '—' : `${p.rate.toFixed(1)}%`}</strong></div><p class="mv-note">${fmt.format(p.active)} active · ${fmt.format(p.archived)} archived</p><p class="mv-note">Placed means a seeker joined as a member. Includes archived seekers.${p.unknown ? ` ${p.unknown} conversion links need verification.` : ''}</p>`;
         $('pipeline-details').innerHTML=Object.values(p.by_unit).map(u => `<div class="mv-mini-unit"><strong>${esc(u.name)}</strong>${u.placed} joined / ${u.total} seekers${u.unknown ? ` · ${u.unknown} unknown` : ''}</div>`).join('') + '<h3>Dated joining trend</h3><p class="mv-note">First recorded conversions in each interval; historical totals are not inferred from current status.</p>'+p.trend.map(point => `<div class="mv-split-row"><span>${esc(point.label)}</span><strong>${point.value == null ? 'Not reported' : fmt.format(point.value)}</strong></div>`).join('');
         const entries=Object.entries(e.classes);
         $('engagement').innerHTML=e.total ? `<div class="mv-meter">${entries.map(([name,count],i) => `<span title="${esc(name)}: ${count}" style="width:${count/e.total*100}%;background:${colors[i%colors.length]}"></span>`).join('')}</div>${entries.map(([name,count],i) => `<div class="mv-split-row"><span><i class="mv-swatch" style="background:${colors[i%colors.length]}"></i>${esc(name)}</span><strong>${fmt.format(count)} <span class="mv-note">/ ${fmt.format(e.total)}</span></strong></div>`).join('')}` : empty('No member records', 'Engagement counts will appear when member records are available.');
@@ -183,7 +196,7 @@
     };
     const forecastProgress = () => {
         const list=unitRows().filter(u=>!data.forecasts.units[u.key][metric].available).sort((a,b)=>data.forecasts.units[b.key][metric].points-data.forecasts.units[a.key][metric].points).slice(0,5);
-        $('forecasts').innerHTML+=list.map(u=>{const f=data.forecasts.units[u.key][metric];return '<div class="mv-mini-unit"><strong>'+esc(u.name)+'</strong> '+f.points+' reported checkpoints ? '+(f.points<3?'Needs '+(3-f.points)+' more reported checkpoints':esc(f.reason))+' <button type="button" data-unit="'+esc(u.key)+'">Review history</button></div>';}).join('');
+        $('forecasts').innerHTML+=list.map(u=>{const f=data.forecasts.units[u.key][metric];return '<div class="mv-mini-unit"><strong>'+esc(u.name)+'</strong> '+f.points+' reported checkpoints · '+(f.points<3?'Needs '+(3-f.points)+' more reported checkpoints':esc(f.reason))+' <button type="button" data-unit="'+esc(u.key)+'">Review history</button></div>';}).join('');
     };
     const renderPivot = () => {
         if (!$('full-data').open || !data) return;
@@ -227,6 +240,15 @@
         } finally { clearTimeout(timeout); if (id === requestId) { app.removeAttribute('aria-busy'); loading=false; $('retry').disabled=false; $('retry').textContent='Try again'; } }
     };
     form.addEventListener('submit', event => { event.preventDefault(); saveUrl(); load(); });
+    form.querySelectorAll('select').forEach(select => select.addEventListener('change', () => { saveUrl(); load(); }));
+    $('switch-latest-reported')?.addEventListener('click', () => {
+        const key = $('switch-latest-reported')?.dataset.checkpointKey;
+        if (key && form.elements.checkpoint) {
+            form.elements.checkpoint.value = key;
+            saveUrl();
+            load();
+        }
+    });
     $('retry').addEventListener('click', load);
     $('more-units').addEventListener('click', () => { showAllUnits=!showAllUnits; renderRanking(); annotateRanking(); });
     $('sort').addEventListener('change', () => { saveUrl(); renderRanking(); annotateRanking(); });

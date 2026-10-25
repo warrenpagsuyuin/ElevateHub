@@ -102,7 +102,22 @@
 .mv-support-id { display:block; margin-top:8px; font-size:11px; color:var(--mv-muted); }
 .analytics-current-stats { margin:0 0 24px; }
 .analytics-current-stats .mv-note { margin:0 0 12px; }
-.analytics-current-stats .stats { margin-bottom:0; }
+.analytics-current-stats .stats { display:grid; grid-template-columns:repeat(4,minmax(220px,1fr)); gap:18px; margin-bottom:0; }
+.mv-top-stat-card { position:relative; text-decoration:none !important; cursor:pointer; }
+.mv-top-stat-card:hover { border-color:var(--stat-card-border-hover, #3A3A3A) !important; border-top-color:var(--stat-card-accent, #450d07) !important; }
+.mv-top-stat-card .info { display:flex; flex-direction:column; gap:8px; width:100%; }
+.mv-top-stat-card .stat-card-value-row { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+.mv-top-stat-card .card-chevron { flex-shrink:0; color:var(--stat-card-chevron, #B8B8B8); font-size:20px; line-height:1; transition:color .15s ease; }
+.mv-top-stat-card:hover .card-chevron { color:var(--stat-card-chevron-hover, #F2F2F2); }
+.mv-jump-nav { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 16px; }
+.mv-jump-nav a { display:inline-flex; align-items:center; min-height:32px; padding:0 12px; border:1px solid var(--mv-line); border-radius:999px; background:#fff; color:var(--mv-ink); font-size:12px; font-weight:700; text-decoration:none; transition:border-color .15s ease, color .15s ease, background .15s ease; }
+.mv-jump-nav a:hover, .mv-jump-nav a:focus-visible { border-color:var(--mv-red); background:#fff7f5; color:var(--mv-red); outline:none; }
+.mv-verdict-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex-shrink:0; }
+.mv-kpi-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.mv-source-pill { display:inline-flex; align-items:center; min-height:22px; padding:0 9px; border-radius:999px; font-size:10.5px; font-weight:750; background:#f3f4f6; color:#344054; }
+.mv-source-pill.live { background:#eff8ff; color:#175cd3; }
+.mv-source-pill.reported { background:#ecfdf3; color:#067647; }
+.mv-source-pill.missing { background:#fef3f2; color:#b42318; }
 .mv-state-card { margin:0 0 20px; }
 .mv-state-card[hidden] { display:none; }
 .mv-state-actions { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:16px; }

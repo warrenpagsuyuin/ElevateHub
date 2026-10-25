@@ -208,12 +208,11 @@ class AdminSatelliteController extends Controller
         $period = app(\App\Services\SatelliteDashboardPeriod::class)->resolveAdminSatellites($request);
         $periodValues = app(\App\Services\AdminSatellitesPeriodData::class)->resolve($period);
         $periodLabel = $period['isLiveDashboard'] ? 'Live' : $period['selectedDashboardMonth'].' '.$period['selectedDashboardYear'];
-        $archived = $request->query('view') === 'archived';
         $filters = $this->filters($request);
         [$sort, $direction] = $this->sort($request);
         $filename = 'satellites-'.($period['isLiveDashboard'] ? 'live' : strtolower($period['selectedDashboardMonth']).'-'.$period['selectedDashboardYear']).'-'.now()->format('Ymd-His').'.csv';
 
-        $query = $this->filteredSatellitesQuery($filters, $archived)
+        $query = $this->filteredSatellitesQuery($filters, false)
             ->orderBy(self::SORTS[$sort], $direction)
             ->orderBy('id');
 

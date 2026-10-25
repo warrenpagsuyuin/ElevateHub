@@ -10,11 +10,24 @@
         .notice { margin-bottom: 18px; border: 1px solid rgba(227, 60, 36, 0.18); border-radius: 10px; background: #fff; color: #111; padding: 12px 16px; font-weight: 700; }
         .notice.error { color: #b42318; }
         .stats { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
-        .card .info { display: flex; flex-direction: column; gap: 8px; }
+        .card .info { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .card .label { font-size: 14px; font-weight: 800; }
         .card .value { font-size: 36px; font-weight: 900; line-height: 1.2; }
+        .satellites-stat-card { position: relative; text-decoration: none !important; cursor: pointer; }
+        .satellites-stat-card:hover { border-color: var(--stat-card-border-hover, #3A3A3A) !important; border-top-color: var(--stat-card-accent, #450d07) !important; }
+        .satellites-stat-card .stat-card-value-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+        .satellites-stat-card .card-chevron { flex-shrink: 0; color: var(--stat-card-chevron, #B8B8B8); font-size: 20px; line-height: 1; transition: color .15s ease; }
+        .satellites-stat-card:hover .card-chevron { color: var(--stat-card-chevron-hover, #F2F2F2); }
 @include('partials.admin-summary-table-styles')
-        .satellite-name { color: inherit; font: inherit; font-weight: 800; }
+        .satellite-name { color: inherit; font: inherit; font-weight: 800; text-decoration: none; }
+        a.satellite-name:hover, a.satellite-name:focus-visible { color: #ef3b24; text-decoration: underline; outline: none; }
+        .satellite-count-link { color: inherit; font-weight: 800; text-decoration: none; }
+        .satellite-count-link:hover, .satellite-count-link:focus-visible { color: #ef3b24; text-decoration: underline; outline: none; }
+        .hub-badge { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: #f3f4f6; color: #344054; font-size: 11.5px; font-weight: 850; letter-spacing: 0.02em; }
+        .hub-badge.hub-main { background: #fff1ee; color: #c92f1b; }
+        .hub-badge.hub-ncp { background: #eff8ff; color: #175cd3; }
+        .hub-badge.hub-icp { background: #ecfdf3; color: #067647; }
+        .unassigned-pill { display: inline-flex; align-items: center; min-height: 20px; margin-left: 6px; padding: 0 7px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; }
         .muted { color: rgba(17, 24, 39, 0.68); font-size: 13px; font-weight: 600; }
 @include('partials.table-pagination-styles')
 @include('partials.data-table-styles')
