@@ -75,7 +75,7 @@
     @endif
 
     <div class="metric-card-grid engagement-summary-grid">
-        @foreach ($summaryCards as $card)
+        @foreach ($summaryCards as $index => $card)
             @php
                 $isActiveCard = ($classificationFilter ?? '') === $card['filter'];
                 $cardUrl = $isActiveCard
@@ -92,13 +92,19 @@
                         'role' => $roleFilter ?? null,
                         'per_page' => $perPage ?? null,
                     ]));
+                $formattedValue = number_format((int) $card['value']);
             @endphp
-            <a href="{{ $cardUrl }}" class="ui-card metric-card engagement-kpi-card {{ $isActiveCard ? 'is-active' : '' }}" title="Filter by {{ $card['label'] }}">
-                <div class="metric-card-label">{{ $card['label'] }}</div>
-                <div class="metric-card-value">{{ $card['value'] }}</div>
-                <div class="metric-card-sub">
-                    <span>{{ $card['sub'] }}</span>
-                    <span class="kpi-filter-hint">{{ $isActiveCard ? 'Active filter ✕' : 'Filter →' }}</span>
+            <a
+                href="{{ $cardUrl }}"
+                class="stat-card elevate-stat-card stat-card-link engagement-stat-card {{ $isActiveCard ? 'is-active' : '' }}"
+                data-focus-key="card-{{ $index }}"
+                aria-label="{{ $card['label'] }}, {{ $formattedValue }}"
+                title="Filter by {{ $card['label'] }}"
+            >
+                <span class="stat-label stat-card-label" title="{{ $card['label'] }}">{{ $card['label'] }}</span>
+                <div class="stat-card-value-row">
+                    <strong class="stat-value stat-card-value">{{ $formattedValue }}</strong>
+                    <span class="card-chevron" aria-hidden="true">{{ $isActiveCard ? '✕' : '›' }}</span>
                 </div>
             </a>
         @endforeach
@@ -299,69 +305,46 @@
     .engagement-summary-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
+        gap: 14px;
         margin-bottom: 18px;
     }
 
-    .engagement-kpi-card {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+    .engagement-stat-card {
+        position: relative;
         text-decoration: none;
-        color: inherit;
-        border: 1px solid #e5e7eb;
-        border-top: 3px solid #450d07;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-        min-height: 128px;
+        cursor: pointer;
     }
 
-    .engagement-kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-        border-color: #450d07;
+    .engagement-stat-card:hover {
+        border-color: var(--stat-card-border-hover, #3A3A3A) !important;
+        border-top-color: var(--stat-card-accent, #450d07) !important;
     }
 
-    .engagement-kpi-card.is-active {
-        background: #1A1A1A;
-        border-color: #450d07;
-        color: #ffffff;
+    .engagement-stat-card.is-active {
+        border-color: var(--stat-card-focus, #FF5A4D) !important;
+        border-top-color: var(--stat-card-accent, #450d07) !important;
     }
 
-    .engagement-kpi-card .metric-card-label {
-        white-space: normal !important;
-        overflow: visible !important;
-        text-overflow: unset !important;
-        line-height: 1.3;
-        font-size: 12px;
-        font-weight: 900;
-        color: #4b5563;
-    }
-
-    .engagement-kpi-card.is-active .metric-card-label,
-    .engagement-kpi-card.is-active .metric-card-value,
-    .engagement-kpi-card.is-active .metric-card-sub {
-        color: #ffffff;
-    }
-
-    .metric-card-sub {
+    .engagement-stat-card .stat-card-value-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #667085;
-        margin-top: 8px;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
     }
 
-    .kpi-filter-hint {
-        font-weight: 900;
-        color: #ef3b24;
-        white-space: nowrap;
+    .engagement-stat-card .card-chevron {
+        flex-shrink: 0;
+        color: var(--stat-card-chevron, #B8B8B8);
+        font-size: 20px;
+        line-height: 1;
+        transition: color 0.15s ease;
     }
 
-    .engagement-kpi-card.is-active .kpi-filter-hint {
-        color: #fca5a5;
+    .engagement-stat-card:hover .card-chevron,
+    .engagement-stat-card.is-active .card-chevron {
+        color: var(--stat-card-chevron-hover, #F2F2F2);
     }
 
     .filter-toolbar-card {
