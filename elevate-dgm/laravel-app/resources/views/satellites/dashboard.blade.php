@@ -24,12 +24,6 @@
     <div data-dashboard-content>
         @include('satellites.dashboard-content')
     </div>
-    <dialog class="mv-drawer activity-history-drawer" id="activity-history" aria-labelledby="activity-history-title">
-        <header class="activity-history-head"><h2 id="activity-history-title">Activity history</h2><button type="button" class="btn-secondary" data-history-close aria-label="Close activity history">&times;</button></header>
-        <div data-history-error role="alert" hidden>Unable to update. Showing previous data. <button type="button" class="btn-secondary" data-dashboard-retry>Retry</button></div>
-        <div data-history-body></div>
-        <a class="touch-target" href="{{ route('satellites.follow-ups.index', $satellite) }}">View all in Follow-Ups</a>
-    </dialog>
 </div>
 @endsection
 

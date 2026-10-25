@@ -6,34 +6,6 @@
     const subtitle = root.querySelector('[data-dashboard-subtitle]');
     const announcer = root.querySelector('[data-period-announce]');
     const error = root.querySelector('[data-dashboard-error]');
-    // Use the same native dialog drawer pattern as movement analytics.
-    const historyDrawer = root.querySelector('#activity-history');
-    const historyBody = historyDrawer?.querySelector('[data-history-body]');
-    const historyError = historyDrawer?.querySelector('[data-history-error]');
-    const syncHistory = () => {
-        const template = content.querySelector('[data-activity-history]');
-        if (historyBody && template) historyBody.replaceChildren(template.content.cloneNode(true));
-    };
-    historyDrawer?.addEventListener('close', () => {
-        const trigger = root.querySelector('[data-history-open]');
-        trigger?.setAttribute('aria-expanded', 'false');
-        trigger?.focus({ preventScroll: true });
-    });
-    historyDrawer?.addEventListener('click', event => {
-        const rect = historyDrawer.getBoundingClientRect();
-        if (event.target === historyDrawer && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) historyDrawer.close();
-    });
-    historyDrawer?.addEventListener('change', event => {
-        if (!event.target.matches('[data-history-filter]')) return;
-        const value = event.target.value;
-        let visible = 0;
-        historyBody.querySelectorAll('[data-history-entry]').forEach(entry => {
-            entry.hidden = Boolean(value) && value !== `type:${entry.dataset.type}` && value !== `status:${entry.dataset.status}`;
-            if (!entry.hidden) visible++;
-        });
-        historyBody.querySelectorAll('[data-history-group]').forEach(group => { group.hidden = !group.querySelector('[data-history-entry]:not([hidden])'); });
-        historyBody.querySelector('[data-history-no-matches]').hidden = visible > 0 || !value;
-    });
     const names = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const preserveFilters = root.classList.contains('admin-satellites-period');
     let pending = false, timer, stopped = false, controller, resumeRequested = false, navController = null, failedNavigation = null;
@@ -187,16 +159,6 @@
     };
 
     root.addEventListener('click', event => {
-        const historyTrigger = event.target.closest('[data-history-open]');
-        if (historyTrigger && historyDrawer) {
-            syncHistory();
-            if (historyError) historyError.hidden = !error || error.hidden;
-            historyTrigger.setAttribute('aria-expanded', 'true');
-            historyDrawer.showModal();
-            historyDrawer.querySelector('[data-history-close]')?.focus();
-            return;
-        }
-        if (event.target.closest('[data-history-close]')) { historyDrawer?.close(); return; }
         const option = event.target.closest('[data-period]');
         if (option && !option.disabled) {
             const form = option.closest('form');
@@ -359,7 +321,6 @@
                 }
             }
             const dateEl = root.querySelector('[data-dashboard-date]');
-            if (historyError && !historyError.hidden) { syncHistory(); historyError.hidden = true; }
             const updatedEl = root.querySelector('[data-dashboard-updated]');
             if (dateEl) dateEl.textContent = data.date;
             if (updatedEl) updatedEl.textContent = `Updated ${data.updatedAt}`;
@@ -378,7 +339,6 @@
             root.dataset.month = data.month;
             if (error) error.hidden = true;
         } catch {
-            if (historyError) historyError.hidden = false;
             if (!document.hidden && error) error.hidden = false;
         } finally {
             clearTimeout(timeout);

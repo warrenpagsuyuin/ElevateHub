@@ -16,25 +16,3 @@
         @include('components.summary-panel', ['id' => 'seeker-summary-title', 'title' => 'Seeker summary', 'items' => $seekerSummary])
     </div>
 @endif
-<section class="data-card recent-activity" aria-labelledby="recent-activity-title">
-    <header class="activity-heading">
-        <h2 class="section-title" id="recent-activity-title">Recent Activity</h2>
-        <div class="activity-actions">
-            <a class="touch-target" href="{{ route('satellites.follow-ups.index', $satellite) }}">View all</a>
-            <button type="button" class="history-button" data-history-open aria-label="Activity history" title="Activity history" aria-expanded="false" aria-controls="activity-history">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg>
-            </button>
-        </div>
-    </header>
-    <div class="activity-list" role="list">
-        @forelse(array_slice($recentActivity, 0, 3) as $activity)
-            <div class="activity-row" role="listitem">
-                <strong title="{{ $activity['target'] }}">{{ $activity['target'] }}</strong>
-                <span class="activity-type" title="{{ $activity['method'] }} follow-up">{{ $activity['method'] }} follow-up</span>
-                <span class="activity-status" data-status="{{ $activity['status'] }}" aria-label="{{ $activity['statusLabel'] }}: {{ $activity['status'] }}"><span aria-hidden="true">{{ match ($activity['status']) { 'Successful', 'Completed' => '✓', 'Pending' => '…', 'Unsuccessful', 'Cancelled' => '×', default => '•' } }}</span>{{ $activity['status'] }}</span>
-                <small class="activity-date">{{ $activity['date'] }}</small>
-            </div>
-        @empty<p class="empty-state">{{ $isLiveDashboard ? 'No follow-ups yet.' : 'No follow-ups for '.$selectedDashboardMonth.' '.$selectedDashboardYear.'.' }}</p>@endforelse
-    </div>
-</section>
-<template data-activity-history>@include('satellites.activity-history')</template>
