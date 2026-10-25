@@ -80,9 +80,6 @@
             <span class="soft-badge" style="background: #1A1A1A; color: #ffffff; padding: 6px 12px; border-radius: 9999px; font-size: 12.5px;">
                 {{ $queue->total() }} {{ \Illuminate\Support\Str::plural('comment', $queue->total()) }} in queue
             </span>
-            <span class="seekers-result-count">Inter-rater agreement: <strong>{{ $agreement['observed'] !== null ? number_format($agreement['observed'] * 100, 1).'%' : 'N/A' }}</strong>
-                @if($agreement['kappa'] !== null) (κ = {{ number_format($agreement['kappa'], 3) }}) @endif
-            </span>
         </div>
     </x-directory-toolbar>
 
