@@ -34,7 +34,6 @@
                         0 of {{ $totalQuestionCount }} answered
                     </span>
                 </div>
-                <p class="satisfaction-privacy-pill">🔒 Your Yes/No answers are stored separately from your name and written feedback.</p>
             </div>
 
             <div class="feedback-field satisfaction-date-field">
