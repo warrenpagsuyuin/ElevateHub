@@ -147,36 +147,12 @@
                             <span style="display: inline-block; padding: 4px 10px; background: {{ $followUp->status === 'Completed' ? '#dcfce7' : ($followUp->status === 'Cancelled' ? '#fee2e2' : '#fef3c7') }}; color: {{ $followUp->status === 'Completed' ? '#166534' : ($followUp->status === 'Cancelled' ? '#7f1d1d' : '#92400e') }}; border-radius: 4px; font-size: 12px; font-weight: 700;">{{ $followUp->status }}</span>
                         </td>
                         <td style="padding: 16px; min-width: 190px;">
-                            @php
-                                $sentiment = $followUp->sentiment_label;
-                                $sentimentBg = match($sentiment) {
-                                    'Positive' => '#ffe5df',
-                                    'Negative' => '#fee2e2',
-                                    'Neutral' => '#f3f4f6',
-                                    default => '#f9fafb',
-                                };
-                                $sentimentColor = match($sentiment) {
-                                    'Positive' => '#c92f1b',
-                                    'Negative' => '#7f1d1d',
-                                    'Neutral' => '#111',
-                                    default => '#6b7280',
-                                };
-                                $decisionPath = $followUp->sentiment_metrics['decision_path'] ?? [];
-                            @endphp
-                            <span style="display: inline-block; padding: 4px 10px; background: {{ $sentimentBg }}; color: {{ $sentimentColor }}; border-radius: 4px; font-size: 12px; font-weight: 800;">{{ $sentiment ?? 'Unanalyzed' }}</span>
-                            @if ($followUp->sentiment_confidence !== null)
-                                <small style="display: block; margin-top: 6px; color: #6b7280;">{{ number_format($followUp->sentiment_confidence * 100, 0) }}% confidence</small>
-                            @endif
-                            @if ($decisionPath)
-                                <details style="margin-top: 8px; color: #4b5563; font-size: 12px;">
-                                    <summary style="cursor: pointer; font-weight: 800; color: #e33c24;">Why this sentiment?</summary>
-                                    <ul style="margin: 8px 0 0; padding-left: 18px;">
-                                        @foreach ($decisionPath as $step)
-                                            <li style="margin-bottom: 4px;">{{ $step }}</li>
-                                        @endforeach
-                                    </ul>
-                                </details>
-                            @endif
+                            @include('components.sentiment-result', [
+                                'showPrediction' => true,
+                                'sentiment' => $followUp->sentiment_label,
+                                'confidence' => $followUp->sentiment_confidence,
+                                'decisionPath' => $followUp->sentiment_metrics['decision_path'] ?? [],
+                            ])
                         </td>
                         <td style="padding: 16px; color: #666; font-size: 14px;">
                             {{ $followUp->notes ?? '—' }}
