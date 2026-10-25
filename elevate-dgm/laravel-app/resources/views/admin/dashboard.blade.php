@@ -24,10 +24,8 @@
 @endsection
 
 @push('styles')
-        .admin-summary-card a { text-decoration:none; cursor:pointer; width:fit-content; border-radius:4px; }
+        .admin-summary-card a { text-decoration:none; cursor:pointer; border-radius:4px; }
         .admin-summary-card a:hover { text-decoration:underline; text-underline-offset:5px; }
-        .admin-summary-card a:focus-visible { outline:3px solid #2459d3; outline-offset:6px; }
-        .admin-summary-card .stat-value, .admin-summary-card .summary-segment strong { color:#b3200f; }
 
         .admin-dashboard-page {
             min-height: 0;
@@ -64,13 +62,7 @@
             align-items: stretch;
             flex-direction: column;
             justify-content: flex-start;
-            gap: 18px;
             min-height: 220px;
-            padding: 20px 24px 18px;
-            background: #fff;
-            border: 1px solid rgba(17, 24, 39, 0.08);
-            border-radius: 14px;
-            box-shadow: none;
         }
 
         .admin-summary-card .info {
@@ -81,19 +73,12 @@
         }
 
         .admin-summary-card .stat-value {
-            color: #b3200f;
-            font-size: clamp(2.2rem, 3.4vw, 4rem);
             line-height: 1;
-            letter-spacing: 0;
             font-weight: 900;
         }
 
         .admin-summary-card .stat-label {
-            color: var(--text-primary);
-            font-size: 16px;
             font-weight: 900;
-            letter-spacing: 0;
-            text-transform: uppercase;
         }
 
         .summary-breakdown {
@@ -102,7 +87,6 @@
             gap: 14px;
             margin-top: auto;
             padding-top: 18px;
-            border-top: 1px solid rgba(17, 24, 39, 0.12);
         }
 
         .summary-segment {
@@ -113,7 +97,6 @@
         }
 
         .summary-segment strong {
-            color: #b3200f;
             font-size: clamp(1.35rem, 2vw, 2.1rem);
             line-height: 1;
             font-weight: 900;
@@ -122,7 +105,6 @@
         }
 
         .summary-segment span {
-            color: var(--text-primary);
             font-size: 12px;
             font-weight: 800;
             letter-spacing: 0;
@@ -136,11 +118,6 @@
 
             .admin-summary-card {
                 min-height: 220px;
-                padding: 24px;
-            }
-
-            .admin-summary-card .stat-value {
-                font-size: 46px;
             }
 
             .summary-segment strong {
@@ -160,13 +137,7 @@
             }
 
             .admin-summary-card {
-                gap: 22px;
                 min-height: 0;
-                padding: 22px;
-            }
-
-            .admin-summary-card .stat-value {
-                font-size: 40px;
             }
 
             .summary-breakdown {
@@ -199,17 +170,7 @@
             }
 
             .admin-summary-card {
-                gap: 18px;
                 min-height: 206px;
-                padding: 22px 24px;
-            }
-
-            .admin-summary-card .stat-value {
-                font-size: 42px;
-            }
-
-            .admin-summary-card .stat-label {
-                font-size: 14px;
             }
 
             .summary-breakdown {
@@ -236,17 +197,7 @@
             }
 
             .admin-summary-card {
-                gap: 14px;
                 min-height: 180px;
-                padding: 18px 20px;
-            }
-
-            .admin-summary-card .stat-value {
-                font-size: 36px;
-            }
-
-            .admin-summary-card .stat-label {
-                font-size: 13px;
             }
 
             .summary-breakdown {

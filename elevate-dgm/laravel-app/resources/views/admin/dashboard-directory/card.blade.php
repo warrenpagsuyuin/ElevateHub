@@ -1,7 +1,7 @@
-<article class="stat-card admin-summary-card">
+<article class="stat-card admin-summary-card elevate-stat-card">
     <div class="info">
-        <a class="stat-value summary-number" href="{{ route('admin.dashboard.directory', ['directory' => $card['key']]) }}" aria-label="View all {{ number_format($card['total']) }} {{ $card['title'] }}">{{ number_format($card['total']) }}</a>
-        <span class="stat-label">{{ $card['label'] }}</span>
+        <a class="stat-value stat-card-value summary-number" href="{{ route('admin.dashboard.directory', ['directory' => $card['key']]) }}" aria-label="View all {{ number_format($card['total']) }} {{ $card['title'] }}">{{ number_format($card['total']) }}</a>
+        <span class="stat-label stat-card-label">{{ $card['label'] }}</span>
     </div>
     <div class="summary-breakdown">
         @foreach ($card['segments'] as $segment)
