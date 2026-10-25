@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Models\Satellite;
+use App\Services\SatisfactionService;
 use App\Services\SentimentAnalysisService;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,10 +37,35 @@ class FeedbackController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request, SatisfactionService $service): View
     {
+        $user = $request->user();
+        $satelliteSlug = $request->query('satellite');
+        $satelliteChoices = $user->normalizedRole() === 'admin'
+            ? Satellite::active()->orderBy('name')->get()
+            : collect();
+
+        try {
+            $context = $service->respondentContext($user, $satelliteSlug);
+            $satellite = $context['satellite'];
+            $categories = $service->activeCategories($context['inDgroup']);
+            $message = null;
+        } catch (ValidationException $e) {
+            $satellite = null;
+            $categories = collect();
+            $message = $e->validator->errors()->first('satisfaction');
+        }
+
+        $today = now(config('app.timezone'))->toDateString();
+        $alreadyAnswered = $satellite ? $service->submitted($user, $today) : false;
+
         return view('feedback.create', [
-            'questions' => $this->questions(),
+            'satisfactionSatellite' => $satellite,
+            'satisfactionSatelliteChoices' => $satelliteChoices,
+            'satisfactionCategories' => $categories,
+            'satisfactionToday' => $today,
+            'satisfactionAlreadyAnswered' => $alreadyAnswered,
+            'satisfactionMessage' => $message,
         ]);
     }
 

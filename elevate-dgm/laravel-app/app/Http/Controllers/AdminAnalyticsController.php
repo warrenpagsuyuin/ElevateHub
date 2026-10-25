@@ -7,6 +7,7 @@ use App\Models\Feedback;
 use App\Models\OrgUnit;
 use App\Services\MovementAnalyticsService;
 use App\Services\SentimentResearchService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,7 +28,7 @@ class AdminAnalyticsController extends Controller
         return app(MovementAnalyticsController::class)($request, $analytics);
     }
 
-    public function sentiment(Request $request): View|RedirectResponse
+    public function sentiment(Request $request): View|RedirectResponse|JsonResponse
     {
         return app(SentimentResearchController::class)->index($request);
     }

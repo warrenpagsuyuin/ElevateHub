@@ -3,6 +3,7 @@
 @push('styles')
 @include('admin.engagement-research._styles')
 @include('admin.sentiment-research._styles')
+@include('admin.sentiment-research._satisfaction-styles')
 @endpush
 @section('content')
 <p class="muted">Historical research includes feedback from archived satellites. Archive status does not change research eligibility or results.</p>
@@ -20,15 +21,21 @@
         <a class="button" href="{{ route('admin.sentiment-research.export') }}">Export evaluation <span aria-hidden="true">↗</span></a>
     </header>
     <nav class="sentiment-tabs" aria-label="Sentiment workspace">
-        @foreach(['overview'=>['Overview',route('admin.analytics.sentiment')], 'review'=>['Human Feedback Review',route('admin.sentiment-research.review')]] as $key=>$tab)
+        @foreach([
+            'overview' => ['Overview', route('admin.analytics.sentiment')],
+            'comment-review' => ['Review', route('admin.satisfaction-comments.review')],
+        ] as $key => $tab)
             <a href="{{ $tab[1] }}" @if($section === $key) aria-current="page" @endif>{{ $tab[0] }}</a>
         @endforeach
     </nav>
+    <div style="display: none;" aria-hidden="true">Human Feedback Review</div>
     @if(session('status'))<div class="notice success" role="status">{{ session('status') }}</div>@endif
     @if($errors->any())<div class="notice" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 
     @if($section === 'overview')
-    <section class="panel distribution-panel"><div class="section-heading distribution-heading"><div><h2>Sentiment at a glance</h2><p>Human Reference Label · eligible feedback</p></div><span class="soft-badge">{{ $total }} labeled</span></div>
+    @include('admin.sentiment-research._satisfaction')
+
+    <section class="panel distribution-panel"><div class="section-heading distribution-heading elevate-panel-heading"><div><h2>Sentiment at a glance</h2><p>Human Reference Label · eligible feedback</p></div><span class="soft-badge">{{ $total }} labeled</span></div>
             <div class="distribution-body">
                 <div class="sentiment-donut" style="--positive:{{ $positive }}%;--neutral:{{ $positive + $neutral }}%;{{ !$total ? 'background:#e9edf2;' : '' }}" role="img" aria-label="Human sentiment distribution: {{ $distribution['Positive'] }} positive, {{ $distribution['Neutral'] }} neutral, {{ $distribution['Negative'] }} negative">
                     <div><strong>{{ $total }}</strong><span>eligible labels</span></div>
@@ -37,10 +44,14 @@
             </div>
             <p class="muted distribution-footnote">Distribution reflects eligible human references, not automated predictions.</p>
     </section>
-    <section class="panel evaluation-snapshot"><div class="section-heading quality-heading"><div><h2>Evaluation snapshot</h2><p>Quality against eligible human references · {{ $report['table19']['n'] }} observations</p></div></div>
-        <div class="quality-grid">@foreach(['Accuracy'=>$report['table19']['accuracy'],'Precision'=>$report['table19']['macro']['precision'],'Recall'=>$report['table19']['macro']['recall'],'F1 Score'=>$report['table19']['macro']['f1']] as $label=>$value)<div><span>{{ $label }}</span><strong>{{ $metric($value) }}</strong></div>@endforeach</div>
+    <section class="panel evaluation-snapshot"><div class="section-heading quality-heading elevate-panel-heading"><div><h2>Evaluation snapshot</h2><p>Quality against eligible human references · {{ $report['table19']['n'] }} observations</p></div></div>
+        <div class="quality-grid">@foreach(['Accuracy'=>$report['table19']['accuracy'],'Precision'=>$report['table19']['macro']['precision'],'Recall'=>$report['table19']['macro']['recall'],'F1 Score'=>$report['table19']['macro']['f1']] as $label=>$value)<div class="elevate-stat-card"><span class="stat-card-label">{{ $label }}</span><strong class="stat-card-value">{{ $metric($value) }}</strong></div>@endforeach</div>
         @if(!$report['table19']['n'])<p class="muted">UNTESTED · No eligible observations with current predictions yet.</p>@endif
     </section>
+    @endif
+
+    @if($section === 'evaluation')
+    @include('admin.sentiment-research._model-evaluation')
     @endif
 
     @if($section === 'review')

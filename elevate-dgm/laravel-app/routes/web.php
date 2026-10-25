@@ -66,10 +66,11 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('auth')
     ->name('dashboard');
 
-Route::middleware(['auth', 'role:except,admin'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::get('/feedback/create', [FeedbackController::class, 'create'])->name('feedback.create');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/feedback/satisfaction', [\App\Http\Controllers\SatisfactionController::class, 'store'])->name('feedback.satisfaction.store');
     Route::patch('/feedback/{feedback}/research-consent', [\App\Http\Controllers\SentimentResearchController::class, 'consent'])->name('feedback.research-consent');
 });
 
@@ -128,6 +129,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
     Route::post('/admin/analytics/sentiment/analyze', [AdminAnalyticsController::class, 'analyzeFeedbackSentiment'])->name('admin.analytics.sentiment.analyze');
     Route::patch('/admin/analytics/sentiment/{feedback}/reference-label', [AdminAnalyticsController::class, 'updateFeedbackReferenceLabel'])->name('admin.analytics.sentiment.reference-label');
+    Route::prefix('/admin/analytics/sentiment/comments')->name('admin.satisfaction-comments.')->controller(\App\Http\Controllers\SatisfactionCommentController::class)->group(function () {
+        Route::get('/review', 'review')->name('review');
+        Route::post('/{comment}/label', 'store')->name('label');
+        Route::post('/{comment}/adjudicate', 'adjudicate')->name('adjudicate');
+        Route::post('/{comment}/reanalyze', 'reanalyze')->name('reanalyze');
+        Route::get('/evaluation/export', 'export')->name('export');
+        Route::post('/backfill', 'backfill')->name('backfill');
+        Route::post('/recalculate', 'recalculate')->name('recalculate');
+    });
+    Route::prefix('/admin/analytics/sentiment/satisfaction')->name('admin.satisfaction.')->controller(\App\Http\Controllers\SatisfactionController::class)->group(function () {
+        Route::get('/manage', 'manage')->name('manage');
+        Route::post('/categories', 'saveCategory')->name('categories.store');
+        Route::patch('/categories/{category}', 'saveCategory')->name('categories.update');
+        Route::post('/questions', 'saveQuestion')->name('questions.store');
+        Route::patch('/questions/{question}', 'saveQuestion')->name('questions.update');
+    });
     Route::get('/api/analytics-data', [AdminAnalyticsController::class, 'data'])->name('admin.analytics.data');
 
     Route::redirect('/admin/AdminDashboard.php', '/admin/dashboard')->name('admin.dashboard.file');
@@ -142,6 +159,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::get('/satellites/{satellite}/dashboard', [AdminSatelliteController::class, 'dashboard'])
     ->middleware(['auth', 'satellite.access'])
     ->name('satellites.dashboard');
+
+Route::get('/satellites/{satellite}/satisfaction', [\App\Http\Controllers\SatisfactionController::class, 'satellite'])
+    ->middleware(['auth', 'satellite.access'])
+    ->name('satellites.satisfaction');
 
 Route::get('/satellites/{satellite}/members', [AdminSatelliteController::class, 'members'])
     ->middleware(['auth', 'satellite.access:members-view'])

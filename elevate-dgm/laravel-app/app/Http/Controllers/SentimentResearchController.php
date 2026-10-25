@@ -16,10 +16,22 @@ class SentimentResearchController extends Controller
     public function index(Request $request)
     {
         $this->service->authorize($request->user());
-        if ($request->query->has('view') && $request->query('view') !== 'overview') {
+        $satisfactionService = app(\App\Services\SatisfactionService::class);
+        $satisfactionPeriod = $satisfactionService->period($request);
+        $satisfaction = $satisfactionService->results($request, $satisfactionPeriod, $request->user());
+        $satisfactionData = $satisfactionPeriod + ['satisfaction' => $satisfaction, 'periodFormAction' => route('admin.analytics.sentiment'), 'satisfactionRoute' => 'admin.analytics.sentiment'];
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('admin.sentiment-research._satisfaction-results', $satisfactionData)->render(),
+                'date' => $satisfactionPeriod['dashboardDate'], 'updatedAt' => $satisfactionPeriod['dashboardUpdatedAt'],
+                'year' => $satisfactionPeriod['dashboardCurrentYear'], 'month' => $satisfactionPeriod['dashboardCurrentMonth'],
+                'selectedMonth' => $satisfactionPeriod['selectedDashboardMonth'], 'selectedYear' => $satisfactionPeriod['selectedDashboardYear'],
+            ], 200, ['Cache-Control' => 'private, no-store']);
+        }
+        if ($request->query->has('view') && ! in_array($request->query('view'), ['overview', 'evaluation'], true)) {
             return redirect()->route('admin.analytics.sentiment');
         }
-        $section = $request->routeIs('admin.sentiment-research.review') ? 'review' : 'overview';
+        $section = $request->routeIs('admin.sentiment-research.review') ? 'review' : ($request->query('view') === 'evaluation' ? 'evaluation' : 'overview');
         $search = trim((string) $request->query('search', ''));
         $status = (string) $request->query('status', '');
         $query = FeedbackAnalysisUnit::with(['feedback','reviewer'])->orderBy('id');
@@ -31,6 +43,8 @@ class SentimentResearchController extends Controller
         return view('admin.sentiment-research.index',[
             'report'=>$this->service->report(), 'units'=>$query->paginate(10)->withQueryString(),
             'service'=>$this->service, 'section'=>$section, 'search'=>$search, 'status'=>$status,
+            'evaluation' => $section === 'evaluation' ? app(\App\Services\ModelEvaluationDashboard::class)->data($request) : null,
+            ...$satisfactionData,
         ]);
     }
     public function show(Request $request, FeedbackAnalysisUnit $unit)

@@ -1,109 +1,99 @@
 @extends('layouts.app')
 
-@section('title', 'System Feedback | Elevate DGM')
+@section('title', 'Satisfaction Questionnaire | Elevate DGM')
 
 @push('styles')
-    .feedback-page { max-width: 980px; }
-    .feedback-form {
-        background: var(--ui-surface);
-        border-radius: var(--radius-lg);
-        padding: var(--ui-space-6);
-        box-shadow: var(--shadow-card);
-    }
-    .feedback-consent {
-        display: flex;
-        align-items: flex-start;
-        gap: var(--ui-space-3);
-        margin: 0 0 var(--ui-space-6);
-        cursor: pointer;
-    }
-    .feedback-consent input {
-        width: var(--ui-target);
-        height: var(--ui-target);
-        flex: 0 0 var(--ui-target);
-        margin: 0;
-        accent-color: var(--ui-primary);
-        cursor: pointer;
-    }
-    .feedback-fields { display: grid; gap: var(--ui-space-5); }
-    .feedback-field { display: grid; gap: var(--ui-space-2); }
-    .feedback-field label { font-size: var(--ui-text-sm); font-weight: 700; color: var(--ui-text); }
-    .feedback-field textarea {
-        width: 100%;
-        resize: vertical;
-        border: 1px solid var(--ui-border);
-        border-radius: var(--radius-sm);
-        padding: var(--ui-space-3) var(--ui-space-4);
-        font: inherit;
-        line-height: 1.5;
-    }
-    .feedback-field small { color: var(--ui-error); font-size: var(--ui-text-sm); font-weight: 700; }
-    .feedback-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: var(--ui-space-4);
-        margin-top: var(--ui-space-6);
-        flex-wrap: wrap;
-    }
-    .feedback-help { margin: 0; color: var(--ui-muted); font-size: var(--ui-text-sm); max-width: 620px; }
+    .feedback-page { max-width: 980px; margin: 0 auto; }
+    @include('feedback._satisfaction-styles')
 @endpush
 
 @section('content')
 <div class="feedback-page">
-    <div class="header">
+    <div class="header" style="margin-bottom: 24px;">
         <div>
-            <h1>System Feedback</h1>
-            <p class="page-subtitle">Submit evaluator feedback after testing the developed system.</p>
+            <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary, #111); margin: 0 0 6px;">Satisfaction Questionnaire</h1>
+            <p class="page-subtitle" style="color: var(--text-muted, #667085); margin: 0; font-size: 14px;">Share your experience with Sunday services and church activities.</p>
         </div>
-        <a class="btn btn-secondary" href="{{ route('feedback.index') }}">My Feedback</a>
     </div>
 
     @if ($errors->any())
-        <div class="notice error" role="alert" tabindex="-1" data-validation-summary>
-            Please correct the feedback fields below.
+        <div class="notice error" role="alert" tabindex="-1" data-validation-summary style="margin-bottom: 20px;">
+            Please correct the fields indicated below before submitting.
         </div>
     @endif
 
-    <form method="POST" action="{{ route('feedback.store') }}" class="feedback-form">
-        @csrf
-        <label class="feedback-consent"><input type="checkbox" name="research_consent" value="1" @checked(old('research_consent'))><span>I consent to use of my written system feedback for research and system evaluation, including de-identified quotations. This is optional; I can submit feedback without consenting.</span></label>
+    {{-- Already answered pop-up notification modal --}}
+    @php
+        $hasAlreadyAnsweredError = $errors->has('service_date') && str_contains((string) $errors->first('service_date'), 'already answered');
+        $showModal = $hasAlreadyAnsweredError || ($satisfactionAlreadyAnswered && !old('service_date'));
+        $answeredDate = old('service_date', $satisfactionToday);
+    @endphp
 
-        <div class="feedback-fields">
-            @foreach ($questions as $key => $question)
-                <div class="feedback-field">
-                    <label for="feedback-{{ $key }}">{{ $question }} (required)</label>
-                    <textarea
-                        id="feedback-{{ $key }}"
-                        name="{{ $key }}"
-                        rows="4"
-                        required
-                        @error($key) aria-invalid="true" aria-describedby="feedback-{{ $key }}-error" @enderror
-                    >{{ old($key) }}</textarea>
-                    @error($key)
-                        <small id="feedback-{{ $key }}-error">{{ $message }}</small>
-                    @enderror
-                </div>
-            @endforeach
-
-            <div class="feedback-field">
-                <label for="feedback-message">Additional comments</label>
-                <textarea
-                    id="feedback-message"
-                    name="message"
-                    rows="3"
-                    @error('message') aria-invalid="true" aria-describedby="feedback-message-error" @enderror
-                >{{ old('message') }}</textarea>
-                @error('message')
-                    <small id="feedback-message-error">{{ $message }}</small>
-                @enderror
+    @if($showModal)
+    <div class="satisfaction-modal-backdrop" id="answeredModalBackdrop" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px;">
+        <div class="satisfaction-modal" role="dialog" aria-modal="true" aria-labelledby="answeredModalTitle" style="background: #ffffff; border-radius: 16px; max-width: 480px; width: 100%; padding: 28px 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); border: 1px solid #e5e7eb; text-align: center;">
+            <div style="width: 52px; height: 52px; background: #fef2f2; border: 2px solid #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; color: #dc2626;">
+                🗓️
+            </div>
+            <h2 id="answeredModalTitle" style="font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0 0 8px;">You already answered for this date</h2>
+            <p style="color: #6b7280; font-size: 0.9375rem; line-height: 1.5; margin: 0 0 24px;">
+                Your anonymous answers for <strong>{{ \Carbon\Carbon::parse($answeredDate)->format('F j, Y') }}</strong> have already been recorded. You can review the questions again or pick a different date to submit.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" onclick="closeAnsweredModal()" class="btn btn-primary" style="display: block; width: 100%; padding: 12px 20px; font-size: 0.9375rem; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    Review Again / Choose Another Date
+                </button>
             </div>
         </div>
+    </div>
+    @endif
 
-        <div class="feedback-actions">
-            <p class="feedback-help">Original feedback is preserved, analyzed for Positive, Neutral, or Negative sentiment, and compared with admin reference labels for validation metrics.</p>
-            <button type="submit" class="btn btn-primary">Submit Feedback</button>
-        </div>
-    </form>
+    @include('feedback._satisfaction-form')
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const textarea = document.getElementById('satisfaction-comment');
+    const counter = document.getElementById('satisfaction-comment-counter');
+    if (textarea && counter) {
+        const updateCount = () => {
+            const current = textarea.value.length;
+            counter.textContent = current + ' / 1000';
+            if (current > 1000) {
+                counter.style.color = '#dc2626';
+                counter.style.fontWeight = '700';
+            } else {
+                counter.style.color = '#6b7280';
+                counter.style.fontWeight = 'normal';
+            }
+        };
+        textarea.addEventListener('input', updateCount);
+        updateCount();
+    }
+
+    const form = document.querySelector('form[data-satisfaction-form]');
+    if (form) {
+        form.addEventListener('submit', function () {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting answers...';
+            }
+        });
+    }
+});
+
+function closeAnsweredModal() {
+    const backdrop = document.getElementById('answeredModalBackdrop');
+    if (backdrop) {
+        backdrop.style.display = 'none';
+        const dateInput = document.getElementById('satisfaction-service-date');
+        if (dateInput) {
+            dateInput.focus();
+        }
+    }
+}
+</script>
+@endpush
