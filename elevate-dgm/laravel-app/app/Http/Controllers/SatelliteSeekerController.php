@@ -21,6 +21,8 @@ class SatelliteSeekerController extends Controller
 {
     private const PAGE_SIZE = 10;
 
+    private const PAGE_SIZES = [10, 25, 50, 100];
+
     public function index(Request $request, Satellite $satellite): View
     {
         $user = Auth::user();
@@ -32,16 +34,50 @@ class SatelliteSeekerController extends Controller
         $sorts = ['name' => 'name', 'school' => 'school', 'district' => 'assigned_district', 'status' => 'status', 'archived_at' => 'archived_at'];
         $sort = array_key_exists($request->query('sort', 'name'), $sorts) ? $request->query('sort', 'name') : 'name';
         $direction = $request->query('direction') === 'desc' ? 'desc' : 'asc';
+        $perPage = $this->perPage($request);
+        $search = trim((string) $request->query('search', ''));
+        $assignmentFilter = trim((string) $request->query('assignment', ''));
+        $leaderFilter = trim((string) $request->query('leader', ''));
+
         $satellite->load('assignedUsers');
-        $seekers = $satellite->seekers()
+        $seekersQuery = $satellite->seekers()
             ->with(['archivedBy', 'latestArchiveLog'])
-            ->when($archive, fn ($q) => $q->whereNotNull('archived_at'), fn ($q) => $q->whereNull('converted_member_id')->whereNull('archived_at'))
+            ->when($archive, fn ($q) => $q->whereNotNull('archived_at'), fn ($q) => $q->whereNull('converted_member_id')->whereNull('archived_at'));
+
+        if ($search !== '') {
+            $seekersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('school', 'like', '%'.$search.'%')
+                    ->orWhere('contact_number', 'like', '%'.$search.'%')
+                    ->orWhere('dgroup_leader_name', 'like', '%'.$search.'%');
+            });
+        }
+
+        if (! $archive) {
+            if ($assignmentFilter === 'unassigned') {
+                $seekersQuery->where(function ($q) {
+                    $q->whereNull('dgroup_leader_name')->orWhere('dgroup_leader_name', '');
+                });
+            } elseif ($assignmentFilter === 'assigned') {
+                $seekersQuery->whereNotNull('dgroup_leader_name')->where('dgroup_leader_name', '<>', '');
+            }
+
+            if ($leaderFilter !== '') {
+                $seekersQuery->where('dgroup_leader_name', $leaderFilter);
+            }
+        }
+
+        $seekers = $seekersQuery
             ->orderBy($sorts[$sort], $direction)->orderBy('id')
-            ->paginate(self::PAGE_SIZE)
+            ->paginate($perPage)
             ->withQueryString();
+
         $leaderOptions = $this->leaderOptions($satellite);
         $tabCounts = $satellite->seekers()
             ->selectRaw('SUM(CASE WHEN archived_at IS NULL AND converted_member_id IS NULL THEN 1 ELSE 0 END) as active_count')
+            ->selectRaw('SUM(CASE WHEN archived_at IS NULL AND converted_member_id IS NULL AND (dgroup_leader_name IS NULL OR dgroup_leader_name = "") THEN 1 ELSE 0 END) as unassigned_count')
+            ->selectRaw('SUM(CASE WHEN archived_at IS NULL AND converted_member_id IS NULL AND dgroup_leader_name IS NOT NULL AND dgroup_leader_name <> "" THEN 1 ELSE 0 END) as assigned_count')
             ->selectRaw('SUM(CASE WHEN archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived_count')
             ->first();
 
@@ -51,6 +87,8 @@ class SatelliteSeekerController extends Controller
             'archive' => $archive,
             'archiveCount' => (int) ($tabCounts->archived_count ?? 0),
             'activeCount' => (int) ($tabCounts->active_count ?? 0),
+            'unassignedCount' => (int) ($tabCounts->unassigned_count ?? 0),
+            'assignedCount' => (int) ($tabCounts->assigned_count ?? 0),
             'satellite' => $satellite,
             'seekers' => $seekers,
             'statuses' => Seeker::STATUSES,
@@ -61,6 +99,13 @@ class SatelliteSeekerController extends Controller
             'totalLeaders' => (int) $satellite->leaders_count,
             'leaderOptions' => $leaderOptions,
             'canChangeSeekerStatus' => $user->canChangeSeekerStatus($satellite),
+            'canManageSeekers' => $user->canManageSeekers($satellite),
+            'canManageFollowUps' => $user->canManageSatelliteFollowUps($satellite),
+            'pageSizes' => self::PAGE_SIZES,
+            'perPage' => $perPage,
+            'search' => $search,
+            'assignmentFilter' => $assignmentFilter,
+            'leaderFilter' => $leaderFilter,
         ]);
     }
 
@@ -166,6 +211,13 @@ class SatelliteSeekerController extends Controller
             ->get()
             ->mapWithKeys(fn (Member $leader): array => [$leader->id => $leader->display_name])
             ->all();
+    }
+
+    private function perPage(Request $request): int
+    {
+        $perPage = $request->integer('per_page', self::PAGE_SIZE);
+
+        return in_array($perPage, self::PAGE_SIZES, true) ? $perPage : self::PAGE_SIZE;
     }
 
 }
