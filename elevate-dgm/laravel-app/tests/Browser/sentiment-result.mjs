@@ -25,8 +25,9 @@ try {
             await expect(result.locator('.sentiment-result-explanation')).toBeHidden();
             await result.locator('.sentiment-result-badge').click();
             await expect(result.locator('.sentiment-result-explanation')).toBeVisible();
-            await expect(result.locator('.sentiment-result-confidence')).toBeVisible();
-            await expect(result.locator('.sentiment-result-confidence')).toHaveText('50% confidence');
+            await expect(result.locator('.sentiment-result-confidence')).toHaveCount(0);
+            await expect(result).not.toContainText('% confidence');
+            if (sentiment === 'Positive') expect(await result.locator('.sentiment-result-badge').evaluate(node => getComputedStyle(node).color)).toBe('rgb(22, 101, 52)');
             expect(await result.locator('svg').evaluate(node => getComputedStyle(node).transform)).toBe('matrix(-1, 0, 0, -1, 0, 0)');
             await result.locator('.sentiment-result-badge').click();
             await expect(result.locator('.sentiment-result-explanation')).toBeHidden();
@@ -48,5 +49,5 @@ try {
         await expect(page.getByText('Why this sentiment?', { exact: true })).toHaveCount(0);
     }
     expect(errors).toEqual([]);
-    console.log('PASS: Neutral/Positive/Negative click toggles, Enter/Space, confidence, chevrons, concurrent disclosures, desktop/mobile wrapping; no page errors.');
+    console.log('PASS: green Positive badge, no confidence text, native click/keyboard toggles, chevrons and desktop/mobile wrapping; no page errors.');
 } finally { await browser.close(); }

@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class SentimentResultPresentationTest extends TestCase
 {
-    public function test_all_labels_render_native_collapsed_disclosures_with_original_explanation_and_confidence(): void
+    public function test_all_labels_render_native_collapsed_disclosures_with_original_explanation_without_confidence(): void
     {
         foreach (['Positive', 'Neutral', 'Negative'] as $sentiment) {
             $html = view('components.sentiment-result', [
@@ -16,7 +16,7 @@ class SentimentResultPresentationTest extends TestCase
             $this->assertStringContainsString('<details class="sentiment-result"', $html);
             $this->assertStringNotContainsString('<details open', $html);
             $this->assertStringContainsString($sentiment, $html);
-            $this->assertStringContainsString('50% confidence', $html);
+            $this->assertStringNotContainsString('% confidence', $html);
             $this->assertStringContainsString('Stored explanation &lt;unchanged&gt;', $html);
             $this->assertStringNotContainsString('Why this sentiment?', $html);
         }
