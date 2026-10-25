@@ -3,34 +3,50 @@
     --signout-bg: var(--btn-dark-bg);
     --signout-bg-hover: var(--btn-dark-hover);
     --signout-bg-active: var(--btn-dark-active);
-    --signout-border: var(--brand-red);
+    --signout-border: var(--ui-primary);
     --signout-border-hover: var(--ui-primary-hover);
-    --signout-text: var(--btn-dark-text);
+    --signout-text: var(--ui-surface);
     --signout-focus: var(--stat-card-focus);
 }
 
-.signout-button {
-    background: var(--signout-bg);
-    border: 1px solid var(--signout-border);
-    border-radius: 9999px;
-    color: var(--signout-text);
+:root :is(.sidebar-footer .signout-button, .signout-button, .signout button, .sidebar-footer button, .logout-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 220px;
+    min-height: 48px;
+    padding: 0 var(--ui-space-5);
+    background: var(--signout-bg) !important;
+    border: 1px solid var(--signout-border) !important;
+    border-radius: 9999px !important;
+    color: var(--signout-text) !important;
+    font-size: var(--ui-text-base);
+    font-weight: 800;
+    line-height: 1;
     box-shadow: none;
     text-align: center;
     cursor: pointer;
 }
 
-.signout-button:hover {
-    background: var(--signout-bg-hover);
-    border-color: var(--signout-border-hover);
+:root :is(.sidebar-footer .signout-button, .signout-button, .signout button, .sidebar-footer button, .logout-button):hover {
+    background: var(--signout-bg-hover) !important;
+    border-color: var(--signout-border-hover) !important;
 }
 
-.signout-button:active {
-    background: var(--signout-bg-active);
+:root :is(.sidebar-footer .signout-button, .signout-button, .signout button, .sidebar-footer button, .logout-button):active {
+    background: var(--signout-bg-active) !important;
 }
 
-.signout-button:is(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
-    background: var(--signout-bg);
-    border-color: var(--signout-border);
-    color: color-mix(in srgb, var(--signout-text) 60%, transparent);
+:root :is(.sidebar-footer .signout-button, .signout-button, .signout button, .sidebar-footer button, .logout-button):focus-visible {
+    outline: 2px solid var(--signout-focus) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 2px var(--ui-surface) !important;
+}
+
+:root :is(.sidebar-footer .signout-button, .signout-button, .signout button, .sidebar-footer button, .logout-button):is(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    background: var(--signout-bg) !important;
+    border-color: var(--signout-border) !important;
+    color: var(--stat-card-label) !important;
     pointer-events: none;
 }
