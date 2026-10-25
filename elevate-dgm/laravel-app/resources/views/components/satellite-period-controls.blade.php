@@ -1,7 +1,7 @@
 <form class="dashboard-period-controls" method="GET" action="{{ $periodFormAction ?? route('satellites.dashboard', $satellite) }}" data-period-form data-live-mode="{{ $isLiveDashboard ? 'true' : 'false' }}" data-current-year="{{ $dashboardCurrentYear }}" data-current-month="{{ $dashboardCurrentMonth }}">
     <input type="hidden" name="month" value="{{ $selectedDashboardMonth }}">
     <div class="period-control-group">
-        <label class="period-control-label" for="satellite-period-summary">Period</label>
+        <label class="period-control-label sr-only" for="satellite-period-summary">Period</label>
         <details class="month-dropdown">
             <summary id="satellite-period-summary" aria-label="Period" aria-haspopup="listbox" aria-expanded="false">
                 <span class="period-select-text">@if($isLiveDashboard)<i class="live-dot" aria-hidden="true"></i>@endif<span data-period-label>{{ $selectedDashboardMonth }}</span></span>
@@ -16,7 +16,7 @@
         </details>
     </div>
     <div class="period-year" data-year-control {{ $isLiveDashboard ? 'hidden' : '' }}>
-        <label class="period-control-label" for="satellite-period-year">Year</label>
+        <label class="period-control-label sr-only" for="satellite-period-year">Year</label>
         <div class="year-select-wrap">
             <select id="satellite-period-year" name="year" aria-label="Year">
                 @foreach($dashboardYears as $year)<option value="{{ $year }}" @selected($selectedDashboardYear === $year)>{{ $year }}</option>@endforeach
