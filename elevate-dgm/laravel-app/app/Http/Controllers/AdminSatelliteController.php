@@ -358,6 +358,9 @@ class AdminSatelliteController extends Controller
         $allMembersQuery = $archivedView ? $satellite->archivedMembers() : $satellite->members();
         $memberTabCounts = $satellite->allMembers()
             ->selectRaw('SUM(CASE WHEN members.archived_at IS NULL AND (members.status IS NULL OR members.status != ?) THEN 1 ELSE 0 END) as active_count', [Member::STATUS_INACTIVE])
+            ->selectRaw('SUM(CASE WHEN members.archived_at IS NULL AND (members.status IS NULL OR members.status != ?) AND members.dgroup_role = ? THEN 1 ELSE 0 END) as leaders_count', [Member::STATUS_INACTIVE, Member::ROLE_LEADER])
+            ->selectRaw('SUM(CASE WHEN members.archived_at IS NULL AND (members.status IS NULL OR members.status != ?) AND (members.dgroup_role IS NULL OR members.dgroup_role != ?) THEN 1 ELSE 0 END) as dgroup_members_count', [Member::STATUS_INACTIVE, Member::ROLE_LEADER])
+            ->selectRaw('SUM(CASE WHEN members.archived_at IS NULL AND members.status = ? THEN 1 ELSE 0 END) as new_members_count', [Member::STATUS_NEW])
             ->selectRaw('SUM(CASE WHEN members.archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived_count')
             ->first();
         $members = $this->filteredSatelliteMembersQuery($satellite, $filters, $archivedView)
@@ -385,6 +388,9 @@ class AdminSatelliteController extends Controller
             'membersShown' => $members->total(),
             'membersTotal' => (clone $allMembersQuery)->count(),
             'activeMembersTotal' => (int) ($memberTabCounts->active_count ?? 0),
+            'leadersTotal' => (int) ($memberTabCounts->leaders_count ?? 0),
+            'dgroupMembersTotal' => (int) ($memberTabCounts->dgroup_members_count ?? 0),
+            'newMembersTotal' => (int) ($memberTabCounts->new_members_count ?? 0),
             'archivedMembersTotal' => (int) ($memberTabCounts->archived_count ?? 0),
             'archivedView' => $archivedView,
             'filters' => $filters,
@@ -407,7 +413,7 @@ class AdminSatelliteController extends Controller
 
     public function storeMember(Request $request, Satellite $satellite): RedirectResponse
     {
-        $this->authorizeSatelliteMemberManagement($satellite);
+        $this->authorizeSatelliteMemberWrite($satellite);
 
         $member = Member::create($this->validatedMemberPayload($request, $satellite));
         return redirect()
@@ -494,7 +500,7 @@ class AdminSatelliteController extends Controller
 
     public function previewMemberImport(Request $request, Satellite $satellite): RedirectResponse
     {
-        $this->authorizeSatelliteMemberManagement($satellite);
+        $this->authorizeSatelliteMemberWrite($satellite);
 
         $validator = Validator::make($request->all(), [
             'member_sheet' => [
@@ -539,7 +545,7 @@ class AdminSatelliteController extends Controller
 
     public function importMembers(Satellite $satellite): RedirectResponse
     {
-        $this->authorizeSatelliteMemberManagement($satellite);
+        $this->authorizeSatelliteMemberWrite($satellite);
 
         $rows = session($this->memberImportSessionKey($satellite), []);
 
@@ -577,7 +583,7 @@ class AdminSatelliteController extends Controller
 
     public function memberImportTemplate(Satellite $satellite)
     {
-        $this->authorizeSatelliteMemberManagement($satellite);
+        $this->authorizeSatelliteMemberWrite($satellite);
 
         $filename = Str::slug($satellite->display_name).'-members-import-template.csv';
 
@@ -622,6 +628,16 @@ class AdminSatelliteController extends Controller
         if ($member !== null) {
             abort_unless((int) $member->satellite_id === (int) $satellite->id, 404);
         }
+    }
+
+    private function authorizeSatelliteMemberWrite(Satellite $satellite): void
+    {
+        $user = Auth::user();
+
+        abort_unless(
+            $user instanceof User && ($user->canManageSatellite($satellite) || $user->canUpdateSatelliteMembers($satellite)),
+            403
+        );
     }
 
     private function authorizeSatelliteMemberUpdate(Satellite $satellite, Member $member): void
@@ -761,11 +777,13 @@ class AdminSatelliteController extends Controller
 
     private function memberFilters(Request $request): array
     {
+        $dgroupRole = (string) $request->query('dgroup_role', $request->query('role', ''));
+
         return [
             'view' => $request->query('view') === 'archived' ? 'archived' : 'active',
             'search' => trim((string) $request->query('search', '')),
             'status' => (string) $request->query('status', ''),
-            'dgroup_role' => (string) $request->query('dgroup_role', ''),
+            'dgroup_role' => $dgroupRole,
             'campus_school' => trim((string) $request->query('campus_school', '')),
             'district' => trim((string) $request->query('district', '')),
             'area' => trim((string) $request->query('area', '')),

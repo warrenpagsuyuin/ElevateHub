@@ -171,7 +171,7 @@ Route::get('/satellites/{satellite}/members/{member}', [AdminSatelliteController
     ->middleware(['auth', 'satellite.access:members-view'])
     ->name('satellites.members.show');
 Route::post('/satellites/{satellite}/members', [AdminSatelliteController::class, 'storeMember'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:member-update'])
     ->name('satellites.members.store');
 Route::patch('/satellites/{satellite}/members/{member}', [AdminSatelliteController::class, 'updateMember'])
     ->middleware(['auth', 'satellite.access:member-update'])
@@ -183,13 +183,13 @@ Route::delete('/satellites/{satellite}/members/{member}', [AdminSatelliteControl
     ->middleware(['auth', 'satellite.access:manage'])
     ->name('satellites.members.destroy');
 Route::post('/satellites/{satellite}/members/import-preview', [AdminSatelliteController::class, 'previewMemberImport'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:member-update'])
     ->name('satellites.members.import-preview');
 Route::post('/satellites/{satellite}/members/import', [AdminSatelliteController::class, 'importMembers'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:member-update'])
     ->name('satellites.members.import');
 Route::get('/satellites/{satellite}/members/import-template', [AdminSatelliteController::class, 'memberImportTemplate'])
-    ->middleware(['auth', 'satellite.access:manage'])
+    ->middleware(['auth', 'satellite.access:member-update'])
     ->name('satellites.members.import-template');
 
 Route::get('/satellites/{satellite}/seekers', [SatelliteSeekerController::class, 'index'])

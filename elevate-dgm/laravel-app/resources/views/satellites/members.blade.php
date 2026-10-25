@@ -108,11 +108,20 @@
         .sort-mark { width: 11px; height: 11px; color: #b9c0cc; }
         .sort-mark.up, .sort-mark.down { color: var(--brand-red); }
         .member-name-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .member-name-stack { display: flex; flex-direction: column; min-width: 0; }
         .member-name-text { display: inline-block; max-width: 290px; overflow: hidden; color: var(--ink); font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+        .member-submeta { display: block; margin-top: 2px; max-width: 290px; overflow: hidden; color: #667085; font-size: 12px; font-weight: 650; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
         .member-details-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #98a2b3; cursor: pointer; transition: color 0.15s ease, background 0.15s ease; }
         .member-details-button:hover, .member-details-button:focus-visible { background: var(--brand-red-soft); color: var(--brand-red); outline: none; }
         .member-details-button:focus-visible { box-shadow: 0 0 0 3px rgba(227, 60, 36, 0.16); }
         .member-eye-icon { width: 17px; height: 17px; }
+        .members-stat-card { position: relative; text-decoration: none; cursor: pointer; }
+        .members-stat-card:hover { border-color: var(--stat-card-border-hover, #3A3A3A) !important; border-top-color: var(--stat-card-accent, #450d07) !important; }
+        .members-stat-card.is-active { border-color: var(--stat-card-focus, #FF5A4D) !important; border-top-color: var(--stat-card-accent, #450d07) !important; }
+        .members-stat-card .stat-card-value-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-width: 0; }
+        .members-stat-card .card-chevron { flex-shrink: 0; color: var(--stat-card-chevron, #B8B8B8); font-size: 20px; line-height: 1; transition: color 0.15s ease; }
+        .members-stat-card:hover .card-chevron, .members-stat-card.is-active .card-chevron { color: var(--stat-card-chevron-hover, #F2F2F2); }
+        .leader-load-pill { display: inline-flex; align-items: center; min-height: 25px; padding: 0 10px; border-radius: 999px; background: #fff1ee; color: #c92f1b; font-size: 12px; font-weight: 850; white-space: nowrap; }
         .status-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 62px; height: 27px; padding: 0 12px; border-radius: 999px; font-size: 12px; line-height: 1; font-weight: 900; }
         .status-active { background: var(--green-bg); color: var(--green-text); }
         .status-new { background: var(--blue-bg); color: var(--blue-text); }
@@ -132,11 +141,11 @@
         .row-action-button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #667085; cursor: pointer; }
         .row-action-button svg { width: 18px; height: 18px; }
         .row-action-button:hover, .row-action-button:focus-visible { border-color: var(--line); background: #fff; color: var(--brand-red); outline: none; }
-        .action-menu-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; display: none; min-width: 170px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18); }
+        .action-menu-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; display: none; min-width: 196px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18); }
         .action-menu.open .action-menu-panel { display: block; }
-        .action-menu-panel button { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: transparent; color: #344054; padding: 11px 13px; font-size: 13px; font-weight: 850; text-align: left; cursor: pointer; }
-        .action-menu-panel button svg { width: 15px; height: 15px; }
-        .action-menu-panel button:hover, .action-menu-panel button:focus-visible { background: #fff7f5; color: var(--brand-red); outline: none; }
+        .action-menu-panel button, .action-menu-panel a { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: transparent; color: #344054; padding: 11px 13px; font-size: 13px; font-weight: 850; text-align: left; text-decoration: none; cursor: pointer; box-sizing: border-box; }
+        .action-menu-panel button svg, .action-menu-panel a svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .action-menu-panel button:hover, .action-menu-panel button:focus-visible, .action-menu-panel a:hover, .action-menu-panel a:focus-visible { background: #fff7f5; color: var(--brand-red); outline: none; }
         .action-menu-panel .danger-action { color: #b42318; }
         .empty-state { padding: 54px 24px; text-align: center; }
         .empty-state h3 { margin: 0 0 8px; color: var(--ink); font-size: 20px; font-weight: 900; }
@@ -218,6 +227,50 @@
 @endpush
 
 @section('content')
+@php
+    $memberSummaryCards = [
+        [
+            'label' => 'Active Members',
+            'active' => ! $archivedView && ($filters['dgroup_role'] ?? '') === '' && ($filters['status'] ?? '') === '',
+            'url' => route('satellites.members', array_filter([
+                'satellite' => $satellite,
+                'search' => $filters['search'] ?: null,
+                'sort' => $sort !== 'name' ? $sort : null,
+                'direction' => $direction !== 'asc' ? $direction : null,
+                'per_page' => $perPage !== 10 ? $perPage : null,
+            ])),
+            'value' => $activeMembersTotal ?? 0,
+            'isFilter' => false,
+        ],
+        [
+            'label' => 'Dgroup Leaders',
+            'active' => ! $archivedView && ($filters['dgroup_role'] ?? '') === 'Dgroup Leader',
+            'url' => ($filters['dgroup_role'] ?? '') === 'Dgroup Leader'
+                ? route('satellites.members', array_filter(['satellite' => $satellite, 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null]))
+                : route('satellites.members', array_filter(['satellite' => $satellite, 'dgroup_role' => 'Dgroup Leader', 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null])),
+            'value' => $leadersTotal ?? 0,
+            'isFilter' => true,
+        ],
+        [
+            'label' => 'Dgroup Members',
+            'active' => ! $archivedView && ($filters['dgroup_role'] ?? '') === 'Member',
+            'url' => ($filters['dgroup_role'] ?? '') === 'Member'
+                ? route('satellites.members', array_filter(['satellite' => $satellite, 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null]))
+                : route('satellites.members', array_filter(['satellite' => $satellite, 'dgroup_role' => 'Member', 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null])),
+            'value' => $dgroupMembersTotal ?? 0,
+            'isFilter' => true,
+        ],
+        [
+            'label' => 'New Members',
+            'active' => ! $archivedView && ($filters['status'] ?? '') === 'New',
+            'url' => ($filters['status'] ?? '') === 'New'
+                ? route('satellites.members', array_filter(['satellite' => $satellite, 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null]))
+                : route('satellites.members', array_filter(['satellite' => $satellite, 'status' => 'New', 'search' => $filters['search'] ?: null, 'per_page' => $perPage !== 10 ? $perPage : null])),
+            'value' => $newMembersTotal ?? 0,
+            'isFilter' => true,
+        ],
+    ];
+@endphp
 <header class="page-header">
             <div class="page-title">
                 @if (auth()->user()->normalizedRole() === 'admin')
@@ -250,6 +303,31 @@
             </div>
             @endif
         </header>
+
+        <div class="stats-grid" style="margin-bottom: 22px;">
+            @foreach ($memberSummaryCards as $card)
+                @php
+                    $formattedValue = number_format((int) $card['value']);
+                @endphp
+                <a
+                    href="{{ $card['url'] }}"
+                    aria-label="Filter by {{ $card['label'] }}: {{ $formattedValue }}"
+                    @class([
+                        'stat-card',
+                        'elevate-stat-card',
+                        'stat-card-link',
+                        'members-stat-card',
+                        'is-active' => $card['active'],
+                    ])
+                >
+                    <span class="stat-label stat-card-label">{{ $card['label'] }}</span>
+                    <div class="stat-card-value-row">
+                        <strong class="stat-value stat-card-value">{{ $formattedValue }}</strong>
+                        <span class="card-chevron" aria-hidden="true">{{ $card['active'] && $card['isFilter'] ? '✕' : '›' }}</span>
+                    </div>
+                </a>
+            @endforeach
+        </div>
 
         <x-status-tabs :current="$archivedView ? 'archived' : 'active'" :tabs="[
             ['key' => 'active', 'label' => 'Active', 'count' => $activeMembersTotal, 'url' => $viewUrl('active')],
@@ -415,7 +493,12 @@
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
                                         </button>
-                                        <span class="member-name-text">{{ $member->display_name }}</span>
+                                        <div class="member-name-stack">
+                                            <span class="member-name-text">{{ $member->display_name }}</span>
+                                            @if ($member->email_address || $member->area)
+                                                <span class="member-submeta">{{ collect([$member->email_address, $member->area])->filter()->implode(' · ') }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td>{{ $member->display_role }}</td>
@@ -427,6 +510,18 @@
                                         {{ $member->dgroup_leader_name }} (archived)
                                     @elseif ($member->dgroup_leader_name)
                                         {{ $member->dgroup_leader_name }}
+                                    @elseif ($member->dgroup_role === 'Dgroup Leader')
+                                        @php
+                                            $dgroupsLed = (int) ($member->weekly_dgroups_led ?? 0);
+                                            $activeDisciples = (int) ($member->active_disciples ?? 0);
+                                        @endphp
+                                        @if ($dgroupsLed > 0 || $activeDisciples > 0)
+                                            <span class="leader-load-pill">
+                                                Leads {{ $dgroupsLed }} {{ \Illuminate\Support\Str::plural('Dgroup', $dgroupsLed) }} &middot; {{ $activeDisciples }} {{ \Illuminate\Support\Str::plural('Disciple', $activeDisciples) }}
+                                            </span>
+                                        @else
+                                            <span class="leader-load-pill">Primary Dgroup Leader</span>
+                                        @endif
                                     @else
                                         <span class="leader-empty">-</span>
                                     @endif
@@ -450,6 +545,19 @@
                                                 </svg>
                                                 View Details
                                             </button>
+                                            <a href="{{ route('satellites.engagement.show', [$satellite, $member]) }}">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M3 3v18h18" />
+                                                    <path d="m19 9-5 5-4-4-3 3" />
+                                                </svg>
+                                                View Engagement
+                                            </a>
+                                            <a href="{{ route('satellites.follow-ups.index', [$satellite, 'search' => $member->display_name]) }}">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                                </svg>
+                                                Follow-Up History
+                                            </a>
                                             @if ($canUpdateMembers)
                                             <button type="button" data-open-member-edit data-member-edit='{!! $memberFormJson !!}' data-member-update-url="{{ $updateUrl }}" aria-label="Edit member {{ $member->display_name }}">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -481,7 +589,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $archivedView ? 8 : 7 }}">
+                                <td colspan="{{ $archivedView ? 7 : 6 }}">
                                     <div class="empty-state">
                                         @if ($membersTotal === 0)
                                             <h3>{{ $archivedView ? 'No archived members in this satellite.' : 'No members in this satellite yet.' }}</h3>

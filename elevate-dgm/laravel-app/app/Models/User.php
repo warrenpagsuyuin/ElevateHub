@@ -23,6 +23,7 @@ class User extends Authenticatable
         'satellite',
         'satellite_user',
         'staff',
+        'volunteer',
     ];
 
     /**
