@@ -89,12 +89,18 @@ class AdminSatelliteController extends Controller
         'Month',
     ];
 
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
+        $period = app(\App\Services\SatelliteDashboardPeriod::class)->resolveAdminSatellites($request);
+        $periodValues = app(\App\Services\AdminSatellitesPeriodData::class)->resolve($period);
+        $isLive = $period['isLiveDashboard'];
+        $month = $period['selectedDashboardMonth'];
+        $year = $period['selectedDashboardYear'];
+        $periodLabel = $isLive ? 'Live' : $month.' '.$year;
+
         $filters = $this->filters($request);
         [$sort, $direction] = $this->sort($request);
         $perPage = $this->perPage($request);
-        $counts = Satellite::dashboardCounts();
         $tabCounts = Satellite::withoutGlobalScope('active')
             ->selectRaw('SUM(CASE WHEN archived_at IS NULL THEN 1 ELSE 0 END) as active_count')
             ->selectRaw('SUM(CASE WHEN archived_at IS NOT NULL THEN 1 ELSE 0 END) as archived_count')
@@ -108,7 +114,7 @@ class AdminSatelliteController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.satellites', [
+        $viewData = array_merge($period, [
             'archivedView' => $request->query('view') === 'archived',
             'statusTabCounts' => [
                 'active' => (int) ($tabCounts->active_count ?? 0),
@@ -122,11 +128,29 @@ class AdminSatelliteController extends Controller
             'direction' => $direction,
             'pageSizes' => self::PAGE_SIZES,
             'perPage' => $perPage,
-            'totalSatellites' => $counts['totalSatellites'],
-            'activeLeaders' => $counts['activeLeaders'],
-            'activeMembers' => $counts['activeMembers'],
-            'openReports' => $counts['openReports'],
+            'totalSatellites' => $periodValues['counts']['totalSatellites'],
+            'activeLeaders' => $periodValues['counts']['activeLeaders'],
+            'activeMembers' => $periodValues['counts']['activeMembers'],
+            'openReports' => $periodValues['counts']['openReports'],
+            'periodValues' => $periodValues,
+            'periodLabel' => $periodLabel,
+            'periodFormAction' => route('admin.satellites'),
         ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'html' => view('admin.satellites-content', $viewData)->render(),
+                'controls' => view('components.satellite-period-controls', $viewData)->render(),
+                'updatedAt' => $period['dashboardUpdatedAt'],
+                'selectedMonth' => $month,
+                'selectedYear' => $year,
+                'date' => $period['dashboardDate'],
+                'year' => $period['dashboardCurrentYear'],
+                'month' => $period['dashboardCurrentMonth'],
+            ])->header('Cache-Control', 'no-store, private');
+        }
+
+        return view('admin.satellites', $viewData);
     }
 
     public function store(Request $request): RedirectResponse
@@ -181,31 +205,46 @@ class AdminSatelliteController extends Controller
 
     public function export(Request $request)
     {
+        $period = app(\App\Services\SatelliteDashboardPeriod::class)->resolveAdminSatellites($request);
+        $periodValues = app(\App\Services\AdminSatellitesPeriodData::class)->resolve($period);
+        $periodLabel = $period['isLiveDashboard'] ? 'Live' : $period['selectedDashboardMonth'].' '.$period['selectedDashboardYear'];
+        $archived = $request->query('view') === 'archived';
         $filters = $this->filters($request);
         [$sort, $direction] = $this->sort($request);
-        $filename = 'satellites-'.now()->format('Ymd-His').'.csv';
+        $filename = 'satellites-'.($period['isLiveDashboard'] ? 'live' : strtolower($period['selectedDashboardMonth']).'-'.$period['selectedDashboardYear']).'-'.now()->format('Ymd-His').'.csv';
 
-        $query = $this->filteredSatellitesQuery($filters)
+        $query = $this->filteredSatellitesQuery($filters, $archived)
             ->orderBy(self::SORTS[$sort], $direction)
             ->orderBy('id');
 
-        return response()->streamDownload(function () use ($query): void {
+        return response()->streamDownload(function () use ($query, $period, $periodValues, $periodLabel): void {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Satellite', 'Hub', 'Assigned Users', 'Leaders', 'Members', 'Seekers', 'New Members']);
+            fputcsv($handle, ['Satellite', 'Hub', 'Assigned Users', 'Leaders', 'Members', 'Seekers', 'New Members', 'Period']);
 
-            $query->chunk(500, function ($satellites) use ($handle): void {
+            $query->chunk(500, function ($satellites) use ($handle, $period, $periodValues, $periodLabel): void {
                 foreach ($satellites as $satellite) {
+                    $rowValues = $periodValues['rows'][$satellite->id] ?? null;
+                    $leaders = $period['isLiveDashboard']
+                        ? $satellite->leaders_count
+                        : ($rowValues['leaders'] === null ? 'No data for '.$period['selectedDashboardMonth'].' '.$period['selectedDashboardYear'] : $rowValues['leaders']);
+                    $members = $period['isLiveDashboard']
+                        ? $satellite->members_count
+                        : ($rowValues['members'] === null ? 'No data for '.$period['selectedDashboardMonth'].' '.$period['selectedDashboardYear'] : $rowValues['members']);
+
                     fputcsv($handle, [
                         $satellite->display_name,
                         $satellite->hub,
                         $satellite->assignedUsers->pluck('name')->implode(', ') ?: 'Unassigned',
-                        $satellite->leaders_count,
-                        $satellite->members_count,
+                        $leaders,
+                        $members,
                         $satellite->seekers_count,
                         $satellite->new_members_count,
+                        $periodLabel,
                     ]);
                 }
             });
+
+            fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
@@ -238,22 +277,71 @@ class AdminSatelliteController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    public function dashboard(Satellite $satellite): View
+    public function dashboard(Request $request, Satellite $satellite): View|JsonResponse
     {
         $user = Auth::user();
 
         abort_unless($user instanceof User && $user->canAccessSatellite($satellite), 403);
 
-        return view('satellites.dashboard', [
+        $period = app(\App\Services\SatelliteDashboardPeriod::class)->resolve($request, $satellite);
+        $isLive = $period['isLiveDashboard'];
+
+        if ($isLive) {
+            $summaryCards = $this->satelliteSummaryCards($satellite);
+            $engagementSummary = $this->engagementSummary($satellite);
+            $seekerSummary = $this->seekerSummary($satellite);
+            $recentActivity = $this->recentActivity($satellite);
+            $hasData = true;
+        } else {
+            $monthlyData = $this->satelliteMonthlyData($satellite, $period);
+            $summaryCards = $monthlyData['summaryCards'];
+            $engagementSummary = $monthlyData['engagementSummary'];
+            $seekerSummary = $monthlyData['seekerSummary'];
+            $recentActivity = $monthlyData['recentActivity'];
+            $hasData = $monthlyData['hasData'];
+        }
+
+        foreach ($summaryCards as $index => &$card) {
+            $card['href'] = match ($index) {
+                0 => route('satellites.members', $satellite),
+                1 => route('satellites.members', [$satellite, 'role' => Member::ROLE_LEADER]),
+                2 => route('satellites.seekers', $satellite),
+                3 => route('satellites.members', [$satellite, 'status' => Member::STATUS_NEW]),
+                default => '#',
+            };
+            if ($index === 3) {
+                $card['accessiblePeriod'] = $isLive
+                    ? 'currently marked New across all registrations'
+                    : "currently marked New among members registered in {$period['selectedDashboardMonth']} {$period['selectedDashboardYear']}";
+            }
+        }
+        unset($card);
+
+        $viewData = array_merge($period, [
             'satellite' => $satellite,
             'canManageSatellite' => $user->canManageSatellite($satellite),
-            'dashboardMonths' => self::DASHBOARD_MONTHS,
-            'selectedDashboardMonth' => now()->format('F'),
-            'satelliteSummaryCards' => $this->satelliteSummaryCards($satellite),
-            'engagementSummary' => $this->engagementSummary($satellite),
-            'seekerSummary' => $this->seekerSummary($satellite),
-            'recentActivity' => $this->recentActivity($satellite),
+            'satelliteSummaryCards' => $summaryCards,
+            'engagementSummary' => $engagementSummary,
+            'seekerSummary' => $seekerSummary,
+            'recentActivity' => $recentActivity,
+            'dashboardHasData' => $hasData,
         ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'html' => view('satellites.dashboard-content', $viewData)->render(),
+                'controls' => view('components.satellite-period-controls', $viewData)->render(),
+                'activities' => $recentActivity,
+                'updatedAt' => $period['dashboardUpdatedAt'],
+                'selectedMonth' => $period['selectedDashboardMonth'],
+                'selectedYear' => $period['selectedDashboardYear'],
+                'date' => $period['dashboardDate'],
+                'year' => $period['dashboardCurrentYear'],
+                'month' => $period['dashboardCurrentMonth'],
+            ])->header('Cache-Control', 'no-store, private');
+        }
+
+        return view('satellites.dashboard', $viewData);
     }
 
     public function members(Request $request, Satellite $satellite): View
@@ -1637,11 +1725,114 @@ class AdminSatelliteController extends Controller
                 return [
                     'target' => $target,
                     'status' => $followUp->status,
+                    'statusLabel' => 'Status',
                     'method' => $followUp->method,
                     'date' => $followUp->follow_up_date?->format('M d, Y') ?? $followUp->created_at?->format('M d, Y'),
                 ];
             })
             ->all();
+    }
+
+    private function satelliteMonthlyData(Satellite $satellite, array $period): array
+    {
+        $start = $period['dashboardStart'];
+        $end = $period['dashboardEnd'];
+        $localStart = $start->copy()->timezone(config('app.timezone'))->toDateString();
+        $localEnd = $end->copy()->timezone(config('app.timezone'))->toDateString();
+
+        $membersQuery = $satellite->members()
+            ->where('members.created_at', '>=', $start)
+            ->where('members.created_at', '<', $end);
+
+        $memberTotal = (clone $membersQuery)->count();
+        $leadersTotal = (clone $membersQuery)->where('dgroup_role', Member::ROLE_LEADER)->count();
+        $newMembersTotal = (clone $membersQuery)->where('status', Member::STATUS_NEW)->count();
+
+        $seekersQuery = $satellite->seekers()
+            ->where('created_at', '>=', $start)
+            ->where('created_at', '<', $end);
+
+        $pendingSeekers = (clone $seekersQuery)->whereNull('converted_member_id')->whereNull('archived_at')->where('status', Seeker::STATUS_PENDING)->count();
+        $underReviewSeekers = (clone $seekersQuery)->whereNull('converted_member_id')->whereNull('archived_at')->where('status', '!=', Seeker::STATUS_PENDING)->count();
+        $convertedSeekers = (clone $seekersQuery)->whereNotNull('converted_member_id')->count();
+        $seekersTotal = $pendingSeekers + $underReviewSeekers;
+
+        $summaryCards = [
+            ['label' => 'DGROUP MEMBERS', 'total' => $memberTotal],
+            ['label' => 'DGROUP LEADERS', 'total' => $leadersTotal],
+            ['label' => 'SEEKERS', 'total' => $seekersTotal],
+            ['label' => 'NEW MEMBERS', 'total' => $newMembersTotal],
+        ];
+
+        $classifiedCounts = EngagementResult::query()
+            ->whereIn('member_id', (clone $membersQuery)->select('members.id'))
+            ->selectRaw('classification, COUNT(*) as total')
+            ->groupBy('classification')
+            ->pluck('total', 'classification');
+        $classifiedTotal = (int) $classifiedCounts->sum();
+
+        $engagementSummary = [
+            [
+                'label' => 'Active',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_ACTIVE] ?? 0) + ($classifiedCounts['High'] ?? 0)),
+            ],
+            [
+                'label' => 'Moderately Active',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_MODERATELY_ACTIVE] ?? 0) + ($classifiedCounts['Medium'] ?? 0)),
+            ],
+            [
+                'label' => 'Possible Need for Follow-Up',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_NEEDS_FOLLOW_UP] ?? 0) + ($classifiedCounts['Low'] ?? 0)),
+            ],
+            [
+                'label' => 'Insufficient Information / Not Yet Classified',
+                'value' => (int) (($classifiedCounts[EngagementClassificationService::CLASSIFICATION_INSUFFICIENT] ?? 0) + ($classifiedCounts['Inactive'] ?? 0) + max(0, $memberTotal - $classifiedTotal)),
+            ],
+        ];
+
+        $seekerSummary = [
+            ['label' => 'Pending', 'value' => $pendingSeekers],
+            ['label' => 'Under Review', 'value' => $underReviewSeekers],
+            ['label' => 'Converted', 'value' => $convertedSeekers],
+        ];
+
+        $activityQuery = FollowUp::query()
+            ->where('satellite_id', $satellite->id)
+            ->where(function ($query) use ($start, $end, $localStart, $localEnd): void {
+                $query->where(fn ($dated) => $dated->whereNotNull('follow_up_date')->whereDate('follow_up_date', '>=', $localStart)->whereDate('follow_up_date', '<', $localEnd))
+                    ->orWhere(fn ($undated) => $undated->whereNull('follow_up_date')->where('created_at', '>=', $start)->where('created_at', '<', $end));
+            })
+            ->with(['member', 'seeker'])
+            ->latest('follow_up_date')
+            ->latest('created_at');
+
+        $recentActivity = (clone $activityQuery)
+            ->limit(5)
+            ->get()
+            ->map(function (FollowUp $followUp): array {
+                $target = $followUp->member?->display_name
+                    ?? $followUp->seeker?->name
+                    ?? 'Unassigned target';
+
+                return [
+                    'target' => $target,
+                    'status' => $followUp->status,
+                    'statusLabel' => 'Status',
+                    'method' => $followUp->method,
+                    'date' => $followUp->follow_up_date?->format('M d, Y') ?? $followUp->created_at?->format('M d, Y'),
+                ];
+            })
+            ->all();
+
+        $hasData = ($memberTotal > 0) || ((clone $seekersQuery)->exists()) || ((clone $activityQuery)->exists());
+
+        return [
+            'summaryCards' => $summaryCards,
+            'engagementSummary' => $engagementSummary,
+            'seekerSummary' => $seekerSummary,
+            'recentActivity' => $recentActivity,
+            'hasData' => $hasData,
+        ];
     }
 
     private function filters(Request $request): array

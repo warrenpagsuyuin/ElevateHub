@@ -13,7 +13,7 @@ class DashboardController extends Controller
         $satellite = $user->satelliteForDistrict();
 
         if ($satellite) {
-            return redirect()->route('satellites.dashboard', $satellite);
+            return redirect()->route('satellites.dashboard', [$satellite, 'month' => 'Live', 'year' => now(config('app.timezone'))->year]);
         }
 
         return match ($role) {
