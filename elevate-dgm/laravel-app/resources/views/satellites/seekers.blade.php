@@ -47,7 +47,8 @@
         .seekers-table tbody tr:last-child td { border-bottom: none; }
         .seekers-table tbody tr:hover { background: #fff9f7; }
         .seeker-name { color: var(--ink); font-weight: 900; }
-        .seeker-submeta { display: block; margin-top: 3px; padding-left: 28px; color: #667085; font-size: 12.5px; font-weight: 600; }
+        .seeker-name-stack { display: flex; flex-direction: column; min-width: 0; }
+        .seeker-submeta { display: block; margin-top: 2px; color: #667085; font-size: 12.5px; font-weight: 600; line-height: 1.3; }
         .seeker-contact-sub { display: block; margin-top: 3px; color: #667085; font-size: 12.5px; font-weight: 600; }
         .leader-button { min-height: var(--ui-target); border: 1px solid #f0b4a8; border-radius: 8px; padding: 0 12px; background: #fff; color: var(--ui-text); font-size: 13px; font-weight: 900; cursor: pointer; }
         .leader-button:hover, .leader-button:focus-visible { background: var(--brand-red-soft); border-color: var(--brand-red); outline: none; }
@@ -263,11 +264,13 @@
                                                 <circle cx="12" cy="12" r="3"></circle>
                                             </svg>
                                         </button>
-                                        <span class="seeker-detail-name">{{ $seeker->name }}</span>
+                                        <div class="seeker-name-stack">
+                                            <span class="seeker-detail-name">{{ $seeker->name }}</span>
+                                            @if ($seeker->school)
+                                                <span class="seeker-submeta">{{ $seeker->school }}</span>
+                                            @endif
+                                        </div>
                                     </div>
-                                    @if ($seeker->school)
-                                        <span class="seeker-submeta">{{ $seeker->school }}</span>
-                                    @endif
                                 </td>
                                 <td>
                                     <span>{{ $seeker->email }}</span>
