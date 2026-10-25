@@ -132,7 +132,8 @@ class FollowUpSentimentTest extends TestCase
             ->get(route('satellites.follow-ups.index', [$satellite, 'sentiment' => FollowUp::SENTIMENT_NEGATIVE]))
             ->assertOk()
             ->assertDontSee('Sentiment Trends')
-            ->assertSee('Why this sentiment?')
+            ->assertDontSee('Why this sentiment?')
+            ->assertSee('<details class="sentiment-result"', false)
             ->assertViewHas('sentimentSummary', fn ($summary) => ! array_key_exists('trend', $summary) && $summary['counts']['Positive'] === 1 && $summary['counts']['Negative'] === 1)
             ->assertSee('No response and not interested')
             ->assertDontSee('Encouraged and interested');
