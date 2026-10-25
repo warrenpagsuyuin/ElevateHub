@@ -3,8 +3,8 @@
     --signout-bg: var(--btn-dark-bg);
     --signout-bg-hover: var(--btn-dark-hover);
     --signout-bg-active: var(--btn-dark-active);
-    --signout-border: var(--ui-primary);
-    --signout-border-hover: var(--ui-primary-hover);
+    --signout-border: var(--ui-border-red);
+    --signout-border-hover: var(--signout-border);
     --signout-text: var(--ui-surface);
     --signout-focus: var(--stat-card-focus);
 }
