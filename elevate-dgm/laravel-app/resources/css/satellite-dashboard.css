@@ -6,7 +6,7 @@
     --select-option-selected-bg: #F1F1F1;
     --select-option-selected-text: #111111;
     --select-option-disabled-text: #8A8F9A;
-    --select-focus: #FF5A4D;
+    --select-focus: var(--ui-focus);
     --live-dot: #B42318;
     --live-dot-halo: rgba(180,35,24,.35);
     --panel-row-bg: #f3f4f6;

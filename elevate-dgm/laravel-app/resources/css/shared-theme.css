@@ -29,7 +29,7 @@
     --stat-card-value: #F2F2F2;
     --stat-card-chevron: var(--stat-card-label);
     --stat-card-chevron-hover: var(--stat-card-value);
-    --stat-card-focus: #FF5A4D;
+    --stat-card-focus: var(--ui-text);
     --stat-card-radius: 16px;
     --stat-card-padding: 18px 22px;
     --stat-card-accent-width: 4px;
@@ -330,12 +330,12 @@ a.elevate-stat-card, .elevate-stat-card a { color: var(--stat-card-value); text-
 .pagination-bar .pagination-link:hover {
     background: var(--table-bar-button-hover);
     color: var(--table-bar-button-text);
-    border-color: var(--ui-border-red, #450d07);
+    border-color: var(--ui-focus);
 }
 .pagination-bar .pagination-current {
     background: var(--table-bar-bg);
     color: var(--table-bar-text);
-    border: 2px solid var(--ui-border-red, #450d07);
+    border: 2px solid var(--ui-focus);
     text-decoration: underline;
     text-underline-offset: 4px;
 }
@@ -535,7 +535,7 @@ select option:disabled,
     #qc-finalize-submit
 ):not(.btn-archive):not([data-archive-submit]):not([role="menuitem"]):focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--btn-border-red, #450d07) !important;
+    box-shadow: 0 0 0 2px var(--ui-surface), 0 0 0 4px var(--ui-focus) !important;
 }
 
 :is(
@@ -615,7 +615,7 @@ select option:disabled,
     .button-danger
 ):not([role="menuitem"]):focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--btn-border-red, #450d07) !important;
+    box-shadow: 0 0 0 2px var(--ui-surface), 0 0 0 4px var(--ui-focus) !important;
 }
 
 :is(
@@ -679,7 +679,7 @@ select option:disabled,
     [data-archive-submit]
 ):not([role="menuitem"]):focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--stat-card-border) !important;
+    box-shadow: 0 0 0 2px var(--ui-surface), 0 0 0 4px var(--ui-focus) !important;
 }
 
 :is(
@@ -723,10 +723,21 @@ select option:disabled,
     background: var(--ui-primary-active) !important;
 }
 :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-    outline: 2px solid var(--stat-card-focus);
+    outline: 2px solid var(--ui-focus);
     outline-offset: 2px;
-    box-shadow: none;
+    box-shadow: 0 0 0 2px var(--ui-surface);
 }
+/* One neutral interaction highlight, including legacy page-local controls. */
+:root :is(input,select,textarea):focus {
+    border-color:var(--ui-focus) !important;
+    outline:2px solid var(--ui-focus) !important;
+    outline-offset:2px !important;
+    box-shadow:0 0 0 2px var(--ui-surface) !important;
+}
+:root :is(button,summary,[role="button"],.btn,.data-table-link-button):is(:hover,:focus-visible,[aria-pressed="true"],[aria-selected="true"]):not(:disabled):not([aria-disabled="true"]) { border-color:var(--ui-focus) !important; }
+:root :is(.btn-secondary,.button-secondary,.data-table-icon-button,.data-table-menu-button,.data-table-search-clear,.modal-close,.leader-modal-close,.member-details-button,.row-action-button,.leader-button,.leader-assigned,.history-button,.data-table-chip):is(:hover,:focus-visible) { background:var(--ui-page) !important; color:var(--ui-text) !important; border-color:var(--ui-focus) !important; }
+:root input:is([type="checkbox"],[type="radio"]) { accent-color:var(--ui-focus); }
+:root :is(.satisfaction-options input:checked+span,.data-table-column-toggle .data-table-column-checkbox:checked) { border-color:var(--ui-focus) !important; }
 @media (max-width: 560px) {
     :root { --stat-card-padding: 16px 18px; --stat-card-label-size: 13px; --stat-card-value-size: 32px; }
 }

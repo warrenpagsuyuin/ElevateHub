@@ -123,8 +123,8 @@
         }
 
         .input:focus {
-            border-color: #dc2626;
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+            border-color: var(--ui-focus);
+            box-shadow: 0 0 0 2px var(--ui-surface), 0 0 0 4px var(--ui-focus);
         }
 
         .input::placeholder {
@@ -176,7 +176,7 @@
         }
 
         .otp-digit:focus {
-            outline: 3px solid #b42318;
+            outline: 3px solid var(--ui-focus);
             outline-offset: 2px;
         }
 
@@ -295,7 +295,7 @@
 
         .primary-button:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--ui-border-red, #450d07);
+            box-shadow: 0 0 0 2px var(--ui-surface), 0 0 0 4px var(--ui-focus);
         }
 
         .switch-form {

@@ -23,9 +23,9 @@
 }
 .skip-link:focus { transform: translateY(0); }
 :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-    outline: 3px solid #1d4ed8 !important;
+    outline: 3px solid var(--ui-focus) !important;
     outline-offset: 3px !important;
-    box-shadow: 0 0 0 3px #ffffff !important;
+    box-shadow: 0 0 0 3px var(--ui-surface) !important;
 }
 :is(input:not([type="hidden"]), select, textarea) {
     border-color: #667085 !important;

@@ -278,8 +278,8 @@
         }
 
         .data-table-column-toggle .data-table-column-checkbox:checked {
-            border-color: #e33c24;
-            background-color: #e33c24;
+            border-color: var(--ui-focus);
+            background-color: var(--ui-focus);
             background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.2 6.6 11.3 12.8 4.7' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
         }
 
