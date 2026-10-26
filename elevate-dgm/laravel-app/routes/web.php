@@ -16,6 +16,17 @@ use App\Http\Controllers\SatelliteSeekerController;
 use App\Http\Controllers\SatelliteFollowUpController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/dev/mail/sign-in-code', function () {
+    abort_unless(app()->environment('local'), 404);
+
+    $html = (new \App\Mail\OtpMail('123456', '2026-10-26T09:32:04Z'))->render();
+    // Mailable::render() converts embedded images to data URIs for previews.
+    // Use the local asset here; actual outbound mail retains its MIME CID.
+    $html = preg_replace('/src="[^"]+"/', 'src="'.asset('images/email/elevate-logo.png').'"', $html);
+
+    return response($html)->header('Cache-Control', 'no-store');
+});
+
 // Retain old bookmarks; the report itself is available only through the CLI.
 Route::permanentRedirect('/admin/research/thesis-evidence', '/admin/analytics/sentiment');
 

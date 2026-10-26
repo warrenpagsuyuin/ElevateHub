@@ -4,7 +4,7 @@ Your sign-in code
 
 Hello,
 
-Enter this one-time code to sign in to Elevate:
+Enter this one-time code to sign in to Elevate.
 
 {{ $otp }}
 

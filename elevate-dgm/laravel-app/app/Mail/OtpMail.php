@@ -18,11 +18,9 @@ class OtpMail extends Mailable
     {
         $seconds = max(1, (int) config('otp.ttl_seconds', 300));
         $lifetime = $seconds % 60 === 0 ? ($seconds / 60).' '.($seconds === 60 ? 'minute' : 'minutes') : $seconds.' seconds';
-        $logo = (string) config('otp.logo_url', '');
 
         return $this->subject('Your Elevate sign-in code')->view('emails.otp')->text('emails.otp-text')->with([
             'lifetime' => $lifetime,
-            'logoUrl' => filter_var($logo, FILTER_VALIDATE_URL) && strtolower((string) parse_url($logo, PHP_URL_SCHEME)) === 'https' ? $logo : null,
         ]);
     }
 }
