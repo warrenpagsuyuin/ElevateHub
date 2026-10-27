@@ -1313,25 +1313,31 @@
         memberForm?.elements.dgroup_role?.addEventListener('change', updateLeaderFieldState);
         updateLeaderFieldState();
 
-        memberForm?.elements.birthdate?.addEventListener('change', () => {
+        const updateMemberAge = () => {
             const birthdate = memberForm.elements.birthdate.value;
             const ageField = memberForm.elements.age;
 
-            if (!birthdate || !ageField || ageField.value) return;
+            if (!ageField) return;
 
-            const birthday = new Date(`${birthdate}T00:00:00`);
+            if (!birthdate) {
+                ageField.value = '';
+                return;
+            }
+
+            const birthday = new Date(`${birthdate}T00:00:00Z`);
             const today = new Date();
-            let age = today.getFullYear() - birthday.getFullYear();
-            const monthDelta = today.getMonth() - birthday.getMonth();
+            let age = today.getFullYear() - birthday.getUTCFullYear();
+            const monthDelta = today.getMonth() - birthday.getUTCMonth();
 
-            if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthday.getDate())) {
+            if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthday.getUTCDate())) {
                 age--;
             }
 
-            if (Number.isFinite(age) && age >= 0) {
-                ageField.value = age;
-            }
-        });
+            ageField.value = Number.isFinite(age) && age >= 0 ? age : '';
+        };
+
+        memberForm?.elements.birthdate?.addEventListener('input', updateMemberAge);
+        memberForm?.elements.birthdate?.addEventListener('change', updateMemberAge);
 
         filterToggle?.addEventListener('click', () => {
             const shouldOpen = filterPanel.hidden;

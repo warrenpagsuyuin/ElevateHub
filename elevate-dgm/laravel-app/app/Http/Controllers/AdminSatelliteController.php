@@ -649,6 +649,11 @@ class AdminSatelliteController extends Controller
 
     private function validatedMemberPayload(Request $request, Satellite $satellite, ?Member $member = null): array
     {
+        $birthdate = $request->input('birthdate');
+        if (is_string($birthdate) && trim($birthdate) !== '') {
+            $request->merge(['age' => $this->ageFromBirthdate($birthdate)]);
+        }
+
         $validator = Validator::make($request->all(), $this->memberValidationRules($satellite, $member), [
             'email_address.email' => 'Please enter a valid email address.',
             'email_address.unique' => 'A member with this email already exists in this satellite.',
@@ -737,7 +742,7 @@ class AdminSatelliteController extends Controller
         $contactNumber = $this->nullableString($validated['contact_number'] ?? null);
         $age = $validated['age'] ?? null;
 
-        if (($age === null || $age === '') && ! empty($validated['birthdate'])) {
+        if (! empty($validated['birthdate'])) {
             $age = $this->ageFromBirthdate((string) $validated['birthdate']);
         }
 

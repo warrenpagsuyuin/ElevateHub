@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Member;
 use App\Models\Satellite;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -105,6 +106,37 @@ class MemberArchiveTest extends TestCase
 
         $this->assertNotNull($member->refresh()->archived_at);
         $this->assertSame(0, $satellite->refresh()->members_count);
+    }
+
+    public function test_member_age_is_recomputed_from_birthdate_even_if_an_age_was_submitted(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-27'));
+
+        try {
+            $admin = User::factory()->create(['role' => 'admin']);
+            $satellite = $this->satellite($admin);
+
+            $this->actingAs($admin)
+                ->post(route('satellites.members.store', $satellite), [
+                    'status' => Member::STATUS_ACTIVE,
+                    'dgroup_role' => Member::ROLE_MEMBER,
+                    'first_name' => 'Jamie',
+                    'last_name' => 'Test',
+                    'birthdate' => '2000-10-28',
+                    'age' => 2024,
+                    'district' => 'Pasig',
+                    'campus_school' => 'Pasig School',
+                ])
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('members', [
+                'first_name' => 'Jamie',
+                'birthdate' => '2000-10-28',
+                'age' => 25,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_archived_members_are_excluded_from_active_list_search_and_export(): void
